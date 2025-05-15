@@ -1,0 +1,116 @@
+/* MODAL */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    padding: 40px 60px;
+    border-radius: 16px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 400px;
+    max-width: 90%;
+    height: auto;
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+  
+  .modalContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .icone-sucesso {
+    font-size: 60px;
+    color: #28a745; /* Verde sucesso */
+    margin-bottom: 20px;
+  }
+  
+  .mensagem {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333333;
+    margin: 0;
+  }
+  
+  /* BOTÃO PARA ABRIR MODAL */
+  .botao-abrir {
+    margin-top: 40px;
+    padding: 10px 25px;
+    font-size: 18px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .botao-abrir:hover {
+    background-color: #218838;
+  }
+  
+  /* TÍTULO COM TOOLTIP */
+  .titulo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .titulo-principal {
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  
+  .tooltip-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .tooltip-icon {
+    font-size: 22px;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  
+  .tooltip-icon:hover {
+    color: #343a40;
+  }
+  
+  .tooltip-mensagem {
+    position: absolute;
+    top: 30px; /* Abaixo da interrogação */
+    left: 50%;
+    transform: translateX(-30%); /* Um pouco à direita */
+    background-color: #343a40;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    z-index: 1200;
+  }
+  

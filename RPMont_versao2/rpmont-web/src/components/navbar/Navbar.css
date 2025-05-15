@@ -1,0 +1,9 @@
+.navbar-logo {
+    height: 30px;
+}
+ 
+  /* Quando o link é da página ativa */
+  .active {
+    color: yellow !important;
+  }
+  

@@ -1,0 +1,66 @@
+.grafico-header {
+  display: flex;
+  flex-direction: row; /* <-- Altere para linha */
+  align-items: center;
+  justify-content: space-between; /* <-- Empurra os extremos */
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+
+/* Título e botão lado a lado centralizado */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.titulo-principal {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  text-align: center;
+  
+}
+
+.btn-imprimir {
+  white-space: nowrap;
+  font-size: 1rem;
+  padding: 6px 14px;
+}
+
+/* Filtro do mês centralizado */
+.filtro-mes {
+  gap: 0.5rem;
+}
+
+.filtro-mes label {
+  font-weight: bold;
+  color: #2723f1;
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+
+.filtro-mes select {
+  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;  
+}
+
+/* Gráfico */
+.chart-container {
+  height: 500px;
+  width: 100%;
+  background: linear-gradient(to bottom right, #ffffff, #f0f4f8);
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+}

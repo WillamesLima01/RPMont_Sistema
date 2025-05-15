@@ -1,0 +1,349 @@
+{
+  "equinos": [
+    {
+      "name": "Garoto",
+      "raca": "SRF",
+      "pelagem": "Castanho",
+      "numeroRegistro": "PMPB2025001",
+      "dataNascimento": "2000-10-01",
+      "status": "Ativo",
+      "sexo": "Macho",
+      "id": "1"
+    },
+    {
+      "name": "Habati",
+      "raca": "SRF",
+      "pelagem": "alazão",
+      "numeroRegistro": "PMPB202500245",
+      "dataNascimento": "2001-03-15",
+      "status": "Ativo",
+      "sexo": "Macho",
+      "id": "2"
+    },
+    {
+      "name": "Guria",
+      "raca": "SRF",
+      "pelagem": "Alazão",
+      "numeroRegistro": "PMPB2025003",
+      "dataNascimento": "2002-07-22",
+      "status": "Ativo",
+      "sexo": "Fêmea",
+      "id": "3"
+    },
+    {
+      "name": "Inca",
+      "raca": "SRF",
+      "pelagem": "Preto",
+      "numeroRegistro": "PMPB2025004",
+      "dataNascimento": "2003-01-10",
+      "status": "Ativo",
+      "sexo": "Fêmea",
+      "id": "4"
+    },
+    {
+      "id": "5",
+      "name": "Jamaica",
+      "raca": "SRF",
+      "pelagem": "Tordilho",
+      "numeroRegistro": "PMPB2025005",
+      "dataNascimento": "30-06-2004",
+      "status": "Ativo",
+      "sexo": "Fêmea"
+    },
+    {
+      "id": "6",
+      "name": "Huck",
+      "raca": "SRF",
+      "pelagem": "Castanho",
+      "numeroRegistro": "PMPB2025006",
+      "dataNascimento": "18-09-2005",
+      "status": "Ativo",
+      "sexo": "Macho"
+    },
+    {
+      "id": "7",
+      "name": "Holandes",
+      "raca": "SRF",
+      "pelagem": "Alazão",
+      "numeroRegistro": "PMPB2025007",
+      "dataNascimento": "11-11-2006",
+      "status": "Ativo",
+      "sexo": "Macho"
+    },
+    {
+      "id": "8",
+      "name": "Dara",
+      "raca": "SRF",
+      "pelagem": "Baio",
+      "numeroRegistro": "PMPB2025008",
+      "dataNascimento": "05-04-2007",
+      "status": "Ativo",
+      "sexo": "Fêmea"
+    },
+    {
+      "id": "9",
+      "name": "Gupiara",
+      "raca": "SRF",
+      "pelagem": "Preto",
+      "numeroRegistro": "PMPB2025009",
+      "dataNascimento": "17-12-2008",
+      "status": "Ativo",
+      "sexo": "Fêmea"
+    },
+    {
+      "id": "10",
+      "name": "Fosforita",
+      "raca": "SRF",
+      "pelagem": "Tordilho",
+      "numeroRegistro": "PMPB2025010",
+      "dataNascimento": "09-08-2009",
+      "status": "Ativo",
+      "sexo": "Fêmea"
+    },
+    {
+      "id": "11",
+      "name": "Pintado",
+      "raca": "SRD",
+      "pelagem": "Rosilho",
+      "numeroRegistro": "PMPB20250012",
+      "dataNascimento": "2010-10-10",
+      "status": "Ativo",
+      "sexo": "macho"
+    },
+    {
+      "id": "6d3e",
+      "name": "Gupiara",
+      "raca": "SRF",
+      "pelagem": "castanho escuro",
+      "numeroRegistro": "PMPB2025090098",
+      "dataNascimento": "2024-09-30",
+      "status": "Ativo",
+      "sexo": "Fêmea"
+    },
+    {
+      "id": "f167",
+      "name": "Gohan",
+      "raca": "SRF",
+      "pelagem": "alazão",
+      "numeroRegistro": "PMPB202500465",
+      "dataNascimento": "2025-05-15",
+      "status": "Baixado",
+      "sexo": "Macho"
+    },
+    {
+      "id": "75c2",
+      "name": "Heroína",
+      "raca": "SRF",
+      "pelagem": "Castanho",
+      "numeroRegistro": "PMPB2025001234001",
+      "dataNascimento": "2020-03-04",
+      "status": "Baixado",
+      "sexo": "Fêmea"
+    }
+  ],
+  "atendimentos": [
+    {
+      "idEquino": "7",
+      "textoConsulta": "Aplicação de vermefugo",
+      "data": "2025-05-02",
+      "id": "62d1"
+    },
+    {
+      "idEquino": "1",
+      "textoConsulta": "Aplicação de dipirona no soro para diminuir as dores causa pela lesão na posterior direita",
+      "data": "2025-04-01",
+      "id": "2fcd"
+    },
+    {
+      "id": "7c7f",
+      "idEquino": "1",
+      "textoConsulta": "Foi realizado serviço de casqueamento e aplicação de medicamento na posterior esquerda com cascozan e antibiótico para frieira e rachadura.",
+      "data": "2025-05-01"
+    },
+    {
+      "idEquino": "8",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-05-01",
+      "id": "342d"
+    },
+    {
+      "id": "8edc",
+      "idEquino": "1",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-04-01"
+    },
+    {
+      "id": "107b",
+      "idEquino": "7",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-05-01"
+    },
+    {
+      "id": "6a0d",
+      "idEquino": "10",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-05-01"
+    },
+    {
+      "id": "0712",
+      "idEquino": "11",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-03-01"
+    },
+    {
+      "id": "4e77",
+      "idEquino": "5",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-05-01"
+    },
+    {
+      "id": "b32b",
+      "idEquino": "4",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-03-01"
+    },
+    {
+      "id": "b547",
+      "idEquino": "6d3e",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-05-01"
+    },
+    {
+      "id": "bfe6",
+      "idEquino": "2",
+      "textoConsulta": "Realização de vermefugo",
+      "data": "2025-03-01"
+    },
+    {
+      "id": "1b70",
+      "idEquino": "1",
+      "textoConsulta": "Realizado exame de sangue",
+      "data": "2025-04-01"
+    },
+    {
+      "id": "0003",
+      "idEquino": "5",
+      "textoConsulta": "Feito o toalhete e aplicação de remédio para fugos",
+      "data": "2025-05-01"
+    },
+    {
+      "id": "4db1",
+      "idEquino": "f167",
+      "textoConsulta": "Foi aplicado antibiótico para fortes dores na coluna, e realizado o exame de raio x.",
+      "data": "2025-05-02"
+    },
+    {
+      "id": "adbf",
+      "idEquino": "75c2",
+      "textoConsulta": "Foi realizado curativo para cicatrização de ferida na sernelha.",
+      "data": "2025-05-02"
+    },
+    {
+      "idEquino": "2",
+      "textoConsulta": "Foi realizado curativo na orelha esquerda.",
+      "data": "2025-05-04",
+      "id": "1305"
+    }
+  ],
+  "escala": [
+    {
+      "id": "9cd8",
+      "idEquino": "2",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "CB Segundo",
+      "cargaHoraria": 6,
+      "data": "2025-05-02"
+    },
+    {
+      "idEquino": "3",
+      "localTrabalho": "cristo",
+      "jornadaTrabalho": "16:30h às 22:30h",
+      "cavaleiro": "CB Márcio Pereira",
+      "cargaHoraria": 6,
+      "data": "2025-05-11",
+      "id": "de9d"
+    },
+    {
+      "idEquino": "3",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "16:00h às 22:00h",
+      "cavaleiro": "SGT André",
+      "cargaHoraria": 6,
+      "data": "2025-03-11",
+      "id": "f5d8"
+    },
+    {
+      "id": "f98e",
+      "idEquino": "7",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 22:00h",
+      "cavaleiro": "SGT Júnior",
+      "cargaHoraria": 4,
+      "data": "2025-05-11"
+    },
+    {
+      "id": "f8c2",
+      "idEquino": "6d3e",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "SGT José Tiago",
+      "cargaHoraria": 6,
+      "data": "2025-05-11"
+    },
+    {
+      "id": "ff5c",
+      "idEquino": "1",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "SGT Lacerda",
+      "cargaHoraria": 6,
+      "data": "2025-05-11"
+    },
+    {
+      "id": "5df0",
+      "idEquino": "11",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "SGT Avelino",
+      "cargaHoraria": 6,
+      "data": "2025-05-11"
+    },
+    {
+      "id": "4eda",
+      "idEquino": "7",
+      "localTrabalho": "Cristo",
+      "jornadaTrabalho": "17:00h às 23:00h",
+      "cavaleiro": "SGT A Gomes",
+      "cargaHoraria": 6,
+      "data": "2025-05-11"
+    },
+    {
+      "id": "8d95",
+      "idEquino": "7",
+      "localTrabalho": "Campina Grande",
+      "jornadaTrabalho": "08:00h às 00:00h",
+      "cavaleiro": "CB Almir",
+      "cargaHoraria": 16,
+      "data": "2025-05-12"
+    },
+    {
+      "id": "7a02",
+      "idEquino": "6",
+      "localTrabalho": "Cristo",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "CB Segundo",
+      "cargaHoraria": 6,
+      "data": "2025-05-12"
+    },
+    {
+      "id": "8058",
+      "idEquino": "7",
+      "localTrabalho": "Cristo",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "CB Rodrigues",
+      "cargaHoraria": 6,
+      "data": "2025-05-12"
+    }
+  ]
+}
