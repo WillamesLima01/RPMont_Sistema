@@ -34,11 +34,14 @@ const Navbar = () => {
                             <Link to="/veterinariaList" className={`${isActive('/veterinariaList')} nav-link mt-1 me-4`} aria-current="page">Lista de Equinos</Link>
                         </li>
                         <li className="nav-item">
+                            <Link to="/veterinaria-Equinos-Baixados" className={`${isActive('/veterinaria-Equinos-Baixados')} nav-link mt-1 me-4`} aria-current="page">Equinos Baixados</Link>
+                        </li>
+                        <li className="nav-item">
                             <Link to="/escala-equinosList" className={`${isActive('/escala-equinosList')} nav-link mt-1 me-4`} aria-current="page">Consultar Escala Equinos</Link>
                         </li>
                         <li className="nav-item">
                             <Link to="/carga-horaria-equino" className={`${isActive('/carga-horaria-equino')} nav-link mt-1 me-4`} aria-current="page">Carga Horária Equinos</Link>
-                        </li>
+                        </li>                        
                     </ul>
 
                     <ul className="navbar-nav">

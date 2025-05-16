@@ -5,6 +5,7 @@ import 'anychart/dist/fonts/css/anychart-font.min.css';
 import Navbar from '../../components/navbar/Navbar';
 import axios from '../../api';
 import './GraficoCargaHorariaEquino.css';
+import { useNavigate } from 'react-router-dom';
 
 const mesesExtenso = {
   '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
@@ -17,6 +18,7 @@ const GraficoCargaHorariaEquino = () => {
   const chartInstanceRef = useRef(null);
   const [meses, setMeses] = useState([]);
   const [mesSelecionado, setMesSelecionado] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -78,18 +80,13 @@ const GraficoCargaHorariaEquino = () => {
       else if (total > 150 && total <= 180) cor = '#1e90ff';
       else if (total > 180) cor = '#dc3545';
 
-      return {
-        x: eq.name,
-        value: total,
-        fill: cor
-      };
+      return { x: eq.name, value: total, fill: cor };
     });
 
     const chart = anychart.column();
     chart.animation(true);
 
-    let ano = '', mesNum = '';
-    if (mes && mes.includes('-')) [ano, mesNum] = mes.split('-');
+    let [ano, mesNum] = mes.split('-');
     const nomeMes = mesesExtenso[mesNum] || mes;
 
     chart.title(`Carga Horária - ${nomeMes}`);
@@ -97,66 +94,40 @@ const GraficoCargaHorariaEquino = () => {
     const mapping = dataSet.mapAs({ x: 'x', value: 'value', fill: 'fill' });
     chart.column(mapping);
 
-    // Mostra os valores nos indicadores (barras)
-    chart.labels().enabled(true);
-    chart.labels().position('outside-top');
-    chart.labels().anchor('center-bottom');    
-    chart.labels().format('{%Value}h');
-
+    chart.labels().enabled(true).position('outside-top').anchor('center-bottom').format('{%Value}h');
     chart.yScale().minimum(0).maximum(180).ticks({ interval: 30 });
     chart.tooltip().positionMode('point').format('Carga Horária: {%Value}h');
     chart.interactivity().hoverMode('by-x');
     chart.yAxis().title('Horas (limite: 180h/mês)');
-    chart.xAxis().title('Equinos');
-    chart.xAxis().labels()
-      .enabled(true)
-      .rotation(-45)
-      .wordWrap('break-word');
+    chart.xAxis().title('Equinos').labels().enabled(true).rotation(-45).wordWrap('break-word');
     chart.palette(anychart.palettes.distinctColors);
-
     chart.background().fill('#f9f9fc');
     chart.container(chartRef.current);
     chart.draw();
-    
+
     chartInstanceRef.current = chart;
   };
 
   return (
     <div className="container-fluid mt-page">
       <Navbar />
-      <div className="inicial-container">
-  
-        {/* Cabeçalho com Título, Botões e Filtro de Mês */}
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-  
-          {/* Título */}
-          <div className="d-flex align-items-center flex-grow-1">
-            <h2 className="titulo-principal ms-4 me-4">Carga Horária dos Equinos</h2>
-          </div>
-  
-          {/* Botões de Ação */}
-          <div className="d-flex gap-2 me-4">
-            <button
-              className="btn btn-primary btn-imprimir ms-4 me-4"
-              onClick={() => chartInstanceRef.current?.print()}
-            >
+      <div className="carga-container">
+        <div className="cabecalho-carga d-flex align-items-center flex-wrap gap-3 mb-4">
+          <h2 className="titulo-principal flex-grow-1 mb-0">Carga Horária dos Equinos</h2>
+
+          <div className="d-flex gap-2 justify-content-center flex-grow-1">
+            <button className="btn btn-primary" onClick={() => chartInstanceRef.current?.print()}>
               Imprimir Gráfico
             </button>
-  
-            <button
-              className="btn btn-outline-secondary me-4"
-              onClick={() => {
-                if (chartInstanceRef.current) {
-                  chartInstanceRef.current.saveAsPdf();
-                }
-              }}
-            >
+            <button className="btn btn-outline-secondary" onClick={() => chartInstanceRef.current?.saveAsPdf()}>
               Gerar PDF
             </button>
+            <button className="btn btn-outline-success" onClick={() => chartInstanceRef.current?.saveAsPng()}>
+              Salvar PNG
+            </button>
           </div>
-  
-          {/* Filtro de Mês */}
-          <div className="d-flex align-items-center filtro-mes ms-4">
+
+          <div className="filtro-mes">
             <label className="form-label me-2 mb-0">Selecione o Mês:</label>
             <select
               className="form-select w-auto"
@@ -164,9 +135,8 @@ const GraficoCargaHorariaEquino = () => {
               onChange={(e) => setMesSelecionado(e.target.value)}
             >
               <option value="">Selecione o mês...</option>
-              {meses.map(mes => {
-                let ano = '', num = '';
-                if (mes && mes.includes('-')) [ano, num] = mes.split('-');
+              {meses.map((mes) => {
+                const [ano, num] = mes.split('-');
                 return (
                   <option key={mes} value={mes}>
                     {mesesExtenso[num]} de {ano}
@@ -176,14 +146,22 @@ const GraficoCargaHorariaEquino = () => {
             </select>
           </div>
         </div>
-  
-        {/* Gráfico */}
+
+        {/* Legenda de cores */}
+        <div className="legenda-carga mb-3">
+          <span className="badge" style={{ backgroundColor: '#5cb85c' }}>31-60h</span>
+          <span className="badge" style={{ backgroundColor: '#9370DB' }}>61-90h</span>
+          <span className="badge" style={{ backgroundColor: '#ffa500' }}>91-120h</span>
+          <span className="badge" style={{ backgroundColor: '#20c997' }}>121-150h</span>
+          <span className="badge" style={{ backgroundColor: '#1e90ff' }}>151-180h</span>
+          <span className="badge" style={{ backgroundColor: '#dc3545' }}>+180h</span>
+        </div>
+
         <div ref={chartRef} className="chart-container" />
+        
       </div>
     </div>
   );
-  
-  
 };
 
 export default GraficoCargaHorariaEquino;

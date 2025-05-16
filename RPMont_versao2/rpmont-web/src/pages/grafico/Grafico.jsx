@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import './Grafico.css';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import styles from './Grafico.module.css';
 import Navbar from '../../components/navbar/Navbar';
 import axios from '../../api';
 
@@ -37,8 +45,8 @@ const Grafico = () => {
         const atendimentos = resAtendimentos.data;
 
         setQtdEquinos(equinos.length);
-        setQtdAptos(equinos.filter(e => e.situacao === 'Ativo').length);
-        setQtdBaixados(equinos.filter(e => e.situacao === 'Baixado').length);
+        setQtdAptos(equinos.filter(e => e.status === 'Ativo').length);
+        setQtdBaixados(equinos.filter(e => e.status === 'Baixado').length);
         setQtdAtendimentos(atendimentos.length);
 
         const mapAtendimentos = {};
@@ -53,9 +61,8 @@ const Grafico = () => {
           const mesAno = at.data.slice(0, 7);
           if (mapAtendimentos[mesAno] !== undefined) {
             mapAtendimentos[mesAno]++;
-
             const equino = equinos.find(eq => eq.id === at.idEquino);
-            if (equino && equino.situacao === 'Baixado') {
+            if (equino && equino.status === 'Baixado') {
               mapBaixados[mesAno]++;
             }
           }
@@ -80,7 +87,7 @@ const Grafico = () => {
     },
   };
 
-  const vendasData = {
+  const atendimentosData = {
     labels: labelsMeses,
     datasets: [
       {
@@ -105,32 +112,32 @@ const Grafico = () => {
   };
 
   return (
-    <div className='container-fluid mt-page'>
+    <div className="container-fluid mt-page">
       <Navbar />
-      <div className="inicial-container">
-        <Link to="/listar-fornecedores" className="stat-box stat-box-blue">
+      <div className={styles['inicial-container']}>
+        <Link to="/veterinariaList" className={`${styles['stat-box']} ${styles['stat-box-blue']}`}>
           <h3>Equinos</h3>
           <p>{qtdEquinos}</p>
         </Link>
-        <Link to="/listar-clientes" className="stat-box stat-box-green">
+        <Link to="/veterinariaList" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
           <h3>Equinos Aptos</h3>
           <p>{qtdAptos}</p>
         </Link>
-        <Link to="/listar-produtos" className="stat-box stat-box-orange">
+        <Link to="/veterinaria-Equinos-Baixados" className={`${styles['stat-box']} ${styles['stat-box-orange']}`}>
           <h3>Equinos Baixados</h3>
           <p>{qtdBaixados}</p>
         </Link>
-        <Link to="/listar-produtos" className="stat-box stat-box-green">
+        <Link to="/atendimentoList" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
           <h3>Atendimentos</h3>
           <p>{qtdAtendimentos}</p>
         </Link>
 
-        <div className="charts-container">
-          <div className="chart">
+        <div className={styles['charts-container']}>
+          <div className={styles.chart}>
             <h3>Atendimentos (Últimos 3 meses)</h3>
-            <Bar data={vendasData} options={options} />
+            <Bar data={atendimentosData} options={options} />
           </div>
-          <div className="chart">
+          <div className={styles.chart}>
             <h3>Equinos Baixados (Últimos 3 meses)</h3>
             <Bar data={baixadosData} options={options} />
           </div>

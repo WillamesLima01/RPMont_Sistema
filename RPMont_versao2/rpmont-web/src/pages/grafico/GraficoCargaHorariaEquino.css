@@ -8,6 +8,13 @@
   margin-bottom: 2rem;
 }
 
+.inicial-container {  
+  background-color: #c5d8f5;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
 
 /* Título e botão lado a lado centralizado */
 .header-row {
@@ -34,9 +41,12 @@
   padding: 6px 14px;
 }
 
-/* Filtro do mês centralizado */
+/* Filtro do mês alinhado à direita e estilizado */
 .filtro-mes {
   gap: 0.5rem;
+  margin-left: auto; /* alinhamento à direita */
+  display: flex;
+  align-items: center;
 }
 
 .filtro-mes label {
@@ -46,13 +56,13 @@
   vertical-align: middle;
 }
 
-
 .filtro-mes select {
   font-size: 1rem;
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;  
+  border: 1px solid #ccc;
 }
+
 
 /* Gráfico */
 .chart-container {

@@ -57,7 +57,7 @@
       "pelagem": "Castanho",
       "numeroRegistro": "PMPB2025006",
       "dataNascimento": "18-09-2005",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Macho"
     },
     {
@@ -67,7 +67,7 @@
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025007",
       "dataNascimento": "11-11-2006",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Macho"
     },
     {
@@ -137,8 +137,34 @@
       "pelagem": "Castanho",
       "numeroRegistro": "PMPB2025001234001",
       "dataNascimento": "2020-03-04",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Fêmea"
+    }
+  ],
+  "equinosBaixados": [
+    {
+      "id": "e6c4",
+      "idEquino": "2",
+      "dataBaixa": "2025-05-15",
+      "dataRetorno": "2025-05-15"
+    },
+    {
+      "id": "98a5",
+      "idEquino": "7",
+      "dataBaixa": "2025-05-15",
+      "dataRetorno": null
+    },
+    {
+      "id": "f049",
+      "idEquino": "f167",
+      "dataBaixa": "2025-05-15",
+      "dataRetorno": null
+    },
+    {
+      "id": "05ef",
+      "idEquino": "6",
+      "dataBaixa": "2025-05-16",
+      "dataRetorno": null
     }
   ],
   "atendimentos": [

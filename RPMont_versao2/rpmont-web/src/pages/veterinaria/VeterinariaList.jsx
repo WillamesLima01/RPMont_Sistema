@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
 import axios from '../../api';
+import { useNavigate } from 'react-router-dom';
 
 Modal.setAppElement('#root');
 
@@ -12,12 +13,54 @@ const VeterinariaList = () => {
   const [equinos, setEquinos] = useState([]);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
+  const navigate = useNavigate();
+  const [modalBaixaAberto, setModalBaixaAberto] = useState(false);
+  const [modalConfirmarBaixa, setModalConfirmarBaixa] = useState(false);
+  const [equinoParaBaixar, setEquinoParaBaixar] = useState(null);
+
 
   useEffect(() => {
     axios.get('/equinos')
       .then(response => setEquinos(response.data))
       .catch(error => console.error("Ocorreu um erro: ", error));
   }, []);
+
+  // Função para baixar equino
+  const baixarEquino = async () => {
+    try {
+      if (!equinoParaBaixar) return;
+  
+      // Atualiza status do equino
+      await axios.patch(`/equinos/${equinoParaBaixar.id}`, { status: "Baixado" });
+  
+      // Cria novo registro na tabela equinosBaixados
+      const novaBaixa = {
+        idEquino: equinoParaBaixar.id,
+        dataBaixa: new Date().toISOString().slice(0, 10),
+        dataRetorno: null
+      };
+      await axios.post('/equinosBaixados', novaBaixa);
+  
+      // Fecha modal de confirmação
+      setModalConfirmarBaixa(false);
+      setEquinoParaBaixar(null);
+  
+      // Exibe modal de sucesso
+      setModalBaixaAberto(true);
+      setTimeout(() => {
+        setModalBaixaAberto(false);
+        navigate('/veterinaria-Equinos-Baixados');
+      }, 3000);
+    } catch (error) {
+      console.error("Erro ao baixar equino:", error);
+    }
+  };
+  
+  const confirmarBaixaEquino = (equino) => {
+    setEquinoParaBaixar(equino);
+    setModalConfirmarBaixa(true);
+  };
+  
 
   const confirmarExclusao = (equino) => {
     setEquinoSelecionado(equino);
@@ -94,9 +137,9 @@ const VeterinariaList = () => {
                     <i className="bi bi-trash"></i>
                   </button>
                   <div className='d-inline'>
-                    <Link to={`/atendimento/${equino.id}`} className="btn btn-sm btn-outline-info btn-tm align-items-center me-2" title="Atendimento">
-                      <i className="bi bi-clipboard2-pulse"></i>
-                    </Link>
+                    <button className="btn btn-sm btn-outline-warning me-2" title="Baixar equino" onClick={() => confirmarBaixaEquino(equino)}>
+                          <i className="bi bi-arrow-down-circle"></i>
+                    </button>                    
                     <div className='d-inline me-2'>
                       <Link to={`/escala-equinos/${equino.id}`} className="btn btn-sm btn-outline-success btn-tm" title="Escala">
                         <i className="bi bi-calendar4-week"></i>
@@ -125,6 +168,35 @@ const VeterinariaList = () => {
             <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
             <button className="btn btn-danger" onClick={excluirEquino}>Excluir</button>
           </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={modalConfirmarBaixa}
+        onRequestClose={() => setModalConfirmarBaixa(false)}
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <div className="modalContent text-center">
+          <FaExclamationTriangle className="icone-exclamacao text-warning mb-3" size={50} />
+          <h4 className="mensagem-azul">
+            Confirme a baixa do equino: <strong>{equinoParaBaixar?.name}</strong>
+          </h4>
+          <div className="d-flex justify-content-center gap-3 mt-4">
+            <button className="btn btn-outline-secondary" onClick={() => setModalConfirmarBaixa(false)}>Cancelar</button>
+            <button className="btn btn-success" onClick={baixarEquino}>Confirmar</button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={modalBaixaAberto}
+        onRequestClose={() => setModalBaixaAberto(false)}
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <div className="modalContent text-center">
+          <h4 className="text-success">✅ Baixa do equino realizada com sucesso!</h4>
         </div>
       </Modal>
     </div>
