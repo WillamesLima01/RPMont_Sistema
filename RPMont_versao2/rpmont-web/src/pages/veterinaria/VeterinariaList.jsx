@@ -17,13 +17,24 @@ const VeterinariaList = () => {
   const [modalBaixaAberto, setModalBaixaAberto] = useState(false);
   const [modalConfirmarBaixa, setModalConfirmarBaixa] = useState(false);
   const [equinoParaBaixar, setEquinoParaBaixar] = useState(null);
-
-
+  const [filtro, setFiltro] = useState('ativos');
+  
   useEffect(() => {
     axios.get('/equinos')
-      .then(response => setEquinos(response.data))
+      .then(response => {
+        const todos = response.data;
+        let filtrados = todos;
+
+        if (filtro === 'ativos') {
+          filtrados = todos.filter(eq => eq.status === 'Ativo');
+        } else if (filtro && filtro !== 'todos') {
+          filtrados = todos.filter(eq => eq.id === filtro);
+        }
+
+        setEquinos(filtrados);
+      })
       .catch(error => console.error("Ocorreu um erro: ", error));
-  }, []);
+  }, [filtro]);
 
   // Função para baixar equino
   const baixarEquino = async () => {
@@ -93,11 +104,18 @@ const VeterinariaList = () => {
 
         <div className='d-flex justify-content-center'>
           <div className='form-control ms-3 me-3'>
-            <select name='equino' id='equino'>
-              <option value="">Todos os equinos</option>
-              {equinos.map(equino => (
-                <option key={equino.id} value={equino.id}>{equino.name}</option>
-              ))}
+            <select
+              className="form-select"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+            >
+              <option value="ativos">Equinos Aptos</option>
+              <option value="todos">Todos os Equinos</option>
+              <optgroup label="Selecionar por Equino">
+                {equinos.map(equino => (
+                  <option key={equino.id} value={equino.id}>{equino.name}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
 

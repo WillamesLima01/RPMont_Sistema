@@ -69,27 +69,26 @@ body {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    justify-content: center; /* Centraliza no eixo Y se necessário */
-    width: 100%;
-    height: 400px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-left: 5px;
+    margin-top: 10px;
+    width: calc(100% - 10px); /* margem esquerda compensada */
     gap: 20px;
-    flex-wrap: wrap; /* para ajustar em telas menores */
-    margin-top: 10px;    
-    padding: 0 20px; /* Pequeno padding nas laterais para respiro */
+    padding: 0;
   }
-  
+
   .chart {
-    width: 48%;
-    max-width: 600px;
-    height: 300px; /* ← Define a altura máxima da caixa */
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    color: #5d8fbb;
-  }
+  width: calc(50% - 10px);     /* ocupa metade da tela com margem */
+  height: 400px;               /* mesma altura */
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  color: #5d8fbb;
+}
   
   .chart h3 {
     text-align: center;

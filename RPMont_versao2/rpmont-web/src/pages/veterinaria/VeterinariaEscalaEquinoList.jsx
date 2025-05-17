@@ -148,7 +148,9 @@ const VeterinariaEscalaEquinoList = () => {
   
             <button className='btn btn-primary me-2' onClick={filtrar}>Filtrar</button>
             <button className='btn btn-secondary me-2' onClick={limparFiltros}>Limpar</button>
-            <button className='btn btn-outline-success' onClick={exportarCSV}>Exportar</button>
+            <button className='btn btn-info' onClick={() => window.print()}>
+              Imprimir
+            </button>
           </div>
         </div>
   

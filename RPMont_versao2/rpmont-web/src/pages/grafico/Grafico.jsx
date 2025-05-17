@@ -24,6 +24,7 @@ const Grafico = () => {
   const [qtdAptos, setQtdAptos] = useState(0);
   const [qtdBaixados, setQtdBaixados] = useState(0);
   const [qtdAtendimentos, setQtdAtendimentos] = useState(0);
+  const maxAtendimentos = Math.max(...dadosAtendimentos, 10); // valor de segurança mínimo
 
   useEffect(() => {
     const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -72,7 +73,7 @@ const Grafico = () => {
         setDadosBaixados(chavesMeses.map(key => mapBaixados[key]));
       });
   }, []);
-
+  
   const options = {
     maintainAspectRatio: false,
     responsive: true,
@@ -82,7 +83,10 @@ const Grafico = () => {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { stepSize: 1 },
+        suggestedMax: Math.ceil((maxAtendimentos + 5) / 5) * 5, // arredonda para múltiplos de 5
+        ticks: {
+          stepSize: 5,
+        },
       },
     },
   };
