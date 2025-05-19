@@ -133,6 +133,7 @@ const VeterinariaList = () => {
               <th>Número Registro</th>
               <th>Data Nascimento</th>
               <th>Sexo</th>
+              <th>Unidade</th>
               <th className='col-buttons'></th>
             </tr>
           </thead>
@@ -145,6 +146,7 @@ const VeterinariaList = () => {
                 <td>{equino.numeroRegistro}</td>
                 <td>{equino.dataNascimento}</td>
                 <td>{equino.sexo}</td>
+                <td>{equino.unidade}</td>
                 <td className='text-end'>
                   <div className='d-inline me-2'>
                     <Link to={`/edit-equino/${equino.id}`} className="btn btn-sm btn-outline-primary btn-tm" title="Editar">

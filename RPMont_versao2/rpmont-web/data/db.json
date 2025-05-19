@@ -8,6 +8,7 @@
       "dataNascimento": "2000-10-01",
       "status": "Ativo",
       "sexo": "Macho",
+      "unidade": "RPMont",
       "id": "1"
     },
     {
@@ -18,6 +19,7 @@
       "dataNascimento": "2001-03-15",
       "status": "Ativo",
       "sexo": "Macho",
+      "unidade": "RPMont",
       "id": "2"
     },
     {
@@ -28,6 +30,7 @@
       "dataNascimento": "2002-07-22",
       "status": "Ativo",
       "sexo": "Fêmea",
+      "unidade": "RPMont",
       "id": "3"
     },
     {
@@ -38,6 +41,7 @@
       "dataNascimento": "2003-01-10",
       "status": "Ativo",
       "sexo": "Fêmea",
+      "unidade": "RPMont",
       "id": "4"
     },
     {
@@ -48,7 +52,8 @@
       "numeroRegistro": "PMPB2025005",
       "dataNascimento": "30-06-2004",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     },
     {
       "id": "6",
@@ -58,7 +63,8 @@
       "numeroRegistro": "PMPB2025006",
       "dataNascimento": "18-09-2005",
       "status": "Baixado",
-      "sexo": "Macho"
+      "sexo": "Macho",
+      "unidade": "RPMont"
     },
     {
       "id": "7",
@@ -68,7 +74,8 @@
       "numeroRegistro": "PMPB2025007",
       "dataNascimento": "11-11-2006",
       "status": "Baixado",
-      "sexo": "Macho"
+      "sexo": "Macho",
+      "unidade": "RPMont"
     },
     {
       "id": "8",
@@ -78,7 +85,8 @@
       "numeroRegistro": "PMPB2025008",
       "dataNascimento": "05-04-2007",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     },
     {
       "id": "9",
@@ -88,7 +96,8 @@
       "numeroRegistro": "PMPB2025009",
       "dataNascimento": "17-12-2008",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     },
     {
       "id": "10",
@@ -98,7 +107,8 @@
       "numeroRegistro": "PMPB2025010",
       "dataNascimento": "09-08-2009",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     },
     {
       "id": "11",
@@ -108,7 +118,8 @@
       "numeroRegistro": "PMPB20250012",
       "dataNascimento": "2010-10-10",
       "status": "Ativo",
-      "sexo": "macho"
+      "sexo": "macho",
+      "unidade": "RPMont"
     },
     {
       "id": "6d3e",
@@ -118,7 +129,8 @@
       "numeroRegistro": "PMPB2025090098",
       "dataNascimento": "2024-09-30",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     },
     {
       "id": "f167",
@@ -128,7 +140,8 @@
       "numeroRegistro": "PMPB202500465",
       "dataNascimento": "2025-05-15",
       "status": "Baixado",
-      "sexo": "Macho"
+      "sexo": "Macho",
+      "unidade": "RPMont"
     },
     {
       "id": "75c2",
@@ -138,7 +151,8 @@
       "numeroRegistro": "PMPB2025001234001",
       "dataNascimento": "2020-03-04",
       "status": "Ativo",
-      "sexo": "Fêmea"
+      "sexo": "Fêmea",
+      "unidade": "RPMont"
     }
   ],
   "equinosBaixados": [
@@ -147,6 +161,12 @@
       "idEquino": "2",
       "dataBaixa": "2025-05-15",
       "dataRetorno": "2025-05-15"
+    },
+    {
+      "id": "baixado123",
+      "idEquino": "2",
+      "dataBaixa": "2025-05-19",
+      "dataRetorno": null
     },
     {
       "id": "98a5",
@@ -173,6 +193,12 @@
       "textoConsulta": "Aplicação de vermefugo",
       "data": "2025-05-02",
       "id": "62d1"
+    },
+    {
+      "idEquino": "1",
+      "textoConsulta": "Consulta preventiva",
+      "data": "2025-05-19",
+      "id": "teste123"
     },
     {
       "idEquino": "1",
@@ -250,7 +276,7 @@
       "id": "0003",
       "idEquino": "5",
       "textoConsulta": "Feito o toalhete e aplicação de remédio para fugos",
-      "data": "2025-05-01"
+      "data": "2025-05-11"
     },
     {
       "id": "4db1",
@@ -282,6 +308,15 @@
       "data": "2025-05-02"
     },
     {
+      "id": "abc123",
+      "idEquino": "3",
+      "localTrabalho": "Cristo Redentor",
+      "jornadaTrabalho": "07:00h às 13:00h",
+      "cavaleiro": "CB Oliveira",
+      "cargaHoraria": 6,
+      "data": "2025-05-19"
+    },
+    {
       "idEquino": "3",
       "localTrabalho": "cristo",
       "jornadaTrabalho": "16:30h às 22:30h",
@@ -289,15 +324,6 @@
       "cargaHoraria": 6,
       "data": "2025-05-11",
       "id": "de9d"
-    },
-    {
-      "idEquino": "3",
-      "localTrabalho": "Busto de Tamandaré",
-      "jornadaTrabalho": "16:00h às 22:00h",
-      "cavaleiro": "SGT André",
-      "cargaHoraria": 6,
-      "data": "2025-03-11",
-      "id": "f5d8"
     },
     {
       "id": "f98e",
@@ -370,6 +396,39 @@
       "cavaleiro": "CB Rodrigues",
       "cargaHoraria": 6,
       "data": "2025-05-12"
+    },
+    {
+      "id": "50c5",
+      "idEquino": "4",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "17:00h às 23:00h",
+      "cavaleiro": "SGT Márcio",
+      "cargaHoraria": 6,
+      "data": "2025-05-18"
+    },
+    {
+      "id": "005b",
+      "idEquino": "4",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "17:00h às 23:00h",
+      "cavaleiro": "CB Anacleto",
+      "cargaHoraria": 6,
+      "data": "2025-05-18"
     }
+  ],
+  "militares": [
+  {
+    "id": "1",
+    "nomeDeGuerra": "José Lima",
+    "matricula": "1234567",
+    "postGrad": "Cabo"
+  },
+  {
+    "id": "2",
+    "nomeDeGuerra": "Márcio",
+    "matricula": "7654321",
+    "postGrad": "Sargento"
+  }
   ]
+
 }

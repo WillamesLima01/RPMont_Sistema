@@ -11,6 +11,7 @@ import VeterinariaEscalaEquinoForm from './pages/veterinaria/VeterinariaEscalaEq
 import VeterinariaEscalaEquinoList from './pages/veterinaria/VeterinariaEscalaEquinoList.jsx';
 import GraficoCargaHorariaEquino from './pages/grafico/GraficoCargaHorariaEquino.jsx';
 import VeterinariaEquinosBaixadosList from './pages/veterinaria/VeterinariaEquinosBaixadosList.jsx';
+import VeterinariaRelatorioServicoForm from './pages/veterinaria/VeterinariaRelatorioServicoForm.jsx'; // <- Adicione esta linha
 
 const rotas = () => {
   return (
@@ -27,7 +28,8 @@ const rotas = () => {
             <Route path="/escala-equinos/:id" element={<VeterinariaEscalaEquinoForm />} />
             <Route path="/escala-equinosList" element={<VeterinariaEscalaEquinoList />} />                                        
             <Route path='/carga-horaria-equino' element={<GraficoCargaHorariaEquino />} />
-            <Route path='/veterinaria-Equinos-Baixados' element={<VeterinariaEquinosBaixadosList />} />            
+            <Route path='/veterinaria-Equinos-Baixados' element={<VeterinariaEquinosBaixadosList />} />     
+            <Route path='/relatorio-servico' element={<VeterinariaRelatorioServicoForm />} />                               
             <Route path="/inicio" element={<Grafico />} />           
         </Routes>
     </BrowserRouter>

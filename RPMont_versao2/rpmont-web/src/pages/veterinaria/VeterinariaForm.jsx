@@ -17,7 +17,8 @@ const VeterinariaForm = () => {
     numeroRegistro: '',
     dataNascimento: '',
     status: '',
-    sexo: ''
+    sexo: '',
+    unidade:''
   });
 
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
@@ -41,7 +42,8 @@ const VeterinariaForm = () => {
             numeroRegistro: dados.numeroRegistro || '',
             dataNascimento: formatarDataParaInput(dados.dataNascimento),
             status: dados.status || '',
-            sexo: dados.sexo || ''
+            sexo: dados.sexo || '',
+            unidade: dados.unidade || ''
           });
         })
         .catch(error => console.error('Erro ao buscar equino:', error));
@@ -99,7 +101,8 @@ const VeterinariaForm = () => {
       numeroRegistro: '',
       dataNascimento: '',
       status: '',
-      sexo: ''
+      sexo: '',
+      unidade:''
     });
   };
 
@@ -191,8 +194,16 @@ const VeterinariaForm = () => {
                   <option value="Baixado">Baixado</option>
                 </select>
               </div>
+              <div className="col-md-6">
+                <label htmlFor="unidade" className="form-label">Unidade</label>
+                <select id="unidade" name="unidade" className="form-select" value={equino.unidade} onChange={handleChange} required>
+                  <option value="">Selecione</option>
+                  <option value="RPMont">RPMont</option>
+                  <option value="3ºEPMont">3º EPMont</option>
+                </select>
+              </div>
 
-              <div className="col-12 text-end mt-3">
+              <div className="col-12 text-end mt-4">
                 <Link to="/veterinariaList" className="btn btn-outline-danger me-2">Cancelar</Link>
                 <button type="submit" className="btn btn-primary">{id ? 'Salvar' : 'Adicionar'}</button>
               </div>

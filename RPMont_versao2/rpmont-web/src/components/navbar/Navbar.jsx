@@ -41,7 +41,35 @@ const Navbar = () => {
                         </li>
                         <li className="nav-item">
                             <Link to="/carga-horaria-equino" className={`${isActive('/carga-horaria-equino')} nav-link mt-1 me-4`} aria-current="page">Carga Horária Equinos</Link>
-                        </li>                        
+                        </li>     
+                        <li className="nav-item dropdown">
+                            <button
+                                className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive('/relatorio-servico') || isActive('/relatorio-equinos') || isActive('/consultar-relatorios') ? 'active' : ''}`}
+                                id="navbarDropdownRelatorios"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Relatórios
+                            </button>
+                            <ul className="dropdown-menu">
+                                <li>
+                                    <Link to="/relatorio-servico" className="dropdown-item">
+                                        Relatório de Serviço
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/relatorio-equinos" className="dropdown-item">
+                                        Imprimir Relatório Equinos
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/consultar-relatorios" className="dropdown-item">
+                                        Consultar Relatórios de Serviços
+                                    </Link>
+                                </li>
+                            </ul>
+                        </li>
+                   
                     </ul>
 
                     <ul className="navbar-nav">
@@ -64,5 +92,4 @@ const Navbar = () => {
     )
 }
 
-///atende-equino/:id
 export default Navbar;
