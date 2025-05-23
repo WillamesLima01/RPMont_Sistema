@@ -1,0 +1,92 @@
+/* Garante que a página esteja limpa e sem rolagem */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Animação da caixa de login */
+@keyframes slideDown {
+  from {
+    transform: translate(-0%, -200%);
+  }
+  to {
+    transform: translate(-0%, -0%);
+  }
+}
+
+/* Container principal */
+.loginContainer {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("../../assets/sua-imagem.png"); /* use o caminho correto */
+  background-size: 80%;          /* preenche tudo */
+  background-position: center;     /* centraliza o brasão */
+  background-repeat: no-repeat;
+  background-color: #f0f0f0;
+  overflow: hidden;
+}
+
+/* Caixa de login centralizada */
+.loginBox {
+  animation: slideDown 1s ease-out;
+  padding: 24px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  background-color: rgba(226, 226, 226, 0.877);
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  box-sizing: border-box;
+  height: 300px;
+}
+
+/* Título */
+.loginTitle {
+  margin-bottom: 20px;
+  color: #3f51b5;
+  text-shadow: 1px 1px 2px #303f9f;
+  font-weight: bold;
+}
+
+/* Botão */
+.blueButton {
+  background-color: #5A86D5;
+  color: white;
+  margin-top: 16px;
+}
+.blueButton:hover {
+  background-color: #008000;
+}
+
+/* Inputs */
+.inputContainer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Ícones */
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  color: #5A86D5;
+}
+
+/* Link de esqueci a senha */
+.forgotPasswordLink {
+  margin-top: 15px;
+  display: block;
+  color: #3f51b5;
+  text-decoration: none;
+}
+
+.forgotPasswordLink:hover {
+  text-decoration: underline;
+}

@@ -50,7 +50,7 @@
       "raca": "SRF",
       "pelagem": "Tordilho",
       "numeroRegistro": "PMPB2025005",
-      "dataNascimento": "30-06-2004",
+      "dataNascimento": "2004-06-30",
       "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont"
@@ -61,7 +61,7 @@
       "raca": "SRF",
       "pelagem": "Castanho",
       "numeroRegistro": "PMPB2025006",
-      "dataNascimento": "18-09-2005",
+      "dataNascimento": "2005-09-18",
       "status": "Baixado",
       "sexo": "Macho",
       "unidade": "RPMont"
@@ -72,7 +72,7 @@
       "raca": "SRF",
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025007",
-      "dataNascimento": "11-11-2006",
+      "dataNascimento": "2006-11-11",
       "status": "Baixado",
       "sexo": "Macho",
       "unidade": "RPMont"
@@ -83,7 +83,7 @@
       "raca": "SRF",
       "pelagem": "Baio",
       "numeroRegistro": "PMPB2025008",
-      "dataNascimento": "05-04-2007",
+      "dataNascimento": "2007-04-05",
       "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont"
@@ -94,7 +94,7 @@
       "raca": "SRF",
       "pelagem": "Preto",
       "numeroRegistro": "PMPB2025009",
-      "dataNascimento": "17-12-2008",
+      "dataNascimento": "2008-12-17",
       "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont"
@@ -105,7 +105,7 @@
       "raca": "SRF",
       "pelagem": "Tordilho",
       "numeroRegistro": "PMPB2025010",
-      "dataNascimento": "09-08-2009",
+      "dataNascimento": "2009-09-08",
       "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont"
@@ -416,19 +416,46 @@
       "data": "2025-05-18"
     }
   ],
-  "militares": [
-  {
-    "id": "1",
-    "nomeDeGuerra": "José Lima",
-    "matricula": "1234567",
-    "postGrad": "Cabo"
-  },
-  {
-    "id": "2",
-    "nomeDeGuerra": "Márcio",
-    "matricula": "7654321",
-    "postGrad": "Sargento"
-  }
+   "users": [
+    {
+      "id": "1",
+      "fullName": "willames Pereira de Lima",
+      "name": "willames",
+      "email": "illaap@gmail.com",
+      "cpf": "555.666.777-88",
+      "contact": "+55 81 98765-4321",
+      "profession": "Fonoaudiólogo",
+      "password": "321"
+    },
+    {
+      "id": "2",
+      "fullName": "Maria Souza da Silva",
+      "name": "mariasouza",
+      "email": "maria@hotmail.com",
+      "cpf": "123.456.323-11",
+      "contact": "+55 83 98765-4321",
+      "profession": "Fisioterapeuta",
+      "password": "123"
+    },
+    {
+      "id": "3",
+      "fullName": "Carlos Eduardo Ferreira",
+      "name": "carloseduardo",
+      "email": "carlos.ferreira@example.com",
+      "cpf": "111.222.333-44",
+      "contact": "+55 61 98765-4321",
+      "profession": "Psicólogo",
+      "password": "carlos321"
+    },
+    {
+      "fullName": "João Paulo",
+      "name": "João",
+      "email": "Joaopaulo@gmail.com",
+      "cpf": "212.545.878-99",
+      "contact": "(83) 9 88762293",
+      "password": "222",
+      "profession": "Veterinário",
+      "id": "5add"
+    }
   ]
-
 }
