@@ -1,4 +1,3 @@
-// IMPORTS
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
@@ -6,7 +5,6 @@ import 'jspdf-autotable';
 import axios from '../../api';
 import './Veterinaria.css';
 
-// COMPONENTE
 const VeterinariaRelatorioServicoForm = () => {
   const [militar, setMilitar] = useState(null);
   const [dadosServico, setDadosServico] = useState(null);
@@ -15,6 +13,8 @@ const VeterinariaRelatorioServicoForm = () => {
   const [passagemServico, setPassagemServico] = useState('');
   const [dataServico, setDataServico] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [mensagemErroModal, setMensagemErroModal] = useState('');
+
   const navigate = useNavigate();
 
   // FORMATOS
@@ -40,13 +40,15 @@ const VeterinariaRelatorioServicoForm = () => {
 
   // CONFIRMAR MODAL
   const confirmarDataServico = () => {
-    if (!dataServico) {
-      alert("Informe a data do serviço.");
-      return;
-    }
-    setShowModal(false);
-    buscarDados();
-  };
+  if (!dataServico) {
+    setMensagemErroModal('Por favor, informe a data do serviço.');
+    return;
+  }
+
+  setMensagemErroModal('');
+  setShowModal(false);
+  buscarDados();
+};
 
   // BUSCAR DADOS
   const buscarDados = async () => {
@@ -265,7 +267,16 @@ const gerarPDF = () => {
 
       <div className="mb-3 d-flex gap-2 mt-3 no-print">
         <button className="btn btn-outline-secondary" onClick={() => navigate('/inicio')}>Voltar</button>
-        <button className="btn btn-outline-primary" onClick={() => setShowModal(true)}>Buscar Dados</button>
+        <button
+          className="btn btn-outline-primary"
+          onClick={() => {
+            setMensagemErroModal('');
+            setDataServico('');
+            setShowModal(true);
+          }}
+        >
+          Buscar Dados
+        </button>
         <button className="btn btn-outline-info" onClick={() => window.print()}>Imprimir</button>
         <button className="btn btn-outline-danger" onClick={gerarPDF} disabled={!dadosServico}>Exportar PDF</button>
       </div>
@@ -372,6 +383,9 @@ const gerarPDF = () => {
                   value={dataServico}
                   onChange={(e) => setDataServico(e.target.value)}
                 />
+                {mensagemErroModal && (
+                  <p className="text-danger mt-2">{mensagemErroModal}</p>
+                )}
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>

@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
+import horseshoeIcon from '../../assets/horseshoe.png';
 import axios from '../../api';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 Modal.setAppElement('#root');
 
@@ -16,25 +18,29 @@ const VeterinariaList = () => {
   const navigate = useNavigate();
   const [modalBaixaAberto, setModalBaixaAberto] = useState(false);
   const [modalConfirmarBaixa, setModalConfirmarBaixa] = useState(false);
-  const [equinoParaBaixar, setEquinoParaBaixar] = useState(null);
-  const [filtro, setFiltro] = useState('ativos');
-  
+  const [equinoParaBaixar, setEquinoParaBaixar] = useState(null);   
+  const [filtroNome, setFiltroNome] = useState('');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const filtroStatus = searchParams.get('filtro'); // "ativos", "baixados", "todos"
+    
   useEffect(() => {
-    axios.get('/equinos')
-      .then(response => {
-        const todos = response.data;
-        let filtrados = todos;
+  axios.get('/equinos')
+    .then(response => {
+      const todos = response.data;
 
-        if (filtro === 'ativos') {
-          filtrados = todos.filter(eq => eq.status === 'Ativo');
-        } else if (filtro && filtro !== 'todos') {
-          filtrados = todos.filter(eq => eq.id === filtro);
-        }
+      let filtrados = todos;
 
-        setEquinos(filtrados);
-      })
-      .catch(error => console.error("Ocorreu um erro: ", error));
-  }, [filtro]);
+      if (filtroStatus === 'ativos') {
+        filtrados = todos.filter(eq => eq.status?.toLowerCase() === 'ativo');
+      } else if (filtroStatus === 'baixados') {
+        filtrados = todos.filter(eq => eq.status?.toLowerCase() === 'baixado');
+      }
+
+      setEquinos(filtrados);
+    })
+    .catch(error => console.error("Erro ao buscar equinos:", error));
+}, [filtroStatus]);
 
   // Função para baixar equino
   const baixarEquino = async () => {
@@ -103,19 +109,16 @@ const VeterinariaList = () => {
         </div>
 
         <div className='d-flex justify-content-center'>
-          <div className='form-control ms-3 me-3'>
+          <div className="form-control ms-3 me-3">
             <select
               className="form-select"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
+              value={filtroNome}
+              onChange={(e) => setFiltroNome(e.target.value)}
             >
-              <option value="ativos">Equinos Aptos</option>
-              <option value="todos">Todos os Equinos</option>
-              <optgroup label="Selecionar por Equino">
-                {equinos.map(equino => (
-                  <option key={equino.id} value={equino.id}>{equino.name}</option>
-                ))}
-              </optgroup>
+              <option value="">Todos os Equinos</option>
+              {equinos.map(eq => (
+                <option key={eq.id} value={eq.name}>{eq.name}</option>
+              ))}
             </select>
           </div>
 
@@ -138,7 +141,9 @@ const VeterinariaList = () => {
             </tr>
           </thead>
           <tbody>
-            {equinos.map(equino => (
+            {equinos
+              .filter(eq => !filtroNome || eq.name === filtroNome)
+              .map(equino => (
               <tr key={equino.id}>
                 <td>{equino.name}</td>
                 <td>{equino.raca}</td>
@@ -164,7 +169,13 @@ const VeterinariaList = () => {
                       <Link to={`/escala-equinos/${equino.id}`} className="btn btn-sm btn-outline-success btn-tm" title="Escala">
                         <i className="bi bi-calendar4-week"></i>
                       </Link>
-                    </div>
+                    </div>  
+                    <div className='d-inline me-2'>
+                      <Link
+                        to={`/ferrageamento-equino/${equino.id}`} className="btn btn-sm btn-outline-info btn-ferrageamento" title="Ferrageamento">
+                        <img src={horseshoeIcon} alt="Ferradura" />                        
+                      </Link>
+                    </div>         
                   </div>
                 </td>
               </tr>

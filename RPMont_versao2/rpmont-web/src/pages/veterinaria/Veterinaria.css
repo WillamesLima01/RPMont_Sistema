@@ -247,3 +247,20 @@
     display: none !important;
   }
 }
+
+/* Veterinaria.css */
+
+/* Botão de ferrageamento com alinhamento horizontal e ícone */
+.btn-ferrageamento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+}
+
+/* Imagem da ferradura dentro do botão */
+.btn-ferrageamento img {
+  width: 16px;
+  height: 16px;
+}

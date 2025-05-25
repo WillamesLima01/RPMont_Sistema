@@ -132,7 +132,7 @@ const Login = () => {
             p: 4,
             textAlign: 'center',
           }}>
-            <Typography variant="h6" component="h2" sx={{ color: '#2196f3' }}>
+            <Typography variant="h6" component="h1" sx={{ color: '#2196f3' }}>
               Login realizado com sucesso!
             </Typography>
             <Typography sx={{ mt: 1, color: 'green' }}>

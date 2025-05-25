@@ -4,6 +4,72 @@
  
   /* Quando o link é da página ativa */
   .active {
-    color: yellow !important;
+    color: yellow;
   }
-  
+  /* Estilo do dropdown para combinar com a navbar */
+.dropdown-menu {
+  background-color: #0d6efd; /* azul Bootstrap */
+  border: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.dropdown-menu .dropdown-item {
+  color: #ffffff; /* texto branco */
+  padding: 8px 20px;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+  background-color: #0b5ed7; /* azul um pouco mais escuro */
+  color: #ffffff;
+}
+
+/* Estilo do dropdown para combinar com a navbar azul */
+.navbar .dropdown-menu {
+  background-color: #0d6efd; /* Azul escuro */
+  border: none;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.navbar .dropdown-item {
+  color: #ffffff; /* Texto branco */
+  padding: 10px 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.navbar .dropdown-item:hover,
+.navbar .dropdown-item:focus {
+  background-color: #084298; /* Azul mais escuro no hover */
+  color: #ffffff;
+}
+
+.navbar .dropdown-header {
+  background-color: #0b5ed7;
+  color: #ffffff;
+  font-weight: bold;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* LINKS principais da navbar */
+.navbar .nav-link {
+  color: #ffffff !important; /* Branco por padrão */
+  transition: color 0.3s ease;
+}
+
+/* Quando passa o mouse */
+.navbar .nav-link:hover {
+  color: #00d4ff !important; /* Azul claro */
+}
+
+/* Quando está na rota ativa (mantém o amarelo) */
+.navbar .nav-link.active {
+  color: yellow !important;
+  font-weight: bold;
+}
+

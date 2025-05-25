@@ -1,7 +1,9 @@
 /* Tooltip */
 html, body {
+  height: 100%;
   overflow-x: hidden;
-  font-size: 0.9rem; /* ou experimente 0.85rem, 14px, etc. */
+  overflow-y: auto; /* <-- importante para permitir rolagem vertical */
+  font-size: 0.9rem;
 }
 
 /* MODAL */

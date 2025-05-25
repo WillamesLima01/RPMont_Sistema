@@ -7,9 +7,13 @@ const Navbar = () => {
 
     const location = useLocation();
 
-    const isActive = (path) => {
-        return location.pathname === path ? 'active' : '';
-    }
+    const isActive = (paths) => {
+  if (Array.isArray(paths)) {
+    return paths.some(path => location.pathname.startsWith(path)) ? 'active' : '';
+  }
+  return location.pathname.startsWith(paths) ? 'active' : '';
+};
+
 
     return (
         <nav className='navbar fixed-top navbar-expand-lg bg-primary' data-bs-theme="dark">
@@ -25,22 +29,46 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link to="/inicio" className={`${isActive('/inicio')} nav-link mt-1 me-4`} aria-current="page">Início</Link>
+                            <Link to="/inicio" className={`nav-link text-white mt-1 me-4 ${isActive('/inicio')}`}>Início</Link>
                         </li>
                         <li className="nav-item">
-                            <Link to="/atendimentoList" className={`${isActive('/atendimentoList')} nav-link mt-1 me-4`} aria-current="page">Atendimentos</Link>
+                            <Link to="/atendimentoList" className={`nav-link text-white mt-1 me-4 ${isActive('/atendimentoList')}`}>Atendimentos</Link>
+                        </li>
+                        <li className="nav-item dropdown">
+                            <button
+                            className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive(['/veterinariaList', '/veterinaria-Equinos-Baixados'])}`}
+                            id="navbarDropdownEquinos"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            >
+                            Equinos
+                            </button>
+
+
+                           <ul className="dropdown-menu" aria-labelledby="navbarDropdownEquinos">                                
+                                <li>
+                                    <Link to="/veterinariaList?filtro=ativos" className="dropdown-item">
+                                    Equinos Aptos
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/veterinaria-Equinos-Baixados" className="dropdown-item">
+                                    Equinos Baixados
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/veterinariaList?filtro=todos" className="dropdown-item">
+                                    Listar Todos os Equinos
+                                    </Link>
+                                </li>
+                            </ul>
+                        </li>                        
+                        <li className="nav-item">
+                            <Link to="/escala-equinosList" className={`nav-link text-white mt-1 me-4 ${isActive('/escala-equinosList')}`}>Consultar Escala Equinos</Link>
                         </li>
                         <li className="nav-item">
-                            <Link to="/veterinariaList" className={`${isActive('/veterinariaList')} nav-link mt-1 me-4`} aria-current="page">Lista de Equinos</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to="/veterinaria-Equinos-Baixados" className={`${isActive('/veterinaria-Equinos-Baixados')} nav-link mt-1 me-4`} aria-current="page">Equinos Baixados</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to="/escala-equinosList" className={`${isActive('/escala-equinosList')} nav-link mt-1 me-4`} aria-current="page">Consultar Escala Equinos</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to="/carga-horaria-equino" className={`${isActive('/carga-horaria-equino')} nav-link mt-1 me-4`} aria-current="page">Carga Horária Equinos</Link>
+                            <Link to="/carga-horaria-equino" className={`nav-link text-white mt-1 me-4 ${isActive('/carga-horaria-equino')}`}>Carga Horária Equinos</Link>
                         </li>     
                         <li className="nav-item dropdown">
                             <button
