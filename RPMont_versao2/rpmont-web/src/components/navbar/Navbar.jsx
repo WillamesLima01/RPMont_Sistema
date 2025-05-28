@@ -32,11 +32,11 @@ const Navbar = () => {
                             <Link to="/inicio" className={`nav-link text-white mt-1 me-4 ${isActive('/inicio')}`}>Início</Link>
                         </li>
                         <li className="nav-item">
-                            <Link to="/atendimentoList" className={`nav-link text-white mt-1 me-4 ${isActive('/atendimentoList')}`}>Atendimentos</Link>
+                            <Link to="/atendimento-List" className={`nav-link text-white mt-1 me-4 ${isActive('/atendimento-List')}`}>Atendimentos</Link>
                         </li>
                         <li className="nav-item dropdown">
                             <button
-                            className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive(['/veterinariaList', '/veterinaria-Equinos-Baixados'])}`}
+                            className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive(['/veterinaria-List', '/veterinaria-Equinos-Baixados'])}`}
                             id="navbarDropdownEquinos"
                             role="button"
                             data-bs-toggle="dropdown"
@@ -48,7 +48,7 @@ const Navbar = () => {
 
                            <ul className="dropdown-menu" aria-labelledby="navbarDropdownEquinos">                                
                                 <li>
-                                    <Link to="/veterinariaList?filtro=ativos" className="dropdown-item">
+                                    <Link to="/veterinaria-List?filtro=ativos" className="dropdown-item">
                                     Equinos Aptos
                                     </Link>
                                 </li>
@@ -58,14 +58,14 @@ const Navbar = () => {
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link to="/veterinariaList?filtro=todos" className="dropdown-item">
+                                    <Link to="/veterinaria-List?filtro=todos" className="dropdown-item">
                                     Listar Todos os Equinos
                                     </Link>
                                 </li>
                             </ul>
                         </li>                        
                         <li className="nav-item">
-                            <Link to="/escala-equinosList" className={`nav-link text-white mt-1 me-4 ${isActive('/escala-equinosList')}`}>Consultar Escala Equinos</Link>
+                            <Link to="/escala-equinos-List" className={`nav-link text-white mt-1 me-4 ${isActive('/escala-equinos-List')}`}>Consultar Escala Equinos</Link>
                         </li>
                         <li className="nav-item">
                             <Link to="/carga-horaria-equino" className={`nav-link text-white mt-1 me-4 ${isActive('/carga-horaria-equino')}`}>Carga Horária Equinos</Link>
@@ -97,9 +97,36 @@ const Navbar = () => {
                                 </li>
                             </ul>
                         </li>
-                   
-                    </ul>
+                        <li className="nav-item dropdown">
+                        <button
+                            className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
+                            '/ferrageamento-equino',
+                            '/toalete-equino',
+                            '/vermifugacao-equino',
+                            '/procedimentos-realizados'
+                            ])}`}
+                            id="navbarDropdownManejo"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            Manejo Sanitário Equino
+                        </button>
 
+                        <ul className="dropdown-menu" aria-labelledby="navbarDropdownManejo">
+                            <li>
+                            <Link to="/manejo-sanitario-list" className="dropdown-item">
+                                Ferrageamento, Toalete e Vermifugação
+                            </Link>
+                            </li>                            
+                            <li>
+                            <Link to="/procedimentos-realizados" className="dropdown-item">
+                                Procedimentos Realizados
+                            </Link>
+                            </li>
+                        </ul>
+                        </li>
+                                         
+                    </ul>
                     <ul className="navbar-nav">
                         <li className="nav-item">
                             <div className="btn-group">

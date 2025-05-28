@@ -4,13 +4,14 @@ import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
+import horseshoeIcon from '../../assets/horseshoe.png';
 import axios from '../../api';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 
 Modal.setAppElement('#root');
 
-const VeterinariaList = () => {
+const VeterinariaManejoSanitarioList = () => {
   const [equinos, setEquinos] = useState([]);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
@@ -71,18 +72,7 @@ const VeterinariaList = () => {
       console.error("Erro ao baixar equino:", error);
     }
   };
-  
-  const confirmarBaixaEquino = (equino) => {
-    setEquinoParaBaixar(equino);
-    setModalConfirmarBaixa(true);
-  };
-  
-
-  const confirmarExclusao = (equino) => {
-    setEquinoSelecionado(equino);
-    setModalExcluirAberto(true);
-  };
-
+    
   const cancelarExclusao = () => {
     setModalExcluirAberto(false);
     setEquinoSelecionado(null);
@@ -103,8 +93,7 @@ const VeterinariaList = () => {
 
       <div className='d-flex justify-content-between align-items-center'>
         <div>
-          <h2 className='titulo-lista d-inline'>Lista de Equinos</h2>
-          <Link to="/veterinaria-Form" className='btn btn-outline-primary ms-5 mb-2'>Adicionar Equino</Link>
+          <h2 className='titulo-lista d-inline'>Lista de Equinos</h2>          
         </div>
 
         <div className='d-flex justify-content-center'>
@@ -126,7 +115,7 @@ const VeterinariaList = () => {
       </div>
 
       <div>
-        <table className="table table-hover">
+        <table className="table table-hover mt-2">
           <thead>
             <tr>
               <th>Nome</th>
@@ -152,25 +141,37 @@ const VeterinariaList = () => {
                 <td>{equino.sexo}</td>
                 <td>{equino.unidade}</td>
                 <td className='text-end'>
-                  <div className='d-inline me-2'>
-                    <Link to={`/edit-equino/${equino.id}`} className="btn btn-sm btn-outline-primary btn-tm" title="Editar">
-                      <i className="bi bi-pencil-square btn-tm"></i>
-                    </Link>
-                  </div>
-                  <button onClick={() => confirmarExclusao(equino)} className='btn btn-sm btn-outline-danger me-2' title="Excluir">
-                    <i className="bi bi-trash"></i>
-                  </button>
-                  <div className='d-inline'>
-                    <button className="btn btn-sm btn-outline-warning me-2" title="Baixar equino" onClick={() => confirmarBaixaEquino(equino)}>
-                          <i className="bi bi-arrow-down-circle"></i>
-                    </button>                    
                     <div className='d-inline me-2'>
-                      <Link to={`/escala-equinos/${equino.id}`} className="btn btn-sm btn-outline-success btn-tm" title="Escala">
-                        <i className="bi bi-calendar4-week"></i>
-                      </Link>
-                    </div>                           
-                  </div>
+                        <Link
+                        to={`/toalete-equino/${equino.id}`}
+                        className="btn btn-sm btn-outline-primary btn-toalete"
+                        title="Toalete"
+                        >
+                        <i className="bi bi-scissors"></i>
+                        </Link>
+                    </div>
+
+                    <div className='d-inline me-2'>
+                        <Link
+                        to={`/ferrageamento-equino/${equino.id}`}
+                        className="btn btn-sm btn-outline-info btn-ferrageamento"
+                        title="Ferrageamento"
+                        >
+                        <img src={horseshoeIcon} alt="Ferradura" className="icon-ferradura" />
+                        </Link>
+                    </div>
+
+                    <div className='d-inline'>
+                        <Link
+                        to={`/vermifugacao-equino/${equino.id}`}
+                        className="btn btn-sm btn-outline-success btn-vermifugacao"
+                        title="Vermifugação"
+                        >
+                        <i className="bi bi-capsule"></i> {/* Ícone de cápsula remédio do Bootstrap Icons */}
+                        </Link>
+                    </div>
                 </td>
+
               </tr>
             ))}
           </tbody>
@@ -227,4 +228,4 @@ const VeterinariaList = () => {
   );
 };
 
-export default VeterinariaList;
+export default VeterinariaManejoSanitarioList;
