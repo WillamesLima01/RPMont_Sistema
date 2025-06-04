@@ -48,22 +48,47 @@ const VeterinariaEquinosBaixadosList = () => {
     }
   };
 
-  const filtrar = () => {
-    const filtrados = equinos.filter(eq => {
-      const registro = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
-      if (!registro) return false;
+ const filtrar = () => {
+    // Passo 1: pegar todos os equinos com status Baixado
+    let baixados = equinos.filter(eq => eq.status === 'Baixado');
 
-      const nomeOK = !filtroNome || eq.id.toString() === filtroNome;
-      const dataOK =
-        (!filtroInicio || registro.dataBaixa >= filtroInicio) &&
-        (!filtroFim || registro.dataBaixa <= filtroFim);
-
-      return nomeOK && dataOK;
+    // Passo 2: juntar dados da baixa (dataBaixa) vindos da tabela equinosBaixados
+    let resultadoComData = baixados.map(eq => {
+      const infoBaixa = equinosBaixados.find(b => b.idEquino === eq.id);
+      return {
+        ...eq,
+        dataBaixa: infoBaixa?.dataBaixa || null
+      };
     });
 
-    setResultado(filtrados);
+    // Passo 3: aplicar filtro por nome (id)
+    if (filtroNome) {
+      resultadoComData = resultadoComData.filter(eq => eq.id === filtroNome);
+    }
+
+    // Passo 4: filtro por data de início
+    if (filtroInicio) {
+      const dataInicio = new Date(filtroInicio);
+      resultadoComData = resultadoComData.filter(eq => {
+        const dataEq = new Date(eq.dataBaixa);
+        return dataEq >= dataInicio;
+      });
+    }
+
+    // Passo 5: filtro por data final
+    if (filtroFim) {
+      const dataFim = new Date(filtroFim);
+      resultadoComData = resultadoComData.filter(eq => {
+        const dataEq = new Date(eq.dataBaixa);
+        return dataEq <= dataFim;
+      });
+    }
+
+    // Passo 6: atualizar a exibição
+    setResultado(resultadoComData);    
   };
 
+  
   const limparFiltros = () => {
     setFiltroNome('');
     setFiltroInicio('');
@@ -139,24 +164,22 @@ const VeterinariaEquinosBaixadosList = () => {
     <div className="container-fluid mt-page">
       <Navbar />
 
-      <div className='d-flex justify-content-between align-items-center mb-4'>
-        <CabecalhoEquinos
-          titulo="Lista de Equinos Baixados"
-          equinos={equinos}
-          filtroNome={filtroNome}
-          setFiltroNome={setFiltroNome}
-          filtroInicio={filtroInicio}
-          setFiltroInicio={setFiltroInicio}
-          filtroFim={filtroFim}
-          setFiltroFim={setFiltroFim}
-          onFiltrar={filtrar}
-          limparFiltros={limparFiltros}
-          gerarPDF={gerarPDF}
-          mostrarDatas={true}
-          mostrarBotoesPDF={true}
-          resultado={resultado}
-        />
-      </div>
+      <CabecalhoEquinos
+        titulo="Equinos Baixados"
+        equinos={equinos}
+        filtroNome={filtroNome}
+        setFiltroNome={setFiltroNome}
+        filtroInicio={filtroInicio}
+        setFiltroInicio={setFiltroInicio}
+        filtroFim={filtroFim}
+        setFiltroFim={setFiltroFim}
+        onFiltrar={filtrar}
+        limparFiltros={limparFiltros}
+        gerarPDF={gerarPDF}
+        mostrarDatas={true}
+        mostrarBotoesPDF={true}
+        resultado={resultado}
+      />
 
       <table className="table table-hover">
         <thead>

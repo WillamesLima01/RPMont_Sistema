@@ -1,4 +1,3 @@
-// src/components/veterinaria/CabecalhoEquinoLista.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -20,82 +19,70 @@ const CabecalhoEquinoLista = ({
   resultado = []
 }) => {
   return (
-    <div className="row mb-4 align-items-center">
-      {/* Coluna do Título e Botão Adicionar */}
-      <div className="col-md-6 d-flex align-items-center">
-        <h2 className="titulo-lista mb-0">
-          {titulo}
-          {resultado.length > 0 && (
-            <span className="total-atendimentos ms-2">
-              Total de equinos: {resultado.length}
-            </span>
+    <div className="container-fluid mb-3">
+      <div className="row g-3 align-items-center">
+        <div className="col-lg-auto col-md-12 d-flex align-items-center gap-3 flex-wrap">
+          <h2 className="titulo-lista mb-0">
+            {titulo}
+            {resultado.length > 0 && (
+              <span className="total-atendimentos ms-2">
+                Total de equinos: {resultado.length}
+              </span>
+            )}
+          </h2>
+
+          {mostrarAdicionar && (
+            <Link to="/veterinaria-Form" className="btn btn-outline-primary">
+              Adicionar Equino
+            </Link>
           )}
-        </h2>
-        {mostrarAdicionar && (
-          <Link to="/veterinaria-Form" className="btn btn-outline-primary ms-4">
-            Adicionar Equino
-          </Link>
-        )}
-      </div>
-  
-      {/* Coluna dos Filtros e Botões */}
-      <div className="col-md-6 d-flex flex-nowrap justify-content-end align-items-center overflow-auto gap-2 mt-3 mt-md-0">
-        {mostrarDatas && (
-          <>
-            <input
-              type="date"
-              className="form-control"
-              value={filtroInicio}
-              onChange={e => setFiltroInicio(e.target.value)}
-              style={{ maxWidth: '160px' }}
-            />
-            <span className="mx-1">Até</span>
-            <input
-              type="date"
-              className="form-control"
-              value={filtroFim}
-              onChange={e => setFiltroFim(e.target.value)}
-              style={{ maxWidth: '160px' }}
-            />
-          </>
-        )}
-  
-        <select
-          className="form-control"
-          value={filtroNome}
-          onChange={e => setFiltroNome(e.target.value)}
-          style={{ maxWidth: '180px' }}
-        >
-          <option value="">Todos os equinos</option>
-          {equinos.map(eq => (
-            <option key={eq.id} value={eq.id}>{eq.name}</option>
-          ))}
-        </select>
-  
-        <button className="btn btn-primary" onClick={onFiltrar}>Filtrar</button>
-  
-        {mostrarBotoesPDF && (
-          <>
-            <button
-              className="btn btn-secondary"
-              onClick={limparFiltros}
-              title="Limpar Campos"
-            >
-              Limpar
-            </button>
-            <button
-              className="btn btn-outline-danger"
-              onClick={gerarPDF}
-              title="Gerar PDF"
-            >
-              PDF
-            </button>
-          </>
-        )}
+        </div>
+
+        <div className="col d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
+          {mostrarDatas && (
+            <>
+              <input
+                type="date"
+                className="form-control"
+                style={{ maxWidth: '170px' }}
+                value={filtroInicio}
+                onChange={e => setFiltroInicio(e.target.value)}
+              />
+              <span>Até</span>
+              <input
+                type="date"
+                className="form-control"
+                style={{ maxWidth: '170px' }}
+                value={filtroFim}
+                onChange={e => setFiltroFim(e.target.value)}
+              />
+            </>
+          )}
+
+          <select
+            className="form-control"
+            style={{ maxWidth: '200px' }}
+            value={filtroNome}
+            onChange={e => setFiltroNome(e.target.value)}
+          >
+            <option value="">Todos os equinos</option>
+            {equinos.map(eq => (
+              <option key={eq.id} value={eq.id}>{eq.name}</option>
+            ))}
+          </select>
+
+          <button className="btn btn-primary" onClick={onFiltrar}>Filtrar</button>
+
+          {mostrarBotoesPDF && (
+            <>
+              <button className="btn btn-secondary" onClick={limparFiltros}>Limpar</button>
+              <button className="btn btn-outline-danger" onClick={gerarPDF}>PDF</button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
-  
 };
 
 export default CabecalhoEquinoLista;
