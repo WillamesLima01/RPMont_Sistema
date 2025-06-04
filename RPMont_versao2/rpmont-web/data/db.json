@@ -416,7 +416,7 @@
       "data": "2025-05-18"
     }
   ],
-   "users": [
+  "users": [
     {
       "id": "1",
       "fullName": "willames Pereira de Lima",
@@ -456,6 +456,78 @@
       "password": "222",
       "profession": "Veterinário",
       "id": "5add"
+    }
+  ],
+  "toalete": [
+    {
+      "id": "c655",
+      "equinoId": "2",
+      "tosa": false,
+      "banho": false,
+      "limpezaOuvidos": false,
+      "limpezaGenital": false,
+      "limpezaCascos": true,
+      "ripagemCrina": false,
+      "ripagemCola": false,
+      "escovacao": true,
+      "rasqueamento": true,
+      "observacoes": ""
+    },
+    {
+      "id": "addb",
+      "equinoId": "5",
+      "tosa": false,
+      "banho": false,
+      "limpezaOuvidos": false,
+      "limpezaGenital": true,
+      "limpezaCascos": true,
+      "ripagemCrina": false,
+      "ripagemCola": false,
+      "escovacao": true,
+      "rasqueamento": false,
+      "observacoes": ""
+    },
+    {
+      "id": "77f5",
+      "equinoId": "3",
+      "tosa": false,
+      "banho": true,
+      "limpezaOuvidos": false,
+      "limpezaGenital": false,
+      "limpezaCascos": false,
+      "ripagemCrina": false,
+      "ripagemCola": false,
+      "escovacao": false,
+      "rasqueamento": true,
+      "observacoes": ""
+    },
+    {
+      "id": "160d",
+      "equinoId": "8",
+      "tosa": true,
+      "banho": false,
+      "limpezaOuvidos": true,
+      "limpezaGenital": false,
+      "limpezaCascos": true,
+      "ripagemCrina": false,
+      "ripagemCola": false,
+      "escovacao": false,
+      "rasqueamento": false,
+      "observacoes": ""
+    },
+    {
+      "id": "396f",
+      "equinoId": "1",
+      "tosa": true,
+      "banho": false,
+      "limpezaOuvidos": true,
+      "limpezaGenital": false,
+      "limpezaCascos": false,
+      "ripagemCrina": false,
+      "ripagemCola": false,
+      "escovacao": true,
+      "rasqueamento": true,
+      "observacoes": ""
     }
   ]
 }

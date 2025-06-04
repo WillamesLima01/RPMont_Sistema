@@ -13,13 +13,15 @@ import VeterinariaEquinosBaixadosList from './pages/veterinaria/VeterinariaEquin
 import VeterinariaRelatorioServicoForm from './pages/veterinaria/VeterinariaRelatorioServicoForm.jsx';
 import VeterinariaRelatorioEquino from './pages/veterinaria/VeterinariaRelatorioEquino.jsx';
 import VeterinariaManejoSanitarioList from './pages/veterinaria/VeterinariaManejoSanitarioList.jsx';
+import VeterinariaToaleteForm from './pages/veterinaria/VeterinariaToaleteForm.jsx';
+import VeterinariaEquinoList from './pages/veterinaria/VeterinariaEquinoList.jsx';
 
 const rotas = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/veterinaria-List" element={<VeterinariaList />} />
+        <Route path="/" element={<Login />} />       
+        <Route path="/veterinaria-List" element={<VeterinariaEquinoList />} />
         <Route path="/veterinaria-Form" element={<VeterinariaForm />} />
         <Route path="/edit-equino/:id" element={<VeterinariaForm />} />
         <Route path="/atendimento-List" element={<VeterinariaAtendimentoList />} />
@@ -31,7 +33,8 @@ const rotas = () => {
         <Route path="/veterinaria-Equinos-Baixados" element={<VeterinariaEquinosBaixadosList />} />
         <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm />} />
         <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino />} />
-        <Route path="/manejo-sanitario-list" element={<VeterinariaManejoSanitarioList />} />        
+        <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
+        <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />            
         <Route path="/inicio" element={<Grafico />} />
       </Routes>
     </BrowserRouter>

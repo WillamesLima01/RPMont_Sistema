@@ -204,10 +204,10 @@ const VeterinariaEquinosBaixadosList = () => {
                     <td>{eq.status}</td>
                     <td className="text-end">
                     <Link to={`/atendimento/${eq.id}`} className="btn btn-sm btn-outline-info me-2" title='Atendimento'>
-                        <i class="bi bi-clipboard2-pulse"></i>
+                        <i className="bi bi-clipboard2-pulse"></i>
                     </Link>
                     <button onClick={() => handleRetorno(eq)} className="btn btn-sm btn-outline-success" title='Retornar as atividades'>
-                        <i class="bi bi-chat-square-heart"></i>
+                        <i className="bi bi-chat-square-heart"></i>
                     </button>
                     </td>
                 </tr>

@@ -1,0 +1,17 @@
+.botao-principal {
+  background-color: #0d6efd;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.botao-principal:hover {
+  background-color: #0b5ed7;
+}

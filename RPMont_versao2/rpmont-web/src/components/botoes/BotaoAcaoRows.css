@@ -1,0 +1,111 @@
+/* Estilo base para todos os botões de ação */
+.botao-toalete,
+.botao-ferrageamento,
+.botao-vermifugacao,
+.botao-editar,
+.botao-excluir,
+.botao-baixar,
+.botao-escalas,
+.botao-atendimento,
+.botao-retorno {
+  background-color: transparent;
+  border: 1px solid;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  margin-left: 5px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Toalete */
+.botao-toalete {
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+.botao-toalete:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Ferrageamento */
+.botao-ferrageamento {
+  color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+.botao-ferrageamento:hover {
+  background-color: #0dcaf0;
+  color: black;
+}
+
+/* Vermifugação */
+.botao-vermifugacao {
+  color: #ffc107;
+  border-color: #ffc107;
+}
+.botao-vermifugacao:hover {
+  background-color: #ffc107;
+  color: black;
+}
+
+/* Editar */
+.botao-editar {
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+.botao-editar:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Excluir */
+.botao-excluir {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+.botao-excluir:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Baixar Equino */
+.botao-baixar {
+  color: #6f42c1;
+  border-color: #6f42c1;
+}
+.botao-baixar:hover {
+  background-color: #6f42c1;
+  color: white;
+}
+
+/* Escalas */
+.botao-escalas {
+  color: #198754;
+  border-color: #198754;
+}
+.botao-escalas:hover {
+  background-color: #198754;
+  color: white;
+}
+
+/* Atendimento */
+.botao-atendimento {
+  color: #20c997;
+  border-color: #20c997;
+}
+.botao-atendimento:hover {
+  background-color: #20c997;
+  color: white;
+}
+
+/* Retorno às atividades */
+.botao-retorno {
+  color: #fd7e14;
+  border-color: #fd7e14;
+}
+.botao-retorno:hover {
+  background-color: #fd7e14;
+  color: white;
+}

@@ -143,7 +143,7 @@ const VeterinariaManejoSanitarioList = () => {
                 <td className='text-end'>
                     <div className='d-inline me-2'>
                         <Link
-                        to={`/toalete-equino/${equino.id}`}
+                        to={`/veterinaria-toalete-equino/${equino.id}`}
                         className="btn btn-sm btn-outline-primary btn-toalete"
                         title="Toalete"
                         >

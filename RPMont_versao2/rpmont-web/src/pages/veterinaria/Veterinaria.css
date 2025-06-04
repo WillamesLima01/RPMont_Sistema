@@ -57,16 +57,8 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     max-width: 1000px;
     width: 100%;    
-  }
+  }  
   
-  /*.titulo-principal-Atendimento {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #0d6efd;    
-    text-align: center;
-    margin-top: 40px;
-  }*/
-
   .titulo-wrapper {
     width: 100%;
     text-align: center;   
@@ -269,3 +261,27 @@
   color: gold; /* ou yellow */
   font-size: 0.9rem;
 }
+
+/* Estilização do conteúdo do modal */
+.modal-content-custom {
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Título da mensagem */
+.modal-success-title {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: #28a745;
+  font-weight: bold;
+}
+
+/* Ícone de sucesso */
+.modal-success-icon {
+  font-size: 3rem;
+  color: #28a745;
+}
+

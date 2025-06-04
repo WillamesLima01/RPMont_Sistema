@@ -48,7 +48,7 @@ const Navbar = () => {
 
                            <ul className="dropdown-menu" aria-labelledby="navbarDropdownEquinos">                                
                                 <li>
-                                    <Link to="/veterinaria-List?filtro=ativos" className="dropdown-item">
+                                    <Link to="/veterinaria-List" className="dropdown-item">
                                     Equinos Aptos
                                     </Link>
                                 </li>
@@ -98,33 +98,34 @@ const Navbar = () => {
                             </ul>
                         </li>
                         <li className="nav-item dropdown">
-                        <button
-                            className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
-                            '/ferrageamento-equino',
-                            '/toalete-equino',
-                            '/vermifugacao-equino',
-                            '/procedimentos-realizados'
-                            ])}`}
-                            id="navbarDropdownManejo"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                        >
-                            Manejo Sanitário Equino
-                        </button>
+                            <button
+                                className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
+                                '/ferrageamento-equino',
+                                '/toalete-equino',
+                                '/vermifugacao-equino',
+                                '/procedimentos-realizados'
+                                ])}`}
+                                id="navbarDropdownManejo"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Manejo Sanitário Equino
+                            </button>
 
-                        <ul className="dropdown-menu" aria-labelledby="navbarDropdownManejo">
-                            <li>
-                            <Link to="/manejo-sanitario-list" className="dropdown-item">
-                                Ferrageamento, Toalete e Vermifugação
-                            </Link>
-                            </li>                            
-                            <li>
-                            <Link to="/procedimentos-realizados" className="dropdown-item">
-                                Procedimentos Realizados
-                            </Link>
+                            <ul className="dropdown-menu p-2" aria-labelledby="navbarDropdownManejo" style={{ minWidth: '250px' }}>
+                                
+                                <li className="dropdown-header text-muted fw-bold">Procedimentos a Realizar</li>
+                                <li><Link to="/manejo-sanitario-list" className="dropdown-item">Ferrageamento, Toalete e Vermifugação</Link></li>
+                                <li><hr className="dropdown-divider" /></li>
+
+                                <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
+                                <li><Link to="/procedimentos-toalete" className="dropdown-item">Toalete</Link></li>
+                                <li><Link to="/procedimentos-ferrageamento" className="dropdown-item">Ferrageamento</Link></li>
+                                <li><Link to="/procedimentos-vermifugacao" className="dropdown-item">Vermifugação</Link></li>
+
+                            </ul>
                             </li>
-                        </ul>
-                        </li>
+
                                          
                     </ul>
                     <ul className="navbar-nav">
