@@ -3,7 +3,7 @@ import BotaoAcao from '../../components/botoes/BotaoAcaoRows.jsx';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
-import CabecalhoEquinoLista from '../../components/cabacalhoEquinoList/CabecalhoEquinos.jsx';
+import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 
 const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinos, setEquinos] = useState([]);
@@ -80,11 +80,13 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
     <div className="container-fluid mt-page">
       <Navbar />
 
-      <CabecalhoEquinoLista
+      <CabecalhoEquinos
+        titulo="Lista de Equinos"
         equinos={equinos}
         filtroNome={filtroNome}
         setFiltroNome={setFiltroNome}
         onFiltrar={handleFiltrar}
+        mostrarAdicionar={true}
       />
 
       <h2 className="mb-4">{titulo}</h2>

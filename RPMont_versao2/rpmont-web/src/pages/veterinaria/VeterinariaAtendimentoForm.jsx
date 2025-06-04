@@ -58,14 +58,14 @@ const VeterinariaAtendimento = () => {
         setModalAberto(true);
         setTimeout(() => {
           setModalAberto(false);
-          navigate(modoEdicao ? "/atendimentoList" : "/veterinariaList");
+          navigate(modoEdicao ? "/atendimento-List" : "/veterinaria-List");
         }, 2000);
       })
       .catch(err => console.error("Erro ao salvar atendimento:", err));
   };
 
   const cancelar = () => {
-    navigate(modoEdicao ? "/atendimentoList" : "/veterinariaList");
+    navigate("/veterinaria-Equinos-Baixados");
   };
 
   const calcularDosagem = () => {

@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
+import BotaoAcao from '../../components/botoes/BotaoAcaoRows.jsx';
+import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import Modal from 'react-modal';
-
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-
 
 Modal.setAppElement('#root');
 
 const VeterinariaEquinosBaixadosList = () => {
   const [equinos, setEquinos] = useState([]);
   const [equinosBaixados, setEquinosBaixados] = useState([]);
+  const [botoes, setBotoes] = useState([]);
   const [filtroNome, setFiltroNome] = useState('');
   const [filtroInicio, setFiltroInicio] = useState('');
   const [filtroFim, setFiltroFim] = useState('');
@@ -22,25 +23,29 @@ const VeterinariaEquinosBaixadosList = () => {
 
   useEffect(() => {
     carregarEquinos();
+    setBotoes(['atendimento', 'retorno']);
   }, []);
 
   const carregarEquinos = async () => {
-    const [resEquinos, resBaixados] = await Promise.all([
-      axios.get('/equinos'),
-      axios.get('/equinosBaixados'),
-    ]);
+    try {
+      const [resEquinos, resBaixados] = await Promise.all([
+        axios.get('/equinos'),
+        axios.get('/equinosBaixados'),
+      ]);
 
-    const baixadosAtivos = resEquinos.data.filter(eq => eq.status === 'Baixado');
-    setEquinos(baixadosAtivos);
-    setEquinosBaixados(resBaixados.data);
+      const baixadosAtivos = resEquinos.data.filter(eq => eq.status === 'Baixado');
+      setEquinos(baixadosAtivos);
+      setEquinosBaixados(resBaixados.data);
 
-    // Define resultado inicial (todos os baixados ativos)
-    const resultadoInicial = baixadosAtivos.filter(eq => {
-      const registro = resBaixados.data.find(b => b.idEquino === eq.id && !b.dataRetorno);
-      return !!registro;
-    });
+      const resultadoInicial = baixadosAtivos.filter(eq => {
+        const registro = resBaixados.data.find(b => b.idEquino === eq.id && !b.dataRetorno);
+        return !!registro;
+      });
 
-    setResultado(resultadoInicial);
+      setResultado(resultadoInicial);
+    } catch (error) {
+      console.error('Erro ao carregar equinos:', error);
+    }
   };
 
   const filtrar = () => {
@@ -48,7 +53,7 @@ const VeterinariaEquinosBaixadosList = () => {
       const registro = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
       if (!registro) return false;
 
-      const nomeOK = !filtroNome || eq.id === filtroNome;
+      const nomeOK = !filtroNome || eq.id.toString() === filtroNome;
       const dataOK =
         (!filtroInicio || registro.dataBaixa >= filtroInicio) &&
         (!filtroFim || registro.dataBaixa <= filtroFim);
@@ -63,7 +68,7 @@ const VeterinariaEquinosBaixadosList = () => {
     setFiltroNome('');
     setFiltroInicio('');
     setFiltroFim('');
-    filtrar(); // mostra tudo
+    filtrar();
   };
 
   const exportarCSV = () => {
@@ -79,6 +84,34 @@ const VeterinariaEquinosBaixadosList = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const gerarPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Lista de Equinos Baixados', 14, 15);
+
+    const dadosTabela = resultado.map(eq => {
+      const baixa = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
+      const dataBaixa = baixa ? new Date(baixa.dataBaixa).toLocaleDateString('pt-BR') : '—';
+
+      return [
+        eq.name,
+        eq.raca,
+        eq.pelagem,
+        eq.numeroRegistro,
+        dataBaixa,
+        eq.status
+      ];
+    });
+
+    doc.autoTable({
+      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'Status']],
+      body: dadosTabela,
+      startY: 25,
+    });
+
+    doc.save('equinos_baixados.pdf');
   };
 
   const handleRetorno = async (equino) => {
@@ -102,119 +135,78 @@ const VeterinariaEquinosBaixadosList = () => {
     }
   };
 
-  const gerarPDF = () => {
-    const doc = new jsPDF();
-  
-    doc.setFontSize(14);
-    doc.text('Lista de Equinos Baixados', 14, 15);
-  
-    const dadosTabela = resultado.map(eq => {
-      const baixa = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
-      const dataBaixa = baixa ? new Date(baixa.dataBaixa).toLocaleDateString('pt-BR') : '—';
-  
-      return [
-        eq.name,
-        eq.raca,
-        eq.pelagem,
-        eq.numeroRegistro,
-        dataBaixa,
-        eq.status
-      ];
-    });
-  
-    doc.autoTable({
-      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'Status']],
-      body: dadosTabela,
-      startY: 25,
-    });
-  
-    doc.save('equinos_baixados.pdf');
-  };  
-
   return (
     <div className="container-fluid mt-page">
       <Navbar />
 
       <div className='d-flex justify-content-between align-items-center mb-4'>
-        <h2 className='titulo-lista'>
-          Lista de Equinos Baixados
-          <span className="total-atendimentos ms-0">
-            Total de equinos: {resultado.length}
-          </span>
-        </h2>
-
-        <div className='d-flex justify-content-end'>
-          <input
-            type='date'
-            className='form-control'
-            value={filtroInicio}
-            onChange={e => setFiltroInicio(e.target.value)}
-          />
-          <span className='m-2'>Até</span>
-          <input
-            type='date'
-            className='form-control'
-            value={filtroFim}
-            onChange={e => setFiltroFim(e.target.value)}
-          />
-
-          <select
-            className='form-control ms-3 me-3'
-            value={filtroNome}
-            onChange={e => setFiltroNome(e.target.value)}
-          >
-            <option value=''>Todos os equinos</option>
-            {equinos.map(eq => (
-              <option key={eq.id} value={eq.id}>{eq.name}</option>
-            ))}
-          </select>
-
-          <button className='btn btn-primary me-2' onClick={filtrar}>Filtrar</button>
-          <button className='btn btn-secondary me-2' title="Limpar Campos" onClick={limparFiltros}>Limpar</button>
-          <button className='btn btn-outline-danger' title="Gerar PDF" onClick={gerarPDF}>PDF</button>
-        </div>
+        <CabecalhoEquinos
+          titulo="Lista de Equinos Baixados"
+          equinos={equinos}
+          filtroNome={filtroNome}
+          setFiltroNome={setFiltroNome}
+          filtroInicio={filtroInicio}
+          setFiltroInicio={setFiltroInicio}
+          filtroFim={filtroFim}
+          setFiltroFim={setFiltroFim}
+          onFiltrar={filtrar}
+          limparFiltros={limparFiltros}
+          gerarPDF={gerarPDF}
+          mostrarDatas={true}
+          mostrarBotoesPDF={true}
+          resultado={resultado}
+        />
       </div>
 
       <table className="table table-hover">
-            <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Raça</th>
-                <th>Pelagem</th>
-                <th>Registro</th>
-                <th>Data da Baixa</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {resultado.map(eq => {
-                const registroBaixa = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
-                const dataBaixaFormatada = registroBaixa
-                ? new Date(registroBaixa.dataBaixa).toLocaleDateString('pt-BR')
-                : '—';
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Raça</th>
+            <th>Pelagem</th>
+            <th>Registro</th>
+            <th>Data da Baixa</th>
+            <th>Status</th>
+            <th className="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {resultado.map(eq => {
+            const registroBaixa = equinosBaixados.find(b => b.idEquino === eq.id && !b.dataRetorno);
+            const dataBaixaFormatada = registroBaixa
+              ? new Date(registroBaixa.dataBaixa).toLocaleDateString('pt-BR')
+              : '—';
 
-                return (
-                <tr key={eq.id}>
-                    <td>{eq.name}</td>
-                    <td>{eq.raca}</td>
-                    <td>{eq.pelagem}</td>
-                    <td>{eq.numeroRegistro}</td>
-                    <td>{dataBaixaFormatada}</td>
-                    <td>{eq.status}</td>
-                    <td className="text-end">
-                    <Link to={`/atendimento/${eq.id}`} className="btn btn-sm btn-outline-info me-2" title='Atendimento'>
-                        <i className="bi bi-clipboard2-pulse"></i>
-                    </Link>
-                    <button onClick={() => handleRetorno(eq)} className="btn btn-sm btn-outline-success" title='Retornar as atividades'>
-                        <i className="bi bi-chat-square-heart"></i>
-                    </button>
-                    </td>
-                </tr>
-                );
-            })}
-            </tbody>
-
+            return (
+              <tr key={eq.id}>
+                <td>{eq.name}</td>
+                <td>{eq.raca}</td>
+                <td>{eq.pelagem}</td>
+                <td>{eq.numeroRegistro}</td>
+                <td>{dataBaixaFormatada}</td>
+                <td>{eq.status}</td>
+                <td className="text-end">
+                  {botoes.includes('atendimento') && (
+                    <BotaoAcao
+                      to={`/atendimento/${eq.id}`}
+                      title="Atendimento"
+                      className="botao-atendimento"
+                      icone="bi-clipboard2-pulse"
+                    />
+                  )}
+                  {botoes.includes('retorno') && (
+                    <BotaoAcao
+                      onClick={() => handleRetorno(eq)}
+                      title="Retornar às atividades"
+                      className="botao-retorno"
+                      icone="bi-arrow-up-circle"
+                    />
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
 
       <Modal

@@ -138,10 +138,10 @@ const VeterinariaForm = () => {
       <Navbar />
       <div className="container mt-5">
         <div className="row justify-content-center">
-          <div className="col-lg-8">
+          <div className="col-lg-8 mt-5">
 
-            <div className="text-center position-relative">
-              <h2 className="titulo-principal mt-4 justify-content-center">
+            <div className="text-center position-relative mt-5">
+              <h2 className="titulo-principal justify-content-center mt-5">
                 {id ? 'Editar Equino' : 'Adicionar Equino'}
                 <div className="tooltip-wrapper">
                   <FaQuestionCircle className="tooltip-icon ms-2" onClick={toggleTooltip} />

@@ -99,12 +99,7 @@ const Navbar = () => {
                         </li>
                         <li className="nav-item dropdown">
                             <button
-                                className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
-                                '/ferrageamento-equino',
-                                '/toalete-equino',
-                                '/vermifugacao-equino',
-                                '/procedimentos-realizados'
-                                ])}`}
+                                className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive(['/manejo-sanitario-list', '/ferrageamento-equino', '/toalete-equino', '/vermifugacao-equino'])}`}
                                 id="navbarDropdownManejo"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
@@ -119,9 +114,9 @@ const Navbar = () => {
                                 <li><hr className="dropdown-divider" /></li>
 
                                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
-                                <li><Link to="/procedimentos-toalete" className="dropdown-item">Toalete</Link></li>
-                                <li><Link to="/procedimentos-ferrageamento" className="dropdown-item">Ferrageamento</Link></li>
-                                <li><Link to="/procedimentos-vermifugacao" className="dropdown-item">Vermifugação</Link></li>
+                                <li><Link to="/toalete-equino" className="dropdown-item">Toalete</Link></li>
+                                <li><Link to="/ferrageamento-equino" className="dropdown-item">Ferrageamento</Link></li>
+                                <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
 
                             </ul>
                             </li>
