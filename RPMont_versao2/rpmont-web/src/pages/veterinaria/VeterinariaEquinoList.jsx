@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import BotaoAcao from '../../components/botoes/BotaoAcaoRows.jsx';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
 import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
+import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 
 const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinos, setEquinos] = useState([]);
@@ -118,7 +119,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                 <td>{equino.unidade}</td>
                 <td className="text-end">
                   {botoes.includes('toalete') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       to={`/veterinaria-toalete-equino/${equino.id}`}
                       title="Toalete"
                       className="botao-toalete"
@@ -126,7 +127,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('ferrageamento') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       to={`/ferrageamento-equino/${equino.id}`}
                       title="Ferrageamento"
                       className="botao-ferrageamento"
@@ -134,7 +135,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('vermifugacao') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       to={`/vermifugacao-equino/${equino.id}`}
                       title="Vermifugação"
                       className="botao-vermifugacao"
@@ -142,15 +143,15 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('editar') && (
-                    <BotaoAcao
-                      to={`/editar-equino/${equino.id}`}
+                    <BotaoAcaoRows
+                      to={`/edit-equino/${equino.id}`}
                       title="Editar"
                       className="botao-editar"
                       icone="bi-pencil"
                     />
                   )}
                   {botoes.includes('excluir') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       onClick={() => alert('Excluir Equino')}
                       title="Excluir"
                       className="botao-excluir"
@@ -158,7 +159,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('baixar') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       onClick={() => alert('Baixar Equino')}
                       title="Baixar"
                       className="botao-baixar"
@@ -166,7 +167,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('escalas') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       to={`/escalas-equino/${equino.id}`}
                       title="Escalas"
                       className="botao-escalas"
@@ -174,7 +175,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('atendimento') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       to={`/atendimento-equino/${equino.id}`}
                       title="Atendimento"
                       className="botao-atendimento"
@@ -182,7 +183,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     />
                   )}
                   {botoes.includes('retorno') && (
-                    <BotaoAcao
+                    <BotaoAcaoRows
                       onClick={() => alert('Retornar às atividades')}
                       title="Retornar às atividades"
                       className="botao-retorno"

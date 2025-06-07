@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from './pages/login/Login.jsx';
-import VeterinariaList from './pages/veterinaria/VeterinariaList.jsx';
 import VeterinariaForm from './pages/veterinaria/VeterinariaForm.jsx';
 import Grafico from './pages/grafico/Grafico.jsx';
 import VeterinariaAtendimento from './pages/veterinaria/VeterinariaAtendimentoForm.jsx';
@@ -12,7 +11,6 @@ import GraficoCargaHorariaEquino from './pages/grafico/GraficoCargaHorariaEquino
 import VeterinariaEquinosBaixadosList from './pages/veterinaria/VeterinariaEquinosBaixadosList.jsx';
 import VeterinariaRelatorioServicoForm from './pages/veterinaria/VeterinariaRelatorioServicoForm.jsx';
 import VeterinariaRelatorioEquino from './pages/veterinaria/VeterinariaRelatorioEquino.jsx';
-import VeterinariaManejoSanitarioList from './pages/veterinaria/VeterinariaManejoSanitarioList.jsx';
 import VeterinariaToaleteForm from './pages/veterinaria/VeterinariaToaleteForm.jsx';
 import VeterinariaEquinoList from './pages/veterinaria/VeterinariaEquinoList.jsx';
 

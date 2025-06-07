@@ -1,0 +1,79 @@
+.modalBase {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  padding: 32px;
+  min-width: 300px;
+  max-width: 90vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* TAMANHOS */
+.modalBox.pequeno {
+  width: 300px;
+  padding: 20px;
+}
+.modalBox.medio {
+  width: 400px;
+  padding: 32px;
+}
+.modalBox.grande {
+  width: 600px;
+  padding: 40px;
+}
+
+/* TIPOS */
+.modalMensagem {
+  background-color: #ffffff;
+  border-left: 5px solid #2196f3;
+}
+.modalConfirmacao {
+  background-color: #fffbe6;
+  border-left: 5px solid #ffc107;
+}
+.modalEmail {
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+}
+
+/* ELEMENTOS INTERNOS */
+.modalIcon {  
+  margin-bottom: 26px;
+  height: 50px;
+}
+.modalTitle {
+  font-size: 1.8rem; /* ✅ Aumentado */
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #2196f3;
+}
+.modalSubtitulo {
+  font-size: 1.2rem; /* ✅ Aumentado */
+  margin-bottom: 24px;
+  color: green;
+}
+.modalButton {
+  margin-top: 16px;
+}
+
+/* MODAL ESPECIAL DE ENTRADA */
+.modalEntrada {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.9);
+  transition: all 0.3s ease-in-out;
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* CENTRALIZAÇÃO DO MODAL */
+.MuiModal-root {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}

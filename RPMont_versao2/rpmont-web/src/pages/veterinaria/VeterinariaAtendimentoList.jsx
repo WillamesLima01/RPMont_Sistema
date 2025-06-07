@@ -6,6 +6,8 @@ import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
 import axios from '../../api';
 import { utils, writeFile } from 'xlsx';
+import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
+import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 
 Modal.setAppElement('#root');
 
@@ -18,7 +20,8 @@ const VeterinariaAtendimento = () => {
   const [filtroFim, setFiltroFim] = useState('');
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [atendimentoSelecionado, setAtendimentoSelecionado] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [botoes, setBotoes] = useState([]);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -27,6 +30,8 @@ const VeterinariaAtendimento = () => {
       setAtendimentos(res.data);
       setResultado(res.data);
     });
+
+    setBotoes(['editar', 'excluir']);
   }, []);
 
   const filtrar = () => {
@@ -58,7 +63,7 @@ const VeterinariaAtendimento = () => {
   const endIndex = startIndex + itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, endIndex);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
-  
+
   const exportarCSV = () => {
     const dataExportar = resultado.map(atendimento => {
       const equino = equinos.find(eq => eq.id === atendimento.idEquino);
@@ -80,16 +85,16 @@ const VeterinariaAtendimento = () => {
   const confirmarExclusao = (atendimento) => {
     setAtendimentoSelecionado(atendimento);
     setModalExcluirAberto(true);
-  }; 
-  
+  };
+
   const cancelarExclusao = () => {
     setModalExcluirAberto(false);
     setAtendimentoSelecionado(null);
-  }; 
+  };
 
   const excluirAtendimentoSelecionado = () => {
     if (!atendimentoSelecionado) return;
-  
+
     axios.delete(`/atendimentos/${atendimentoSelecionado.id}`)
       .then(() => {
         const atualizados = atendimentos.filter(a => a.id !== atendimentoSelecionado.id);
@@ -100,50 +105,29 @@ const VeterinariaAtendimento = () => {
       .catch(error => {
         console.error("Erro ao excluir atendimento:", error);
       });
-  }; 
+  };
 
   return (
     <div className='container-fluid mt-page'>
       <Navbar />
 
-      <div className='d-flex justify-content-between align-items-center mb-4'>
-      <h2 className='titulo-lista'>
-        Lista de Atendimentos
-        <span className="total-atendimentos">
-          Total de atendimentos: {resultado.length}
-        </span>
-      </h2>
-        <div className='d-flex justify-content-end'>
-          <input
-            type='date'
-            className='form-control'
-            value={filtroInicio}
-            onChange={e => setFiltroInicio(e.target.value)}
-          />
-          <span className='m-2'>Até</span>
-          <input
-            type='date'
-            className='form-control'
-            value={filtroFim}
-            onChange={e => setFiltroFim(e.target.value)}
-          />
-
-          <select
-            className='form-control ms-3 me-3'
-            value={filtroNome}
-            onChange={e => setFiltroNome(e.target.value)}
-          >
-            <option value=''>Todos os equinos</option>
-            {equinos.map(eq => (
-              <option key={eq.id} value={eq.id}>{eq.name}</option>
-            ))}
-          </select>
-
-          <button className='btn btn-primary me-2' onClick={filtrar}>Filtrar</button>
-          <button className='btn btn-secondary me-2' title="Limpar Campos" onClick={limparFiltros}>Limpar</button>
-          <button className='btn btn-outline-success' title="Exportar CSV" onClick={exportarCSV}>Exportar</button>
-        </div>
-      </div>
+      <CabecalhoEquinos
+        titulo="Lista de Atendimentos"
+        equinos={equinos}
+        filtroNome={filtroNome}
+        setFiltroNome={setFiltroNome}
+        filtroInicio={filtroInicio}
+        setFiltroInicio={setFiltroInicio}
+        filtroFim={filtroFim}
+        setFiltroFim={setFiltroFim}
+        onFiltrar={filtrar}
+        limparFiltros={limparFiltros}
+        gerarPDF={exportarCSV}
+        mostrarDatas={true}
+        mostrarBotoesPDF={true}
+        mostrarAdicionar={false}
+        resultado={resultado}  // ✅ AQUI
+      />
 
       <div>
         <table className='table table-hover'>
@@ -168,15 +152,25 @@ const VeterinariaAtendimento = () => {
                   <td>{atendimento.data}</td>
                   <td>{atendimento.textoConsulta}</td>
                   <td className="text-end">
-                  <div className="d-flex justify-content-end gap-2">
-                    <Link to={`/edit-atendimento/${atendimento.id}`} className="btn btn-sm btn-outline-primary" title="Editar Atendimento">
-                      <i className="bi bi-pencil-square"></i>
-                    </Link>
-                    <button onClick={() => confirmarExclusao(atendimento)} className="btn btn-sm btn-outline-danger" title="Excluir Atendimento">
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </div>
-                </td>
+                    <div className="d-flex justify-content-end">
+                      {botoes.includes('editar') && (
+                        <BotaoAcaoRows
+                          to={`/edit-atendimento/${atendimento.id}`}
+                          title="Editar Atendimento"
+                          className="botao-editar"
+                          icone="bi-pencil"
+                        />
+                      )}
+                      {botoes.includes('excluir') && (
+                        <BotaoAcaoRows
+                          onClick={() => confirmarExclusao(atendimento)}
+                          title="Excluir Atendimento"
+                          className="botao-excluir"
+                          icone="bi-trash"
+                        />
+                      )}
+                    </div>
+                  </td>
                 </tr>
               );
             })}
@@ -200,23 +194,24 @@ const VeterinariaAtendimento = () => {
           </nav>
         </div>
       </div>
+
       <Modal
-              isOpen={modalExcluirAberto}
-              onRequestClose={cancelarExclusao}
-              className="modal"
-              overlayClassName="overlay"
-            >
-              <div className="modalContent text-center">
-                <FaExclamationTriangle className="icone-exclamacao text-warning mb-3" size={50} />
-                <h4 className="mensagem-azul">
-                  Tem certeza que deseja excluir o atendimento de <strong>{equinos.find(eq => eq.id === atendimentoSelecionado?.idEquino)?.name}</strong>?
-                </h4>
-                <div className="d-flex justify-content-center gap-3 mt-4">
-                  <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
-                  <button className="btn btn-danger" onClick={excluirAtendimentoSelecionado}>Excluir</button>
-                </div>
-              </div>
-            </Modal>
+        isOpen={modalExcluirAberto}
+        onRequestClose={cancelarExclusao}
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <div className="modalContent text-center">
+          <FaExclamationTriangle className="icone-exclamacao text-warning mb-3" size={50} />
+          <h4 className="mensagem-azul">
+            Tem certeza que deseja excluir o atendimento de <strong>{equinos.find(eq => eq.id === atendimentoSelecionado?.idEquino)?.name}</strong>?
+          </h4>
+          <div className="d-flex justify-content-center gap-3 mt-4">
+            <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
+            <button className="btn btn-danger" onClick={excluirAtendimentoSelecionado}>Excluir</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

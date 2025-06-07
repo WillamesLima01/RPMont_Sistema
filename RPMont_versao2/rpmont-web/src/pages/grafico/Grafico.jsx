@@ -119,11 +119,11 @@ const Grafico = () => {
     <div className="container-fluid mt-page">
       <Navbar />
       <div className={styles['inicial-container']}>
-        <Link to="/veterinariaList" className={`${styles['stat-box']} ${styles['stat-box-blue']}`}>
+        <Link to="/veterinaria-List" className={`${styles['stat-box']} ${styles['stat-box-blue']}`}>
           <h3>Equinos</h3>
           <p>{qtdEquinos}</p>
         </Link>
-        <Link to="/veterinariaList" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
+        <Link to="/veterinaria-List" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
           <h3>Equinos Aptos</h3>
           <p>{qtdAptos}</p>
         </Link>
@@ -131,7 +131,7 @@ const Grafico = () => {
           <h3>Equinos Baixados</h3>
           <p>{qtdBaixados}</p>
         </Link>
-        <Link to="/atendimentoList" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
+        <Link to="/atendimento-List" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
           <h3>Atendimentos</h3>
           <p>{qtdAtendimentos}</p>
         </Link>
