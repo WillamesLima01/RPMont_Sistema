@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar.jsx';
-import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
 import axios from '../../api';
-import { utils, writeFile } from 'xlsx';
 import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 Modal.setAppElement('#root');
 
@@ -59,29 +59,40 @@ const VeterinariaAtendimento = () => {
     setCurrentPage(1);
   };
 
+  const exportarPDF = () => {
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Relatório de Atendimentos', 14, 15);
+
+  const dadosTabela = resultado.map((a, i) => {
+    const equino = equinos.find(eq => eq.id === a.idEquino);
+    return [
+      i + 1,
+      equino?.name || '-',
+      equino?.raca || '-',
+      equino?.numeroRegistro || '-',
+      a.data,
+      a.textoConsulta?.substring(0, 50) || '-', // corta o texto se for muito grande
+    ];
+  });
+
+  doc.autoTable({
+    startY: 20,
+    head: [['#', 'Nome do Equino', 'Raça', 'Registro', 'Data', 'Consulta']],
+    body: dadosTabela,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [22, 160, 133] }
+  });
+
+  doc.save('relatorio_atendimentos.pdf');
+};
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, endIndex);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
-
-  const exportarCSV = () => {
-    const dataExportar = resultado.map(atendimento => {
-      const equino = equinos.find(eq => eq.id === atendimento.idEquino);
-      return {
-        Nome: equino?.name || '-',
-        Raça: equino?.raca || '-',
-        Registro: equino?.numeroRegistro || '-',
-        Data: atendimento.data,
-        Consulta: atendimento.textoConsulta
-      };
-    });
-
-    const wb = utils.book_new();
-    const ws = utils.json_to_sheet(dataExportar);
-    utils.book_append_sheet(wb, ws, "Atendimentos");
-    writeFile(wb, "atendimentos.csv");
-  };
-
+ 
   const confirmarExclusao = (atendimento) => {
     setAtendimentoSelecionado(atendimento);
     setModalExcluirAberto(true);
@@ -122,7 +133,7 @@ const VeterinariaAtendimento = () => {
         setFiltroFim={setFiltroFim}
         onFiltrar={filtrar}
         limparFiltros={limparFiltros}
-        gerarPDF={exportarCSV}
+        gerarPDF={exportarPDF}
         mostrarDatas={true}
         mostrarBotoesPDF={true}
         mostrarAdicionar={false}

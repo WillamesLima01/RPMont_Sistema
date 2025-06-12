@@ -95,9 +95,9 @@ useEffect(() => {
 
   const cancelar = () => {
     if (modoEdicao) {
-      navigate("/escala-equinosList");
+      navigate("/escala-equinos-List");
     } else {
-      navigate("/veterinariaList");
+      navigate("/veterinaria-List");
     }
   };
 
