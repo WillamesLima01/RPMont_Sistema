@@ -145,7 +145,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                     <BotaoAcaoRows onClick={() => alert('Baixar Equino')} title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
                   )}
                   {botoes.includes('escalas') && (
-                    <BotaoAcaoRows to={`/escalas-equino/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
+                    <BotaoAcaoRows to={`/escala-equinos/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
                   )}
                   {botoes.includes('atendimento') && (
                     <BotaoAcaoRows to={`/atendimento-equino/${equino.id}`} title="Atendimento" className="botao-atendimento" icone="bi-clipboard2-pulse" />
