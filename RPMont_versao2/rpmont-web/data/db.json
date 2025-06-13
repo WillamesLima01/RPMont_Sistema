@@ -529,5 +529,101 @@
       "rasqueamento": true,
       "observacoes": ""
     }
+  ],
+  "ferrageamentoEquino": [
+    {
+      "id": 1,
+      "equinoId": "1",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 16,
+      "observacoes": "Ferrageamento preventivo",
+      "data": "2025-06-12"
+    },
+    {
+      "id": "4265",
+      "equinoId": "1",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 16,
+      "observacoes": "",
+      "data": "2025-06-12T22:16:09.608Z"
+    }
+  ],
+  "ferrageamentoRepregoEquino": [
+    {
+      "id": 1,
+      "equinoId": "1",
+      "patas": [
+        "Anterior Direita"
+      ],
+      "ferroNovo": "Não",
+      "cravosUsados": 6,
+      "observacoes": "Reaproveitamento de ferro anterior",
+      "data": "2025-06-12"
+    },
+    {
+      "id": "6264",
+      "equinoId": "6",
+      "patas": [
+        "Anterior Direita"
+      ],
+      "ferroNovo": "Sim",
+      "cravosUsados": 4,
+      "observacoes": "",
+      "data": "2025-06-12T22:37:51.447Z"
+    }
+  ],
+  "ferrageamentoCurativoEquino": [
+    {
+      "id": 1,
+      "equinoId": "1",
+      "tipoCurativo": "Curativo no casco posterior esquerdo",
+      "observacoes": "Inflamação leve tratada com pomada",
+      "data": "2025-06-12"
+    },
+    {
+      "id": "0c50",
+      "equinoId": "7",
+      "tipoCurativo": "compressão para parar o sangramento",
+      "observacoes": "",
+      "data": "2025-06-12T22:38:43.144Z"
+    }
+  ],
+  "vermifugacoes": [
+    {
+      "id": 1,
+      "equinoId": "3",
+      "vermifugo": "Ivermectina",
+      "observacao": "Dose padrão aplicada",
+      "data": "2025-06-12T14:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "equinoId": "1",
+      "vermifugo": "Albendazol",
+      "observacao": "Reforço após 3 meses",
+      "data": "2025-03-10T10:15:00.000Z"
+    },
+    {
+      "id": "21b7",
+      "equinoId": "6",
+      "vermifugo": "Ivermectina",
+      "observacao": "",
+      "data": "2025-06-13T09:53:57.770Z"
+    },
+    {
+      "id": "c054",
+      "equinoId": "5",
+      "vermifugo": "Albendazol",
+      "observacao": "",
+      "data": "2025-06-13T09:57:59.535Z"
+    }
   ]
 }

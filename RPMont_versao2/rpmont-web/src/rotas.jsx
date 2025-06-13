@@ -13,6 +13,7 @@ import VeterinariaRelatorioServicoForm from './pages/veterinaria/VeterinariaRela
 import VeterinariaRelatorioEquino from './pages/veterinaria/VeterinariaRelatorioEquino.jsx';
 import VeterinariaToaleteForm from './pages/veterinaria/VeterinariaToaleteForm.jsx';
 import VeterinariaEquinoList from './pages/veterinaria/VeterinariaEquinoList.jsx';
+import VeterinariaFerrageamentoEquinoform from './pages/veterinaria/VeterinariaFerrageamentoEquinoForm.jsx';
 
 const rotas = () => {
   return (
@@ -32,7 +33,8 @@ const rotas = () => {
         <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm />} />
         <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino />} />
         <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
-        <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />            
+        <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />     
+        <Route path="/veterinaria-ferrageamento-equino/:id" element={<VeterinariaFerrageamentoEquinoform />} />                   
         <Route path="/inicio" element={<Grafico />} />
       </Routes>
     </BrowserRouter>
