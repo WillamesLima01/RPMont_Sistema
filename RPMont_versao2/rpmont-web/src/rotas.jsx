@@ -14,6 +14,7 @@ import VeterinariaRelatorioEquino from './pages/veterinaria/VeterinariaRelatorio
 import VeterinariaToaleteForm from './pages/veterinaria/VeterinariaToaleteForm.jsx';
 import VeterinariaEquinoList from './pages/veterinaria/VeterinariaEquinoList.jsx';
 import VeterinariaFerrageamentoEquinoform from './pages/veterinaria/VeterinariaFerrageamentoEquinoForm.jsx';
+import VeterinariaResenhaEquinoForm from './pages/veterinaria/VeterinariaResenhaEquinoForm.jsx';
 
 const rotas = () => {
   return (
@@ -35,6 +36,7 @@ const rotas = () => {
         <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
         <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />     
         <Route path="/veterinaria-ferrageamento-equino/:id" element={<VeterinariaFerrageamentoEquinoform />} />                   
+        <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm />} />
         <Route path="/inicio" element={<Grafico />} />
       </Routes>
     </BrowserRouter>

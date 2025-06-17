@@ -4,6 +4,7 @@ import './Veterinaria.css';
 import axios from '../../api';
 import Modal from 'react-modal';
 import { FaCheckCircle } from 'react-icons/fa';
+import Navbar from '../../components/navbar/Navbar.jsx';
 
 Modal.setAppElement('#root');
 
@@ -65,7 +66,8 @@ const VeterinariaToaleteForm = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-5 pt-5">
+      <Navbar />
       <h2 className="text-primary mb-4">Toalete Equino</h2>
 
       {equino && (

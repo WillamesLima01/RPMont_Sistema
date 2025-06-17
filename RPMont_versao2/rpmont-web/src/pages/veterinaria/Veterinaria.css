@@ -285,3 +285,23 @@
   color: #28a745;
 }
 
+.imagem {
+  width: 32%;
+  height: auto;
+  max-height: 180px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: border 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+}
+
+.imagem:hover {
+  border: 2px solid #007bff; /* azul suave */
+  transform: scale(1.03);
+}
+
+.imagem.chanfro {
+  object-position: center 20%;
+}
+

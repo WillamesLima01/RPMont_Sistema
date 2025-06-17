@@ -7,7 +7,8 @@
 .botao-baixar,
 .botao-escalas,
 .botao-atendimento,
-.botao-retorno {
+.botao-retorno,
+.botao-rd {
   background-color: transparent;
   border: 1px solid;
   padding: 4px 10px;
@@ -109,3 +110,20 @@
   background-color: #fd7e14;
   color: white;
 }
+
+/* RD - Registro Diário */
+.botao-rd {
+  color: #0abce9;
+  border-color: #0abce9; 
+}
+.botao-rd:hover {
+  background-color: #0abce9;
+  color: white;
+}
+
+/* Ajuste do ícone Font Awesome */
+.botao-rd i.fas {
+  font-size: 0.75rem;
+  line-height: 1.2rem;
+}
+

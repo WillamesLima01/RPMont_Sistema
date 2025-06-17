@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import BotaoAcaoPrincipal from '../../components/botoes/BotaoAcaoPrincipal.jsx';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
@@ -66,7 +65,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   useEffect(() => {
     switch (location.pathname) {
       case '/veterinaria-List':
-        setBotoes(['editar', 'excluir', 'baixar', 'escalas']);
+        setBotoes(['editar', 'excluir', 'baixar', 'escalas', 'rd']);
         break;
       case '/veterinaria-Equinos-Baixados':
         setBotoes(['atendimento', 'retorno']);
@@ -152,6 +151,9 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                   )}
                   {botoes.includes('retorno') && (
                     <BotaoAcaoRows onClick={() => alert('Retornar às atividades')} title="Retornar às atividades" className="botao-retorno" icone="bi-arrow-up-circle" />
+                  )}
+                 {botoes.includes('rd') && ( 
+                    <BotaoAcaoRows to={`/veterinaria-resenha-equino/${equino.id}`} title="Resenha Descritiva" className="botao-rd" icone="fas fa-horse" />
                   )}
                 </td>
               </tr>

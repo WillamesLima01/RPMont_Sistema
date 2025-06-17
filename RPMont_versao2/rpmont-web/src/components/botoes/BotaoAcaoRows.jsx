@@ -5,7 +5,7 @@ import './BotaoAcaoRows.css'; // Aqui ficam as cores e tamanhos padronizados
 const BotaoAcaoRows = ({ to, onClick, tipo = 'link', className, texto, icone, title }) => {
   const conteudo = (
     <>
-      {icone && <i className={`bi ${icone}`}></i>}
+      {icone && <i className={`${icone} ms-1`}></i>}
       {texto && <span className="ms-1">{texto}</span>}
     </>
   );

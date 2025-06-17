@@ -5,6 +5,7 @@ import axios from '../../api';
 import Modal from 'react-modal';
 import { FaCheckCircle } from 'react-icons/fa';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx'
+import Navbar from '../../components/navbar/Navbar.jsx';
 
 Modal.setAppElement('#root');
 
@@ -118,7 +119,8 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 };
 
  return (
-    <div className="container mt-4">
+    <div className="container mt-5 pt-5">
+      <Navbar />
       <h2 className="text-primary mb-4">Ferrageamento Equino</h2>
 
       {equino && (
