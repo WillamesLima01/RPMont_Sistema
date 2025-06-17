@@ -81,7 +81,7 @@ const VeterinariaResenhaEquinoForm = () => {
       setModalAberto(true);
       setTimeout(() => {
         setModalAberto(false);
-        navigate('/listar-equino');
+        navigate('/veterinaria-List');
       }, 2500);
     } catch (err) {
       console.error('Erro ao salvar resenha:', err);
