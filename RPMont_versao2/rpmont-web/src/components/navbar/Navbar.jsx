@@ -110,14 +110,14 @@ const Navbar = () => {
                             <ul className="dropdown-menu p-2" aria-labelledby="navbarDropdownManejo" style={{ minWidth: '250px' }}>
                                 
                                 <li className="dropdown-header text-muted fw-bold">Procedimentos a Realizar</li>
-                                <li><Link to="/manejo-sanitario-list" className="dropdown-item">Ferrageamento, Toalete e Vermifugação</Link></li>
+                                <li><Link to="/manejo-sanitario-list" className="dropdown-item">Ferrageamento, Toalete, Vermifugação e Vacinação</Link></li>
                                 <li><hr className="dropdown-divider" /></li>
 
                                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
                                 <li><Link to="/toalete-equino" className="dropdown-item">Toalete</Link></li>
                                 <li><Link to="/ferrageamento-equino" className="dropdown-item">Ferrageamento</Link></li>
                                 <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
-
+                                <li><Link to="/vacinacao-equino" className="dropdown-item">Vacinação</Link></li>
                             </ul>
                             </li>
 

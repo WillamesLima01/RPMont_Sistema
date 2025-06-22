@@ -8,7 +8,8 @@
 .botao-escalas,
 .botao-atendimento,
 .botao-retorno,
-.botao-rd {
+.botao-rd,
+.botao-vacinacao {
   background-color: transparent;
   border: 1px solid;
   padding: 4px 10px;
@@ -127,3 +128,17 @@
   line-height: 1.2rem;
 }
 
+/* Vacinação */
+.botao-vacinacao {
+  color: #6f42c1;
+  border-color: #6f42c1;
+}
+.botao-vacinacao:hover {
+  background-color: #6f42c1;
+  color: white;
+}
+/* Ajuste do ícone Font Awesome */
+.botao-vacinacao i.fas {
+  font-size: 0.75rem;
+  line-height: 1.2rem;
+}

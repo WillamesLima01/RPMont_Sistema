@@ -5,6 +5,7 @@ import axios from '../../api';
 import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
+import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
 
 const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinos, setEquinos] = useState([]);
@@ -14,6 +15,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const [modalVermifugacaoAberto, setModalVermifugacaoAberto] = useState(false);
+  const [modalVacinacaoAberto, setModalVacinacaoAberto] = useState(false);
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
 
   const filtroQuery = searchParams.get('filtro');
@@ -71,7 +73,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         setBotoes(['atendimento', 'retorno']);
         break;
       case '/manejo-sanitario-list':
-        setBotoes(['toalete', 'ferrageamento', 'vermifugacao']);
+        setBotoes(['toalete', 'ferrageamento', 'vermifugacao', 'vacinacao']);
         break;
       default:
         setBotoes([]);
@@ -79,9 +81,13 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   }, [location.pathname]);
 
   const abrirModalVermifugacao = (equino) => {
-    console.log('Abrindo modal para:', equino);
     setEquinoSelecionado(equino);
     setModalVermifugacaoAberto(true);
+  };
+
+  const abrirModalVacinacao = (equino) => {
+    setEquinoSelecionado(equino);
+    setModalVacinacaoAberto(true);
   };
 
   return (
@@ -94,7 +100,10 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         filtroNome={filtroNome}
         setFiltroNome={setFiltroNome}
         onFiltrar={handleFiltrar}
-        mostrarAdicionar={true}
+        mostrarAdicionar={
+          location.pathname === '/veterinaria-List' &&
+          (!searchParams.get('filtro') || searchParams.get('filtro') === 'todos')
+        }
       />
 
       <h2 className="mb-4">{titulo}</h2>
@@ -152,8 +161,11 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                   {botoes.includes('retorno') && (
                     <BotaoAcaoRows onClick={() => alert('Retornar às atividades')} title="Retornar às atividades" className="botao-retorno" icone="bi-arrow-up-circle" />
                   )}
-                 {botoes.includes('rd') && ( 
+                  {botoes.includes('rd') && ( 
                     <BotaoAcaoRows to={`/veterinaria-resenha-equino/${equino.id}`} title="Resenha Descritiva" className="botao-rd" icone="fas fa-horse" />
+                  )}
+                  {botoes.includes('vacinacao') && (
+                    <BotaoAcaoRows tipo="button" onClick={() => abrirModalVacinacao(equino)} title="Vacinação" className="botao-vacinacao" icone="fas fa-syringe" />
                   )}
                 </td>
               </tr>
@@ -162,9 +174,16 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         </table>
       </div>
 
+      {/* Modais */}
       <ModalVermifugacao
         open={modalVermifugacaoAberto}
         onClose={() => setModalVermifugacaoAberto(false)}
+        equino={equinoSelecionado}
+      />
+
+      <ModalVacinacao
+        open={modalVacinacaoAberto}
+        onClose={() => setModalVacinacaoAberto(false)}
         equino={equinoSelecionado}
       />
     </div>
