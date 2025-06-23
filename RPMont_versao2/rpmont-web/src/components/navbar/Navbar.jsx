@@ -114,7 +114,7 @@ const Navbar = () => {
                                 <li><hr className="dropdown-divider" /></li>
 
                                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
-                                <li><Link to="/toalete-equino" className="dropdown-item">Toalete</Link></li>
+                                <li><Link to="/veterinaria-toalete-list" className="dropdown-item">Toalete</Link></li>
                                 <li><Link to="/ferrageamento-equino" className="dropdown-item">Ferrageamento</Link></li>
                                 <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
                                 <li><Link to="/vacinacao-equino" className="dropdown-item">Vacinação</Link></li>

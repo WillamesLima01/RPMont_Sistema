@@ -14,6 +14,7 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
   const [observacao, setObservacao] = useState('');
   const [vermifugosAnteriores, setVermifugosAnteriores] = useState([]);
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
+  const [modalErroAberto, setModalErroAberto] = useState(false);
 
   useEffect(() => {
     const carregarVermifugos = async () => {
@@ -28,14 +29,16 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
 
     if (open) {
       carregarVermifugos();
-      // Limpa os campos ao abrir
       setVermifugo('');
       setObservacao('');
     }
   }, [open]);
 
   const handleSalvar = async () => {
-    if (!vermifugo.trim()) return alert('Informe o nome do vermífugo');
+    if (!vermifugo.trim()) {
+      setModalErroAberto(true);
+      return;
+    }
 
     const novaVermifugacao = {
       equinoId: equino.id,
@@ -46,20 +49,18 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
 
     try {
       await axios.post('/vermifugacoes', novaVermifugacao);
-      setModalSucessoAberto(true); // abre modal de sucesso
-      
-      // fecha o modal de sucesso após 3 segundos
+      setModalSucessoAberto(true);
+
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
       }, 3000);
-
     } catch (error) {
       console.error('Erro ao salvar vermifugação:', error);
     }
   };
 
- return (
+  return (
     <>
       <Modal open={open} onClose={onClose}>
         <Box className="modal-vermifugacao">
@@ -100,6 +101,7 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
         </Box>
       </Modal>
 
+      {/* Modal de sucesso */}
       <ModalGenerico
         open={modalSucessoAberto}
         onClose={() => setModalSucessoAberto(false)}
@@ -107,6 +109,17 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
         titulo="Sucesso"
         subtitulo="Dados salvos no banco de dados com sucesso."
         cor="success"
+        tamanho="pequeno"
+      />
+
+      {/* Modal de erro */}
+      <ModalGenerico
+        open={modalErroAberto}
+        onClose={() => setModalErroAberto(false)}
+        tipo="mensagem"
+        titulo="Atenção"
+        subtitulo="Informe o nome do vermífugo antes de salvar."
+        cor="error"
         tamanho="pequeno"
       />
     </>

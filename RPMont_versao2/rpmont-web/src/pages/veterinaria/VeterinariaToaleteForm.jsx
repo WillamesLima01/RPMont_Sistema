@@ -14,6 +14,8 @@ const VeterinariaToaleteForm = () => {
 
   const [equino, setEquino] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
+
 
   const [formData, setFormData] = useState({
     equinoId: id,
@@ -30,17 +32,43 @@ const VeterinariaToaleteForm = () => {
   });
 
   useEffect(() => {
-    const buscarEquino = async () => {
+    const carregarDados = async () => {
       try {
-        const res = await axios.get('/equinos');
-        const encontrado = res.data.find(e => String(e.id) === String(id));
-        setEquino(encontrado);
-      } catch (error) {
-        console.error('Erro ao buscar equino:', error);
+        const resToalete = await axios.get(`/toaletes/${id}`);
+        if (resToalete.data) {
+          setModoEdicao(true);
+          setFormData({
+            id: resToalete.data.id,
+            equinoId: resToalete.data.equinoId,
+            tosa: resToalete.data.tosa,
+            banho: resToalete.data.banho,
+            limpezaOuvidos: resToalete.data.limpezaOuvidos,
+            limpezaGenital: resToalete.data.limpezaGenital,
+            limpezaCascos: resToalete.data.limpezaCascos,
+            ripagemCrina: resToalete.data.ripagemCrina,
+            ripagemCola: resToalete.data.ripagemCola,
+            escovacao: resToalete.data.escovacao,
+            rasqueamento: resToalete.data.rasqueamento,
+            observacoes: resToalete.data.observacoes || ''            
+          });
+
+          const resEquino = await axios.get(`/equinos/${resToalete.data.equinoId}`);
+          setEquino(resEquino.data);
+          return;
+        }
+      } catch {
+        // Não encontrou toalete, tentar carregar equino novo
+        try {
+          const resEquino = await axios.get(`/equinos/${id}`);
+          setEquino(resEquino.data);
+          setFormData(prev => ({ ...prev, equinoId: id }));
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+        }
       }
     };
 
-    buscarEquino();
+    carregarDados();
   }, [id]);
 
   const handleChange = (e) => {
@@ -54,11 +82,22 @@ const VeterinariaToaleteForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/toalete', formData);
+      const dadosComData = {
+        ...formData,
+        data: new Date().toISOString()
+      };
+
+      if (modoEdicao) {
+        await axios.put(`/toaletes/${formData.id}`, dadosComData);
+      } else {
+        await axios.post('/toaletes', dadosComData);
+      }
+
       setModalAberto(true);
       setTimeout(() => {
         setModalAberto(false);
-        navigate('/manejo-sanitario-list');
+        navigate(formData.id ? '/veterinaria-toalete-list' : '/manejo-sanitario-list');
+        
       }, 2500);
     } catch (error) {
       console.error('Erro ao salvar os dados:', error);
@@ -133,7 +172,10 @@ const VeterinariaToaleteForm = () => {
 
         <div className="d-flex justify-content-end gap-2">
           <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancelar</button>
-          <button type="submit" className="btn btn-success">Salvar</button>
+          <button type="submit" className="btn btn-success">
+            {formData.id ? 'Editar' : 'Salvar'}
+          </button>
+
         </div>
       </form>
 
@@ -160,7 +202,9 @@ const VeterinariaToaleteForm = () => {
             >
             <div className="modal-content-custom">
                 <FaCheckCircle className="modal-success-icon" />
-                <h4 className="modal-success-title">Dados salvos com sucesso!</h4>
+                <h4 className="modal-success-title">
+                  {modoEdicao ? 'Dados atualizados com sucesso!' : 'Dados salvos com sucesso!'}
+                </h4>
             </div>
       </Modal>
     </div>

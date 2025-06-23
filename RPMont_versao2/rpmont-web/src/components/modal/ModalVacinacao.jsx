@@ -14,6 +14,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
   const [observacao, setObservacao] = useState('');
   const [vacinasAnteriores, setVacinasAnteriores] = useState([]);
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
+  const [modalErroAberto, setModalErroAberto] = useState(false);
 
   useEffect(() => {
     const carregarVacinas = async () => {
@@ -35,12 +36,12 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
 
   const handleSalvar = async () => {
     if (!nomeVacina.trim()) {
-      alert('Informe o nome da vacina');
+      setModalErroAberto(true);
       return;
     }
 
     const novaVacinacao = {
-      id_Eq: equino.id, // conforme estrutura desejada
+      id_Eq: equino.id,
       nomeVacina: nomeVacina.trim(),
       observacao: observacao.trim(),
       data: new Date().toISOString(),
@@ -56,7 +57,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
       }, 3000);
     } catch (error) {
       console.error('Erro ao salvar vacinação:', error);
-      alert('Erro ao salvar vacinação. Tente novamente.');
+      // Você pode adicionar um segundo modal de erro aqui se quiser.
     }
   };
 
@@ -101,6 +102,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
         </Box>
       </Modal>
 
+      {/* Modal de sucesso */}
       <ModalGenerico
         open={modalSucessoAberto}
         onClose={() => setModalSucessoAberto(false)}
@@ -109,6 +111,18 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
         subtitulo="Vacinação registrada com sucesso."
         cor="success"
         tamanho="pequeno"
+      />
+
+      {/* Modal de erro */}
+      <ModalGenerico
+        open={modalErroAberto}
+        onClose={() => setModalErroAberto(false)}
+        tipo="mensagem"
+        titulo="Atenção"
+        subtitulo="Informe o nome da vacina antes de salvar."
+        cor="error"
+        tamanho="pequeno"
+        tempoDeDuracao={3000}
       />
     </>
   );
