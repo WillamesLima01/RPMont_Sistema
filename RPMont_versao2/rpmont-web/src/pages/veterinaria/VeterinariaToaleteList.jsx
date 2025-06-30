@@ -19,25 +19,8 @@ const VeterinariaToaleteList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
-  const [modalAberto, setModalAberto] = useState(false);
   const [toaleteSelecionado, setToaleteSelecionado] = useState(null);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(resultado.length / itemsPerPage);
-  const [formData, setFormData] = useState({
-    id: null,
-    equinoId: '',
-    tosa: false,
-    banho: false,
-    limpezaOuvidos: false,
-    limpezaGenital: false,
-    limpezaCascos: false,
-    ripagemCrina: false,
-    ripagemCola: false,
-    escovacao: false,
-    rasqueamento: false,
-    observacoes: ''
-  });
+  const [botoes, setBotoes] = useState([]);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -48,11 +31,19 @@ const VeterinariaToaleteList = () => {
       setEquinos(eqRes.data);
       setToaletes(toRes.data);
       setResultado(toRes.data);
+
+      // ✅ Define os botões a serem exibidos
+      setBotoes(['editar', 'excluir']);
     };
     carregarDados();
   }, []);
 
-  const formatarData = (iso) => new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(resultado.length / itemsPerPage);
+
+  const formatarData = (iso) =>
+    new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
   const filtrar = () => {
     let filtrados = toaletes;
@@ -75,6 +66,7 @@ const VeterinariaToaleteList = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text('Relatório de Toalete dos Equinos', 14, 15);
+
     const dadosTabela = resultado.map((t, i) => {
       const equino = equinos.find(eq => eq.id === t.equinoId);
       return [
@@ -93,6 +85,7 @@ const VeterinariaToaleteList = () => {
         t.observacoes || '-'
       ];
     });
+
     autoTable(doc, {
       startY: 25,
       head: [[
@@ -103,77 +96,39 @@ const VeterinariaToaleteList = () => {
       styles: { fontSize: 8 },
       headStyles: { fillColor: [22, 160, 133] }
     });
+
     doc.save('relatorio_toalete.pdf');
-  };
-  
-  const excluirToaleteSelecionado = async () => {
-    try {
-      await axios.delete(`/toaletes/${toaleteSelecionado.id}`);
-      const atualizados = toaletes.filter(t => t.id !== toaleteSelecionado.id);
-      setToaletes(atualizados);
-      setResultado(atualizados);
-      cancelarExclusao();
-    } catch (err) {
-      console.error('Erro ao excluir toalete:', err);
-    }
-  };
-
-  const fecharModal = () => {
-    setModalAberto(false);
-    setFormData({
-      id: null,
-      equinoId: '',
-      tosa: false,
-      banho: false,
-      limpezaOuvidos: false,
-      limpezaGenital: false,
-      limpezaCascos: false,
-      ripagemCrina: false,
-      ripagemCola: false,
-      escovacao: false,
-      rasqueamento: false,
-      observacoes: ''
-    });
-  };
-
-  const handleSalvar = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('/toaletes', formData);
-      setToaletes([...toaletes, response.data]);
-      setResultado([...toaletes, response.data]);
-      fecharModal();
-    } catch (err) {
-      console.error('Erro ao salvar toalete:', err);
-    }
-  };
-
-  const handleAtualizar = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`/toaletes/${formData.id}`, formData);
-      const atualizados = toaletes.map(t => t.id === formData.id ? formData : t);
-      setToaletes(atualizados);
-      setResultado(atualizados);
-      fecharModal();
-    } catch (err) {
-      console.error('Erro ao atualizar toalete:', err);
-    }
   };
 
   const confirmarExclusao = (toalete) => {
-  console.log('Toalete selecionado:', toalete);
-  setToaleteSelecionado(toalete);
-  setModalExcluirAberto(true);
-};
+    setToaleteSelecionado(toalete);
+    setModalExcluirAberto(true);
+  };
 
   const cancelarExclusao = () => {
     setModalExcluirAberto(false);
-    setToaleteSelecionado(null);};
-  
+    setToaleteSelecionado(null);
+  };
+
+  const excluirToaleteSelecionado = () => {
+    if (!toaleteSelecionado) return;
+
+    axios.delete(`/toaletes/${toaleteSelecionado.id}`)
+      .then(() => {
+        const atualizados = toaletes.filter(a => a.id !== toaleteSelecionado.id);
+        setToaletes(atualizados);
+        setResultado(atualizados);
+        setModalExcluirAberto(false);
+      })
+      .catch(error => {
+        console.error("Erro ao excluir toalete:", error);
+      });
+  };
+
   return (
     <div className='container-fluid mt-page'>
       <Navbar />
+
       <CabecalhoEquinos
         titulo='Procedimentos de Toalete'
         equinos={equinos}
@@ -190,46 +145,50 @@ const VeterinariaToaleteList = () => {
         mostrarDatas={true}
         mostrarBotoesPDF={true}
         resultado={resultado}
-        onAdicionar={fecharModal}
       />
 
       <table className='table table-hover'>
         <thead>
-            <tr>
+          <tr>
             <th>Nome</th><th>Tosa</th><th>Banho</th><th>Ouvidos</th><th>Genital</th>
             <th>Cascos</th><th>Rip. Crina</th><th>Rip. Cola</th><th>Escovação</th><th>Rasqueamento</th>
             <th>Data</th><th>Observações</th><th className='text-end'>Ações</th>
-            </tr>
+          </tr>
         </thead>
         <tbody>
-            {itensPaginados.map(t => {
+          {itensPaginados.map(t => {
             const equino = equinos.find(eq => eq.id === t.equinoId);
             return (
-                <tr key={t.id}>
+              <tr key={t.id}>
                 <td>{equino?.name || '-'}</td><td>{t.tosa ? 'Sim' : 'Não'}</td><td>{t.banho ? 'Sim' : 'Não'}</td>
                 <td>{t.limpezaOuvidos ? 'Sim' : 'Não'}</td><td>{t.limpezaGenital ? 'Sim' : 'Não'}</td>
                 <td>{t.limpezaCascos ? 'Sim' : 'Não'}</td><td>{t.ripagemCrina ? 'Sim' : 'Não'}</td>
                 <td>{t.ripagemCola ? 'Sim' : 'Não'}</td><td>{t.escovacao ? 'Sim' : 'Não'}</td>
                 <td>{t.rasqueamento ? 'Sim' : 'Não'}</td><td>{formatarData(t.data)}</td><td>{t.observacoes || '-'}</td>
                 <td className='text-end'>
-                    <div className='d-flex justify-content-end'>
-                    <BotaoAcaoRows
+                  <div className='d-flex justify-content-end'>
+                    {botoes.includes('editar') && (
+                      <BotaoAcaoRows
                         to={`/veterinaria-toalete-equino/${t.id}`}
                         title='Editar Toalete'
                         className='botao-editar'
                         icone='bi-pencil'
-                    />
-                    <BotaoAcaoRows
+                      />
+                    )}
+                    {botoes.includes('excluir') && (
+                      <BotaoAcaoRows
+                        tipo='button'
                         onClick={() => confirmarExclusao(t)}
-                        title='Excluir Toalete'
-                        className='botao-excluir'
-                        icone='bi-trash'
-                    />
-                    </div>
+                        title="Excluir Toalete"
+                        className="botao-excluir"
+                        icone="bi-trash"
+                      />
+                    )}
+                  </div>
                 </td>
-                </tr>
+              </tr>
             );
-            })}
+          })}
         </tbody>
       </table>
 
@@ -238,27 +197,14 @@ const VeterinariaToaleteList = () => {
           <ul className='pagination'>
             {[...Array(totalPages)].map((_, index) => (
               <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                <button className='page-link' onClick={() => setCurrentPage(index + 1)}>{index + 1}</button>
+                <button className='page-link' onClick={() => setCurrentPage(index + 1)}>
+                  {index + 1}
+                </button>
               </li>
             ))}
           </ul>
         </nav>
       </div>
-
-      <ModalGenerico
-        open={modalAberto}
-        onClose={fecharModal}
-        tipo='entrada'
-        tamanho='grande'
-        titulo={formData.id ? 'Editar Procedimento de Toalete' : 'Novo Procedimento de Toalete'}>
-        <form onSubmit={formData.id ? handleAtualizar : handleSalvar}>
-          {/* Campos do formulário */}
-          <div className='d-flex justify-content-end gap-3 mt-4'>
-            <button className='btn btn-outline-secondary' type='button' onClick={fecharModal}>Cancelar</button>
-            <button className='btn btn-success' type='submit'>{formData.id ? 'Atualizar' : 'Salvar'}</button>
-          </div>
-        </form>
-      </ModalGenerico>
 
       <ModalGenerico
         open={modalExcluirAberto}
@@ -267,10 +213,11 @@ const VeterinariaToaleteList = () => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => eq.id === toaleteSelecionado?.equinoId)?.name}"?`}>
+        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => eq.id === toaleteSelecionado?.equinoId)?.name}"?`}
+      >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>
-          <button className='btn btn-danger' onClick={excluirToaleteSelecionado}>Excluir</button>
+          <button className='btn btn-danger' onClick={excluirToaleteSelecionado} data-modal-focus>Excluir</button>
         </div>
       </ModalGenerico>
     </div>

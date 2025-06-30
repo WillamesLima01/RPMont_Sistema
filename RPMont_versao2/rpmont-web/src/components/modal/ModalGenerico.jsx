@@ -27,6 +27,20 @@ const ModalGenerico = ({
   }
 }, [open, tempoDeDuracao, tipo, onClose]);
 
+useEffect(() => {
+  if (open) {
+    // Remover o foco de qualquer elemento que permaneceu com foco fora do modal
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
+
+    // Focar no primeiro elemento com [data-modal-focus] dentro do modal
+    setTimeout(() => {
+      const focoInicial = document.querySelector('[data-modal-focus]');
+      if (focoInicial) focoInicial.focus();
+    }, 50); // pequeno atraso para garantir que o DOM foi renderizado
+  }
+}, [open]);
 
   const tipoClasse = styles['modal' + capitalize(tipo)] || '';
   const entradaClasse = tipo === 'entrada' ? styles.modalEntrada : '';

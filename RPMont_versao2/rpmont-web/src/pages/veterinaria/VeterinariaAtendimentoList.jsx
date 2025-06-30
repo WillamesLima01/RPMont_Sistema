@@ -174,6 +174,7 @@ const VeterinariaAtendimento = () => {
                       )}
                       {botoes.includes('excluir') && (
                         <BotaoAcaoRows
+                          tipo='button'
                           onClick={() => confirmarExclusao(atendimento)}
                           title="Excluir Atendimento"
                           className="botao-excluir"
