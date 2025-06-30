@@ -156,20 +156,27 @@ const VeterinariaToaleteList = () => {
           </tr>
         </thead>
         <tbody>
-          {itensPaginados.map(t => {
-            const equino = equinos.find(eq => eq.id === t.equinoId);
+          {itensPaginados.map(toalete => {
+            const equino = equinos.find(eq => eq.id === toalete.equinoId);
             return (
-              <tr key={t.id}>
-                <td>{equino?.name || '-'}</td><td>{t.tosa ? 'Sim' : 'Não'}</td><td>{t.banho ? 'Sim' : 'Não'}</td>
-                <td>{t.limpezaOuvidos ? 'Sim' : 'Não'}</td><td>{t.limpezaGenital ? 'Sim' : 'Não'}</td>
-                <td>{t.limpezaCascos ? 'Sim' : 'Não'}</td><td>{t.ripagemCrina ? 'Sim' : 'Não'}</td>
-                <td>{t.ripagemCola ? 'Sim' : 'Não'}</td><td>{t.escovacao ? 'Sim' : 'Não'}</td>
-                <td>{t.rasqueamento ? 'Sim' : 'Não'}</td><td>{formatarData(t.data)}</td><td>{t.observacoes || '-'}</td>
+              <tr key={toalete.id}>
+                <td>{equino?.name || '-'}</td>
+                <td>{toalete.tosa ? 'Sim' : 'Não'}</td>
+                <td>{toalete.banho ? 'Sim' : 'Não'}</td>
+                <td>{toalete.limpezaOuvidos ? 'Sim' : 'Não'}</td>
+                <td>{toalete.limpezaGenital ? 'Sim' : 'Não'}</td>
+                <td>{toalete.limpezaCascos ? 'Sim' : 'Não'}</td>
+                <td>{toalete.ripagemCrina ? 'Sim' : 'Não'}</td>
+                <td>{toalete.ripagemCola ? 'Sim' : 'Não'}</td>
+                <td>{toalete.escovacao ? 'Sim' : 'Não'}</td>
+                <td>{toalete.rasqueamento ? 'Sim' : 'Não'}</td>
+                <td>{formatarData(toalete.data)}</td>
+                <td>{toalete.observacoes || '-'}</td>
                 <td className='text-end'>
                   <div className='d-flex justify-content-end'>
                     {botoes.includes('editar') && (
                       <BotaoAcaoRows
-                        to={`/veterinaria-toalete-equino/${t.id}`}
+                        to={`/veterinaria-toalete-equino/${toalete.id}`}
                         title='Editar Toalete'
                         className='botao-editar'
                         icone='bi-pencil'
@@ -178,7 +185,7 @@ const VeterinariaToaleteList = () => {
                     {botoes.includes('excluir') && (
                       <BotaoAcaoRows
                         tipo='button'
-                        onClick={() => confirmarExclusao(t)}
+                        onClick={() => confirmarExclusao(toalete)}
                         title="Excluir Toalete"
                         className="botao-excluir"
                         icone="bi-trash"
