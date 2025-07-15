@@ -144,14 +144,47 @@
       "unidade": "RPMont"
     },
     {
-      "id": "75c2",
+      "id": "4aa6",
       "name": "Heroína",
-      "raca": "SRF",
-      "pelagem": "Castanho",
-      "numeroRegistro": "PMPB2025001234001",
-      "dataNascimento": "2020-03-04",
+      "raca": "SRD",
+      "pelagem": "castanho escuro",
+      "numeroRegistro": "PMPB200212239372",
+      "dataNascimento": "2000-09-02",
       "status": "Ativo",
       "sexo": "Fêmea",
+      "unidade": "RPMont"
+    },
+    {
+      "id": "fc22",
+      "name": "goulever",
+      "raca": "SRD",
+      "pelagem": "castanho",
+      "numeroRegistro": "PMPB202249484748",
+      "dataNascimento": "2002-02-12",
+      "status": "Ativo",
+      "sexo": "Macho",
+      "unidade": "RPMont"
+    },
+    {
+      "id": "7483",
+      "name": "gicana",
+      "raca": "SRD",
+      "pelagem": "pampa",
+      "numeroRegistro": "PMPB20230092323",
+      "dataNascimento": "1998-04-15",
+      "status": "Ativo",
+      "sexo": "Macho",
+      "unidade": "RPMont"
+    },
+    {
+      "id": "2b3e",
+      "name": "Haron",
+      "raca": "SRD",
+      "pelagem": "Preto",
+      "numeroRegistro": "PMPB202500423323",
+      "dataNascimento": "2000-12-12",
+      "status": "Ativo",
+      "sexo": "Macho",
       "unidade": "RPMont"
     }
   ],

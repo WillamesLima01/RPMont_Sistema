@@ -129,7 +129,7 @@ const VeterinariaForm = () => {
     setModalSucesso(true);
     setTimeout(() => {
       setModalSucesso(false);
-      navigate("/veterinariaList");
+      navigate("/veterinaria-List?filtro=todos");
     }, 3000);
   };
 
@@ -204,7 +204,7 @@ const VeterinariaForm = () => {
               </div>
 
               <div className="col-12 text-end mt-4">
-                <Link to="/veterinaria-List" className="btn btn-outline-danger me-2">Cancelar</Link>
+                <Link to="/veterinaria-List?filtro=todos" className="btn btn-outline-danger me-2">Cancelar</Link>
                 <button type="submit" className="btn btn-primary">{id ? 'Salvar' : 'Adicionar'}</button>
               </div>
             </form>

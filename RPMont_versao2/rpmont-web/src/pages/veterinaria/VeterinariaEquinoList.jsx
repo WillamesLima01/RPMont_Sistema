@@ -6,19 +6,26 @@ import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEqui
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
+import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
+import { FaExclamationTriangle } from 'react-icons/fa';
+import './Veterinaria.css';
 
 const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinos, setEquinos] = useState([]);
+  const [equinosFiltrados, setEquinosFiltrados] = useState([]);
   const [botoes, setBotoes] = useState([]);
   const [filtroNome, setFiltroNome] = useState('');
-  const [equinosFiltrados, setEquinosFiltrados] = useState([]);
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
   const [modalVermifugacaoAberto, setModalVermifugacaoAberto] = useState(false);
   const [modalVacinacaoAberto, setModalVacinacaoAberto] = useState(false);
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
+  const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
 
-  const filtroQuery = searchParams.get('filtro');
+  const itensPorPagina = 15;
+  const filtroQuery = useSearchParams()[0].get('filtro');
+  const location = useLocation();
+
+  const totalPaginas = Math.ceil(equinosFiltrados.length / itensPorPagina);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,17 +60,6 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
     setEquinosFiltrados(equinos);
   }, [equinos]);
 
-  const handleFiltrar = () => {
-    if (filtroNome === '') {
-      setEquinosFiltrados(equinos);
-    } else {
-      const filtrados = equinos.filter(eq =>
-        eq.name.toLowerCase().includes(filtroNome.toLowerCase())
-      );
-      setEquinosFiltrados(filtrados);
-    }
-  };
-
   useEffect(() => {
     switch (location.pathname) {
       case '/veterinaria-List':
@@ -80,14 +76,49 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
     }
   }, [location.pathname]);
 
-  const abrirModalVermifugacao = (equino) => {
+  const handleFiltrar = () => {
+    setPaginaAtual(1); // Resetar paginação ao filtrar
+    if (filtroNome === '') {
+      setEquinosFiltrados(equinos);
+    } else {
+      const filtrados = equinos.filter(eq =>
+        eq.name.toLowerCase().includes(filtroNome.toLowerCase())
+      );
+      setEquinosFiltrados(filtrados);
+    }
+  };
+
+  const abrirModalVermifugacao = equino => {
     setEquinoSelecionado(equino);
     setModalVermifugacaoAberto(true);
   };
 
-  const abrirModalVacinacao = (equino) => {
+  const abrirModalVacinacao = equino => {
     setEquinoSelecionado(equino);
     setModalVacinacaoAberto(true);
+  };
+
+  const confirmarExclusao = equino => {
+    setEquinoSelecionado(equino);
+    setModalExcluirAberto(true);
+  };
+
+  const cancelarExclusao = () => {
+    setModalExcluirAberto(false);
+    setEquinoSelecionado(null);
+  };
+
+  const excluirEquinoSelecionado = () => {
+    if (!equinoSelecionado) return;
+
+    axios.delete(`/equinos/${equinoSelecionado.id}`)
+      .then(() => {
+        const atualizados = equinos.filter(e => e.id !== equinoSelecionado.id);
+        setEquinos(atualizados);
+        setEquinosFiltrados(atualizados);
+        setModalExcluirAberto(false);
+      })
+      .catch(error => console.error("Erro ao excluir equino:", error));
   };
 
   return (
@@ -102,11 +133,11 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         onFiltrar={handleFiltrar}
         mostrarAdicionar={
           location.pathname === '/veterinaria-List' &&
-          (!searchParams.get('filtro') || searchParams.get('filtro') === 'todos')
+          (!filtroQuery || filtroQuery === 'todos')
         }
+        resultado={equinosFiltrados}
       />
 
-      <h2 className="mb-4">{titulo}</h2>
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
@@ -123,55 +154,80 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
             </tr>
           </thead>
           <tbody>
-            {equinosFiltrados.map((equino) => (
-              <tr key={equino.id}>
-                <td>{equino.name}</td>
-                <td>{equino.raca}</td>
-                <td>{equino.pelagem}</td>
-                <td>{equino.numeroRegistro}</td>
-                <td>{equino.dataNascimento}</td>
-                <td>{equino.status}</td>
-                <td>{equino.sexo}</td>
-                <td>{equino.unidade}</td>
-                <td className="text-end">
-                  {botoes.includes('toalete') && (
-                    <BotaoAcaoRows to={`/veterinaria-toalete-equino/${equino.id}`} title="Toalete" className="botao-toalete" icone="bi-scissors" />
-                  )}
-                  {botoes.includes('ferrageamento') && (
-                    <BotaoAcaoRows to={`/veterinaria-ferrageamento-equino/${equino.id}`} title="Ferrageamento" className="botao-ferrageamento" icone="bi-hammer" />
-                  )}
-                  {botoes.includes('vermifugacao') && (
-                    <BotaoAcaoRows tipo="button" onClick={() => abrirModalVermifugacao(equino)} title="Vermifugação" className="botao-vermifugacao" icone="bi-bug" />
-                  )}
-                  {botoes.includes('editar') && (
-                    <BotaoAcaoRows to={`/edit-equino/${equino.id}`} title="Editar" className="botao-editar" icone="bi-pencil" />
-                  )}
-                  {botoes.includes('excluir') && (
-                    <BotaoAcaoRows onClick={() => alert('Excluir Equino')} title="Excluir" className="botao-excluir" icone="bi-trash" />
-                  )}
-                  {botoes.includes('baixar') && (
-                    <BotaoAcaoRows onClick={() => alert('Baixar Equino')} title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
-                  )}
-                  {botoes.includes('escalas') && (
-                    <BotaoAcaoRows to={`/escala-equinos/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
-                  )}
-                  {botoes.includes('atendimento') && (
-                    <BotaoAcaoRows to={`/atendimento-equino/${equino.id}`} title="Atendimento" className="botao-atendimento" icone="bi-clipboard2-pulse" />
-                  )}
-                  {botoes.includes('retorno') && (
-                    <BotaoAcaoRows onClick={() => alert('Retornar às atividades')} title="Retornar às atividades" className="botao-retorno" icone="bi-arrow-up-circle" />
-                  )}
-                  {botoes.includes('rd') && ( 
-                    <BotaoAcaoRows to={`/veterinaria-resenha-equino/${equino.id}`} title="Resenha Descritiva" className="botao-rd" icone="fas fa-horse" />
-                  )}
-                  {botoes.includes('vacinacao') && (
-                    <BotaoAcaoRows tipo="button" onClick={() => abrirModalVacinacao(equino)} title="Vacinação" className="botao-vacinacao" icone="fas fa-syringe" />
-                  )}
-                </td>
-              </tr>
-            ))}
+            {equinosFiltrados
+              .slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
+              .map(equino => (
+                <tr key={equino.id}>
+                  <td>{equino.name}</td>
+                  <td>{equino.raca}</td>
+                  <td>{equino.pelagem}</td>
+                  <td>{equino.numeroRegistro}</td>
+                  <td>{equino.dataNascimento}</td>
+                  <td>{equino.status}</td>
+                  <td>{equino.sexo}</td>
+                  <td>{equino.unidade}</td>
+                  <td className="text-end">
+                    {botoes.includes('toalete') && (
+                      <BotaoAcaoRows to={`/veterinaria-toalete-equino/${equino.id}`} title="Toalete" className="botao-toalete" icone="bi-scissors" />
+                    )}
+                    {botoes.includes('ferrageamento') && (
+                      <BotaoAcaoRows to={`/veterinaria-ferrageamento-equino/${equino.id}`} title="Ferrageamento" className="botao-ferrageamento" icone="bi-hammer" />
+                    )}
+                    {botoes.includes('vermifugacao') && (
+                      <BotaoAcaoRows tipo="button" onClick={() => abrirModalVermifugacao(equino)} title="Vermifugação" className="botao-vermifugacao" icone="bi-bug" />
+                    )}
+                    {botoes.includes('editar') && (
+                      <BotaoAcaoRows to={`/edit-equino/${equino.id}`} title="Editar" className="botao-editar" icone="bi-pencil" />
+                    )}
+                    {botoes.includes('excluir') && (
+                      <BotaoAcaoRows onClick={() => confirmarExclusao(equino)} tipo="button" title="Excluir Equino" className="botao-excluir" icone="bi-trash" />
+                    )}
+                    {botoes.includes('baixar') && (
+                      <BotaoAcaoRows onClick={() => alert('Baixar Equino')} title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
+                    )}
+                    {botoes.includes('escalas') && (
+                      <BotaoAcaoRows to={`/escala-equinos/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
+                    )}
+                    {botoes.includes('atendimento') && (
+                      <BotaoAcaoRows to={`/atendimento-equino/${equino.id}`} title="Atendimento" className="botao-atendimento" icone="bi-clipboard2-pulse" />
+                    )}
+                    {botoes.includes('retorno') && (
+                      <BotaoAcaoRows onClick={() => alert('Retornar às atividades')} title="Retornar às atividades" className="botao-retorno" icone="bi-arrow-up-circle" />
+                    )}
+                    {botoes.includes('rd') && (
+                      <BotaoAcaoRows to={`/veterinaria-resenha-equino/${equino.id}`} title="Resenha Descritiva" className="botao-rd" icone="fas fa-horse" />
+                    )}
+                    {botoes.includes('vacinacao') && (
+                      <BotaoAcaoRows tipo="button" onClick={() => abrirModalVacinacao(equino)} title="Vacinação" className="botao-vacinacao" icone="fas fa-syringe" />
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
+
+        {/* Paginação */}
+        {equinosFiltrados.length > itensPorPagina && (
+          <div className="d-flex justify-content-center mt-3">
+            <button
+              className="btn btn-outline-secondary me-2"
+              disabled={paginaAtual === 1}
+              onClick={() => setPaginaAtual(paginaAtual - 1)}
+            >
+              Anterior
+            </button>
+
+            <span>Página {paginaAtual} de {totalPaginas}</span>
+
+            <button
+              className="btn btn-outline-secondary ms-2"
+              disabled={paginaAtual === totalPaginas}
+              onClick={() => setPaginaAtual(paginaAtual + 1)}
+            >
+              Próxima
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modais */}
@@ -186,6 +242,20 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         onClose={() => setModalVacinacaoAberto(false)}
         equino={equinoSelecionado}
       />
+
+      <ModalGenerico
+        open={modalExcluirAberto}
+        onClose={cancelarExclusao}
+        tipo="confirmacao"
+        tamanho="medio"
+        icone={<FaExclamationTriangle size={50} color="#ffc107" />}
+        titulo={`Tem certeza que deseja excluir o equino ${equinoSelecionado?.name}?`}
+      >
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
+          <button className="btn btn-danger" onClick={excluirEquinoSelecionado}>Excluir</button>
+        </div>
+      </ModalGenerico>
     </div>
   );
 };
