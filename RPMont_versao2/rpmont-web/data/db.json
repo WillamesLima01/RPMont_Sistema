@@ -17,7 +17,7 @@
       "pelagem": "alazão",
       "numeroRegistro": "PMPB202500245",
       "dataNascimento": "2001-03-15",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Macho",
       "unidade": "RPMont",
       "id": "2"
@@ -28,7 +28,7 @@
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025003",
       "dataNascimento": "2002-07-22",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Fêmea",
       "unidade": "RPMont",
       "id": "3"
@@ -78,7 +78,6 @@
       "unidade": "RPMont"
     },
     {
-      "id": "8",
       "name": "Dara",
       "raca": "SRF",
       "pelagem": "Baio",
@@ -86,7 +85,8 @@
       "dataNascimento": "2007-04-05",
       "status": "Ativo",
       "sexo": "Fêmea",
-      "unidade": "RPMont"
+      "unidade": "RPMont",
+      "id": "8"
     },
     {
       "id": "9",
@@ -100,7 +100,6 @@
       "unidade": "RPMont"
     },
     {
-      "id": "10",
       "name": "Fosforita",
       "raca": "SRF",
       "pelagem": "Tordilho",
@@ -108,7 +107,8 @@
       "dataNascimento": "2009-09-08",
       "status": "Ativo",
       "sexo": "Fêmea",
-      "unidade": "RPMont"
+      "unidade": "RPMont",
+      "id": "10"
     },
     {
       "id": "11",
@@ -144,7 +144,6 @@
       "unidade": "RPMont"
     },
     {
-      "id": "4aa6",
       "name": "Heroína",
       "raca": "SRD",
       "pelagem": "castanho escuro",
@@ -152,7 +151,8 @@
       "dataNascimento": "2000-09-02",
       "status": "Ativo",
       "sexo": "Fêmea",
-      "unidade": "RPMont"
+      "unidade": "RPMont",
+      "id": "4aa6"
     },
     {
       "id": "fc22",
@@ -161,7 +161,7 @@
       "pelagem": "castanho",
       "numeroRegistro": "PMPB202249484748",
       "dataNascimento": "2002-02-12",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Macho",
       "unidade": "RPMont"
     },
@@ -177,7 +177,6 @@
       "unidade": "RPMont"
     },
     {
-      "id": "2b3e",
       "name": "Haron",
       "raca": "SRD",
       "pelagem": "Preto",
@@ -185,7 +184,8 @@
       "dataNascimento": "2000-12-12",
       "status": "Ativo",
       "sexo": "Macho",
-      "unidade": "RPMont"
+      "unidade": "RPMont",
+      "id": "2b3e"
     }
   ],
   "equinosBaixados": [
@@ -217,6 +217,30 @@
       "id": "05ef",
       "idEquino": "6",
       "dataBaixa": "2025-05-16",
+      "dataRetorno": null
+    },
+    {
+      "id": "c0dbd3f7-f5d9-412f-aee7-3ae013225e9f",
+      "idEquino": "3",
+      "dataBaixa": "2025-07-17",
+      "dataRetorno": null
+    },
+    {
+      "id": "a2b229bb-2166-485e-afb1-132c1297d714",
+      "idEquino": "2",
+      "dataBaixa": "2025-07-17",
+      "dataRetorno": null
+    },
+    {
+      "id": "15e99582-3a5c-4781-a393-bc671589fe73",
+      "idEquino": "fc22",
+      "dataBaixa": "2025-07-17",
+      "dataRetorno": null
+    },
+    {
+      "id": "1c4b3576-1764-43be-9a0a-22b7db13955a",
+      "idEquino": "2",
+      "dataBaixa": "2025-07-17",
       "dataRetorno": null
     }
   ],
@@ -252,10 +276,10 @@
       "data": "2025-04-01"
     },
     {
-      "id": "107b",
       "idEquino": "7",
       "textoConsulta": "Realização de vermefugo",
-      "data": "2025-05-01"
+      "data": "2025-07-17",
+      "id": "107b"
     },
     {
       "id": "6a0d",
@@ -316,6 +340,12 @@
       "textoConsulta": "Foi realizado curativo na orelha esquerda.",
       "data": "2025-05-04",
       "id": "1305"
+    },
+    {
+      "id": "7ffe",
+      "idEquino": "7",
+      "textoConsulta": "Foi realizado raio x",
+      "data": "2025-07-17"
     }
   ],
   "escala": [

@@ -77,7 +77,7 @@ const VeterinariaForm = () => {
         setModalSucesso(true);
         setTimeout(() => {
           setModalSucesso(false);
-          navigate("/veterinariaList");
+          navigate("/veterinaria-List?filtro=todos");
         }, 3000);
       } else {
         // Se está adicionando novo, pergunta se quer adicionar outro
@@ -236,7 +236,7 @@ const VeterinariaForm = () => {
                 <FaCheckCircle className="icone-sucesso" />
                 <h2 className="mensagem-azul">
                   {id 
-                    ? 'Dados Salvos com sucesso!'
+                    ? 'Dados editados com sucesso!'
                     : 'Equino adicionado com sucesso!'
                   }
                 </h2>

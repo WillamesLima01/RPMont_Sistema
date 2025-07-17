@@ -7,8 +7,9 @@ import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle } from 'react-icons/fa';
 import './Veterinaria.css';
+import { v4 as uuidv4 } from 'uuid';
 
 const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinos, setEquinos] = useState([]);
@@ -20,6 +21,8 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [modalConfirmarBaixaAberto, setModalConfirmarBaixaAberto] = useState(false);
+  const [modalSucessoBaixaAberto, setModalSucessoBaixaAberto] = useState(false);
 
   const itensPorPagina = 15;
   const filtroQuery = useSearchParams()[0].get('filtro');
@@ -121,6 +124,42 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
       .catch(error => console.error("Erro ao excluir equino:", error));
   };
 
+  const baixarEquino = async () => {
+    try {
+      const dataAtual = new Date().toISOString().split('T')[0];
+  
+      await axios.patch(`/equinos/${equinoSelecionado.id}`, { status: 'Baixado' });
+  
+      const novoRegistro = {
+        id: uuidv4(),
+        idEquino: String(equinoSelecionado.id),
+        dataBaixa: dataAtual,
+        dataRetorno: null
+      };
+  
+      await axios.post('/equinosBaixados', novoRegistro);
+  
+      const equinosAtualizados = equinos.map(e =>
+        e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
+      );
+  
+      setEquinos(equinosAtualizados);
+      setEquinosFiltrados(equinosAtualizados);
+  
+      setModalConfirmarBaixaAberto(false);
+      setModalSucessoBaixaAberto(true);
+  
+    } catch (error) {
+      console.error('Erro ao baixar o equino:', error);
+      alert('Erro ao baixar o equino.');
+    }
+  };   
+
+  const confirmarBaixaEquino = (equino) => {
+    setEquinoSelecionado(equino);
+    setModalConfirmarBaixaAberto(true);
+  };  
+
   return (
     <div className="container-fluid mt-page">
       <Navbar />
@@ -137,7 +176,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         }
         resultado={equinosFiltrados}
       />
-
+      
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
@@ -183,7 +222,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
                       <BotaoAcaoRows onClick={() => confirmarExclusao(equino)} tipo="button" title="Excluir Equino" className="botao-excluir" icone="bi-trash" />
                     )}
                     {botoes.includes('baixar') && (
-                      <BotaoAcaoRows onClick={() => alert('Baixar Equino')} title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
+                      <BotaoAcaoRows onClick={() => confirmarBaixaEquino(equino)} tipo="button" title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
                     )}
                     {botoes.includes('escalas') && (
                       <BotaoAcaoRows to={`/escala-equinos/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
@@ -256,6 +295,30 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
           <button className="btn btn-danger" onClick={excluirEquinoSelecionado}>Excluir</button>
         </div>
       </ModalGenerico>
+
+      <ModalGenerico
+        open={modalConfirmarBaixaAberto}
+        onClose={() => setModalConfirmarBaixaAberto(false)}
+        tipo="confirmacao"
+        tamanho="medio"
+        icone={<FaQuestionCircle size={50} color="#ff9800" />}
+        titulo={`Deseja realmente baixar o equino ${equinoSelecionado?.name}?`}
+      >
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <button className="btn btn-outline-secondary" onClick={() => setModalConfirmarBaixaAberto(false)}>Cancelar</button>
+          <button className="btn btn-danger" onClick={baixarEquino}>Confirmar Baixa</button>
+        </div>
+      </ModalGenerico>
+
+      <ModalGenerico
+        open={modalSucessoBaixaAberto}
+        onClose={() => setModalSucessoBaixaAberto(false)}
+        tipo="mensagem"
+        tamanho="pequeno"
+        icone={<FaCheckCircle size={50} color="#4caf50" />}
+        titulo={`Equino ${equinoSelecionado?.name} baixado com sucesso!`}
+        tempoDeDuracao={3000} // Fecha sozinho
+      />
     </div>
   );
 };

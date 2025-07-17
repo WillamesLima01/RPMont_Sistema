@@ -77,3 +77,14 @@
   align-items: center;
   justify-content: center;
 }
+
+.botao-baixar {
+  border: 1px solid orange;
+  color: orange;
+}
+
+.botao-baixar:hover {
+  background-color: orange;
+  color: white;
+}
+

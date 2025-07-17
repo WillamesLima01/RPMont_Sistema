@@ -1,5 +1,5 @@
-// ModalGenerico.jsx
-import { Modal, Box, Fade, Backdrop, Typography } from '@mui/material';
+import { Modal, Box, Fade, Typography } from '@mui/material';
+import { useEffect } from 'react';
 import styles from './ModalGenerico.module.css';
 
 function capitalize(str) {
@@ -21,11 +21,21 @@ const ModalGenerico = ({
   const tipoClasse = styles['modal' + capitalize(tipo)] || '';
   const tamanhoClasse = styles[tamanho] || '';
 
+  // 🔥 Fechamento automático para modais do tipo "mensagem"
+  useEffect(() => {
+    const duracao = Number(tempoDeDuracao);
+
+    if (open && duracao > 0 && tipo !== 'confirmacao' && tipo !== 'email') {
+      const timer = setTimeout(onClose, duracao);
+      return () => clearTimeout(timer);
+    }
+  }, [open, tempoDeDuracao, tipo, onClose]);
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      closeAfterTransition      
+      closeAfterTransition
       slotProps={{ backdrop: { timeout: 500 } }}
       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
