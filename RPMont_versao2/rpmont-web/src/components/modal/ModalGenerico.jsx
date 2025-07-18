@@ -46,10 +46,36 @@ const ModalGenerico = ({
           ${styles.modalBox}
           ${tamanhoClasse}
         `}>
-          {icone && <div className={styles.modalIcon}>{icone}</div>}
-          {titulo && <Typography className={styles.modalTitle}>{titulo}</Typography>}
-          {subtitulo && <Typography className={styles.modalSubtitulo}>{subtitulo}</Typography>}
-          {children}
+          {icone && (
+            <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+              {icone}
+            </div>
+          )}
+
+          {titulo && (
+            <Typography
+              style={{
+                textAlign: 'center',
+                fontWeight: 'bold',
+                fontSize: '1.5rem',
+                marginBottom: '10px'
+              }}
+            >
+              {titulo}
+            </Typography>
+          )}
+
+          {subtitulo && (
+            <Typography
+              style={{
+                textAlign: 'center',
+                fontSize: '1rem',
+                color: '#555'
+              }}
+            >
+              {subtitulo}
+            </Typography>
+          )}
         </Box>
       </Fade>
     </Modal>

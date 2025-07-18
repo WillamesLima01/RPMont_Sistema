@@ -22,7 +22,7 @@ const VeterinariaAtendimento = () => {
   const [atendimentoSelecionado, setAtendimentoSelecionado] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [botoes, setBotoes] = useState([]);
-  const itemsPerPage = 10;
+  const itemsPerPage = 15;
 
   useEffect(() => {
     axios.get('/equinos').then(res => setEquinos(res.data));
@@ -191,18 +191,29 @@ const VeterinariaAtendimento = () => {
 
         <div className='d-flex justify-content-center'>
           <nav>
-            <ul className='pagination'>
-              {[...Array(totalPages)].map((_, index) => (
-                <li
-                  key={index}
-                  className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+            {resultado.length > itemsPerPage && (
+              <div className="d-flex justify-content-center mt-1">
+                <button
+                  className="btn btn-outline-secondary me-2"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
                 >
-                  <button className='page-link' onClick={() => setCurrentPage(index + 1)}>
-                    {index + 1}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  Anterior
+                </button>
+
+                <span className="align-self-center">
+                  Página {currentPage} de {totalPages}
+                </span>
+
+                <button
+                  className="btn btn-outline-secondary ms-2"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  Próxima
+                </button>
+              </div>
+            )}
           </nav>
         </div>
       </div>

@@ -7,7 +7,7 @@ import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
-import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle } from 'react-icons/fa';
+import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle, FaHandPaper } from 'react-icons/fa';
 import './Veterinaria.css';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,6 +23,9 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalConfirmarBaixaAberto, setModalConfirmarBaixaAberto] = useState(false);
   const [modalSucessoBaixaAberto, setModalSucessoBaixaAberto] = useState(false);
+  const [modalAvisoAberto, setModalAvisoAberto] = useState(false);
+  const [mensagemAviso, setMensagemAviso] = useState('');
+
 
   const itensPorPagina = 15;
   const filtroQuery = useSearchParams()[0].get('filtro');
@@ -156,6 +159,12 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   };   
 
   const confirmarBaixaEquino = (equino) => {
+    if (equino.status === 'Baixado') {
+      setMensagemAviso(`Atenção! O equino "${equino.name}" já está com status Baixado.`);
+      setModalAvisoAberto(true);
+      return; // Interrompe o fluxo
+    }
+  
     setEquinoSelecionado(equino);
     setModalConfirmarBaixaAberto(true);
   };  
@@ -318,6 +327,24 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
         icone={<FaCheckCircle size={50} color="#4caf50" />}
         titulo={`Equino ${equinoSelecionado?.name} baixado com sucesso!`}
         tempoDeDuracao={3000} // Fecha sozinho
+      />
+
+      <ModalGenerico
+        open={modalAvisoAberto}
+        onClose={() => setModalAvisoAberto(false)}
+        tipo="confirmacao"
+        tamanho="medio"
+        titulo="Atenção!"
+        subtitulo="Equino encontra-se com status Baixado."
+        icone={
+          <i
+            className="bi bi-sign-stop"
+            style={{
+              fontSize: '100px',
+              color: 'red'
+            }}
+          ></i>
+        }
       />
     </div>
   );
