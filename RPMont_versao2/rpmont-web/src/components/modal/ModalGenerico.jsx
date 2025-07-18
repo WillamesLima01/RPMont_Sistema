@@ -21,10 +21,8 @@ const ModalGenerico = ({
   const tipoClasse = styles['modal' + capitalize(tipo)] || '';
   const tamanhoClasse = styles[tamanho] || '';
 
-  // 🔥 Fechamento automático para modais do tipo "mensagem"
   useEffect(() => {
     const duracao = Number(tempoDeDuracao);
-
     if (open && duracao > 0 && tipo !== 'confirmacao' && tipo !== 'email') {
       const timer = setTimeout(onClose, duracao);
       return () => clearTimeout(timer);
@@ -46,36 +44,31 @@ const ModalGenerico = ({
           ${styles.modalBox}
           ${tamanhoClasse}
         `}>
+          
+          {/* Ícone */}
           {icone && (
             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
               {icone}
             </div>
           )}
 
+          {/* Título */}
           {titulo && (
-            <Typography
-              style={{
-                textAlign: 'center',
-                fontWeight: 'bold',
-                fontSize: '1.5rem',
-                marginBottom: '10px'
-              }}
-            >
+            <Typography className={styles.modalTitle}>
               {titulo}
             </Typography>
           )}
 
+          {/* Subtítulo */}
           {subtitulo && (
-            <Typography
-              style={{
-                textAlign: 'center',
-                fontSize: '1rem',
-                color: '#555'
-              }}
-            >
+            <Typography className={styles.modalSubtitulo}>
               {subtitulo}
             </Typography>
           )}
+
+          {/* Children (botões ou outro conteúdo) */}
+          {children}
+
         </Box>
       </Fade>
     </Modal>

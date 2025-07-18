@@ -25,8 +25,7 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
   const [modalSucessoBaixaAberto, setModalSucessoBaixaAberto] = useState(false);
   const [modalAvisoAberto, setModalAvisoAberto] = useState(false);
   const [mensagemAviso, setMensagemAviso] = useState('');
-
-
+ 
   const itensPorPagina = 15;
   const filtroQuery = useSearchParams()[0].get('filtro');
   const location = useLocation();
@@ -127,36 +126,49 @@ const VeterinariaEquinoList = ({ titulo = '' }) => {
       .catch(error => console.error("Erro ao excluir equino:", error));
   };
 
-  const baixarEquino = async () => {
-    try {
-      const dataAtual = new Date().toISOString().split('T')[0];
-  
-      await axios.patch(`/equinos/${equinoSelecionado.id}`, { status: 'Baixado' });
-  
-      const novoRegistro = {
-        id: uuidv4(),
-        idEquino: String(equinoSelecionado.id),
-        dataBaixa: dataAtual,
-        dataRetorno: null
-      };
-  
-      await axios.post('/equinosBaixados', novoRegistro);
-  
-      const equinosAtualizados = equinos.map(e =>
-        e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
-      );
-  
-      setEquinos(equinosAtualizados);
-      setEquinosFiltrados(equinosAtualizados);
-  
-      setModalConfirmarBaixaAberto(false);
-      setModalSucessoBaixaAberto(true);
-  
-    } catch (error) {
-      console.error('Erro ao baixar o equino:', error);
-      alert('Erro ao baixar o equino.');
-    }
-  };   
+  // Função auxiliar para buscar data da internet (com fallback para data local)
+const buscarDataInternet = async () => {
+  try {
+    const resposta = await axios.get('https://worldtimeapi.org/api/ip');
+    const dataUTC = resposta.data.utc_datetime;
+    return new Date(dataUTC).toISOString().split('T')[0];  // yyyy-mm-dd
+  } catch (error) {
+    console.warn('⚠️ Erro ao buscar data da internet. Usando data local.');
+    return new Date().toISOString().split('T')[0];  // yyyy-mm-dd (data local)
+  }
+};
+
+const baixarEquino = async () => {
+  try {
+    const dataBaixaFinal = await buscarDataInternet();  // Usa data da internet ou local como fallback
+
+    await axios.patch(`/equinos/${equinoSelecionado.id}`, { status: 'Baixado' });
+
+    const novoRegistro = {
+      id: uuidv4(),
+      idEquino: String(equinoSelecionado.id),
+      dataBaixa: dataBaixaFinal,
+      dataRetorno: null
+    };
+
+    await axios.post('/equinosBaixados', novoRegistro);
+
+    const equinosAtualizados = equinos.map(e =>
+      e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
+    );
+
+    setEquinos(equinosAtualizados);
+    setEquinosFiltrados(equinosAtualizados);
+
+    setModalConfirmarBaixaAberto(false);
+    setModalSucessoBaixaAberto(true);
+
+  } catch (error) {
+    console.error('Erro ao baixar o equino:', error);
+    alert('Erro ao baixar o equino.');
+  }
+};
+
 
   const confirmarBaixaEquino = (equino) => {
     if (equino.status === 'Baixado') {

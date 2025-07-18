@@ -1,10 +1,4 @@
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Link as MuiLink
-} from '@mui/material';
+import {  Box, TextField, Button, Typography, Link as MuiLink } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import { useState } from 'react';
@@ -225,10 +219,10 @@ const { cor, icone } = getModalProps(mensagemModalTipo);
         tipo={mensagemModalTipo}
         icone={icone}
         cor={cor}
-        titulo={mensagemModalTitulo}
-        subtitulo={mensagemModalTexto}
-        tempoDeDuracao={mensagemModalTipo === 'sucesso' ? 3000 : 0}
-        tamanho="pequeno"
+        titulo="Seja bem-vindo!"
+        subtitulo="Login realizado com sucesso."
+        tempoDeDuracao={3000}
+        tamanho="medio"
       />
     </div>
   );
