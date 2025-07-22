@@ -391,7 +391,7 @@
       "jornadaTrabalho": "16:30h às 22:30h",
       "cavaleiro": "CB Márcio Pereira",
       "cargaHoraria": 6,
-      "data": "2025-05-11",
+      "data": "2025-07-22",
       "id": "de9d"
     },
     {
@@ -422,13 +422,13 @@
       "data": "2025-05-11"
     },
     {
-      "id": "5df0",
       "idEquino": "11",
       "localTrabalho": "Busto de Tamandaré",
       "jornadaTrabalho": "18:00h às 00:00h",
       "cavaleiro": "SGT Avelino",
       "cargaHoraria": 6,
-      "data": "2025-05-11"
+      "data": "2025-07-22",
+      "id": "5df0"
     },
     {
       "id": "4eda",

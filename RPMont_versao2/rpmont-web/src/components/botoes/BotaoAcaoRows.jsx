@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './BotaoAcaoRows.css'; // Aqui ficam as cores e tamanhos padronizados
+import './BotaoAcaoRows.css';
 
-const BotaoAcaoRows = ({ to, onClick, tipo = 'link', className, texto, icone, title }) => {
+const BotaoAcaoRows = ({ to, state, onClick, tipo = 'link', className, texto, icone, title }) => {
   const conteudo = (
     <>
       {icone && <i className={`${icone} ms-1`}></i>}
@@ -15,7 +15,7 @@ const BotaoAcaoRows = ({ to, onClick, tipo = 'link', className, texto, icone, ti
       {conteudo}
     </button>
   ) : (
-    <Link to={to} className={className} title={title}>
+    <Link to={to} state={state} className={className} title={title}>
       {conteudo}
     </Link>
   );

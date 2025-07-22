@@ -7,68 +7,58 @@ import { FaCheckCircle } from 'react-icons/fa';
 
 Modal.setAppElement('#root');
 
-
-
 const VeterinariaEscalaEquino = () => {
   const { id } = useParams();
-const navigate = useNavigate();
-const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const initialModoEdicao = location.state?.modoEdicao || false;
-const initialIdEscala = location.state?.idEscala || null;
+  const [equino, setEquino] = useState(null);
+  const [localTrabalho, setLocalTrabalho] = useState('');
+  const [jornadaInicio, setJornadaInicio] = useState('');
+  const [jornadaFim, setJornadaFim] = useState('');
+  const [cavaleiro, setCavaleiro] = useState('');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [idEscala, setIdEscala] = useState(null);
 
-const [equino, setEquino] = useState(null);
-const [localTrabalho, setLocalTrabalho] = useState('');
-const [jornadaInicio, setJornadaInicio] = useState('');
-const [jornadaFim, setJornadaFim] = useState('');
-const [cavaleiro, setCavaleiro] = useState('');
-const [modalAberto, setModalAberto] = useState(false);
-const [modoEdicao, setModoEdicao] = useState(initialModoEdicao);
-const [idEscala, setIdEscala] = useState(initialIdEscala);
+  useEffect(() => {
+    axios.get(`/equinos/${id}`)
+      .then(res => setEquino(res.data))
+      .catch(err => console.error("Erro ao carregar equino:", err));
+  }, [id]);
 
+  useEffect(() => {
+    const estado = location.state;
+    if (estado?.modoEdicao && estado?.idEscala) {
+      setModoEdicao(true);
+      setIdEscala(estado.idEscala);
 
-useEffect(() => {
-  axios.get(`/equinos/${id}`)
-    .then(res => {
-      setEquino(res.data);
-
-      // Só busca e carrega dados da escala se estiver em modo edição
-      if (initialModoEdicao && initialIdEscala) {
-        axios.get(`/escala/${initialIdEscala}`).then(resp => {
-          const escala = resp.data;
-          setIdEscala(escala.id);
-          setModoEdicao(true);
-          setLocalTrabalho(escala.localTrabalho);
-          const [inicio, fim] = escala.jornadaTrabalho.split(' às ');
-          setJornadaInicio(inicio);
-          setJornadaFim(fim);
-          setCavaleiro(escala.cavaleiro);
-        });
-      }
-    })
-    .catch(err => console.error("Erro ao carregar dados:", err));
-}, [id]);
+      axios.get(`/escala/${estado.idEscala}`).then(resp => {
+        const escala = resp.data;
+        setLocalTrabalho(escala.localTrabalho);
+        const [inicio, fim] = escala.jornadaTrabalho.split(' às ');
+        setJornadaInicio(inicio);
+        setJornadaFim(fim);
+        setCavaleiro(escala.cavaleiro);
+      }).catch(err => console.error("Erro ao carregar escala:", err));
+    }
+  }, [location.state]);
 
   const calcularCargaHoraria = (inicio, fim) => {
     const paraMinutos = (h) => {
       const [hora, minuto] = h.replace('h', '').split(':').map(Number);
       return hora * 60 + minuto;
     };
-
     const minInicio = paraMinutos(inicio);
     const minFim = paraMinutos(fim);
-
     let diferenca = minFim - minInicio;
-    if (diferenca < 0) diferenca += 1440; // passou da meia-noite
-
-    return diferenca / 60; // retorna em horas
+    if (diferenca < 0) diferenca += 1440;
+    return diferenca / 60;
   };
 
   const salvarEscala = (e) => {
     e.preventDefault();
-
     const cargaHoraria = calcularCargaHoraria(jornadaInicio, jornadaFim);
-
     const data = {
       idEquino: id,
       localTrabalho,
@@ -82,23 +72,17 @@ useEffect(() => {
       ? axios.put(`/escala/${idEscala}`, data)
       : axios.post('/escala', data);
 
-    requisicao
-      .then(() => {
-        setModalAberto(true);
-        setTimeout(() => {
-          setModalAberto(false);
-          navigate("/escala-equinosList");
-        }, 2000);
-      })
-      .catch(err => console.error("Erro ao salvar escala:", err));
+    requisicao.then(() => {
+      setModalAberto(true);
+      setTimeout(() => {
+        setModalAberto(false);
+        navigate("/escala-equinos-List");
+      }, 2000);
+    }).catch(err => console.error("Erro ao salvar escala:", err));
   };
 
   const cancelar = () => {
-    if (modoEdicao) {
-      navigate("/escala-equinos-List");
-    } else {
-      navigate("/veterinaria-List");
-    }
+    navigate("/escala-equinos-List");
   };
 
   const gerarIntervalosTempo = () => {
@@ -121,8 +105,8 @@ useEffect(() => {
       <Navbar />
       <div className="page-escala">
         <div className="card-escala d-flex flex-wrap gap-4 justify-content-between">
-          
-          {/* DIV: DADOS DO EQUINO */}
+
+          {/* Dados do Equino */}
           <div className="bloco-flutuante">
             <h4 className="mb-3">Dados do Equino</h4>
             <div className="row row-cols-1 row-cols-md-2 g-3">
@@ -135,7 +119,7 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* DIV: ESCALA DE SERVIÇO */}
+          {/* Formulário da Escala */}
           <div className="bloco-flutuante">
             <h4 className="mb-3">Escala de Serviço</h4>
             <form onSubmit={salvarEscala}>

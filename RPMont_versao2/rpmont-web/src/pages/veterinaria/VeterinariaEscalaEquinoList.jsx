@@ -17,12 +17,11 @@ const VeterinariaEscalaEquinoList = () => {
   const [filtroInicio, setFiltroInicio] = useState('');
   const [filtroFim, setFiltroFim] = useState('');
   const [escalaSelecionado, setEscalaSelecionado] = useState(null);
-  const [botoes, setBotoes] = useState(['editar', 'excluir']);
   const [resultado, setResultado] = useState([]);
-
-  // Paginação
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itensPorPagina = 15;
+
+  const botoes = ['editar', 'excluir']; // ✅ Agora definido como constante
 
   useEffect(() => {
     buscarEscala();
@@ -92,7 +91,6 @@ const VeterinariaEscalaEquinoList = () => {
     return equino ? equino.name : 'Desconhecido';
   };
 
-  // Paginação
   const indexUltimoItem = paginaAtual * itensPorPagina;
   const indexPrimeiroItem = indexUltimoItem - itensPorPagina;
   const escalaPaginada = escala.slice(indexPrimeiroItem, indexUltimoItem);
@@ -106,7 +104,6 @@ const VeterinariaEscalaEquinoList = () => {
     if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
   };
 
-  // Placeholder para exportarPDF
   const exportarPDF = () => {
     console.log('Função exportarPDF ainda não implementada');
   };
@@ -156,7 +153,13 @@ const VeterinariaEscalaEquinoList = () => {
                 <div className="d-flex justify-content-end">
                   {botoes.includes('editar') && (
                     <BotaoAcaoRows
-                      to={`/escala-equinos/${item.idEquino}`}
+                      to={{
+                        pathname: `/escala-equinos/${item.idEquino}`
+                      }}
+                      state={{
+                        modoEdicao: true,
+                        idEscala: item.id
+                      }}
                       title="Editar Escala"
                       className="botao-editar"
                       icone="bi-pencil"
@@ -177,14 +180,12 @@ const VeterinariaEscalaEquinoList = () => {
         </tbody>
       </table>
 
-      {/* Paginação */}
       <div className='d-flex justify-content-center align-items-center mt-3'>
         <button className='btn btn-outline-secondary me-2' onClick={paginaAnterior} disabled={paginaAtual === 1}>Anterior</button>
         <span>Página {paginaAtual} de {totalPaginas}</span>
         <button className='btn btn-outline-secondary ms-2' onClick={proximaPagina} disabled={paginaAtual === totalPaginas}>Próxima</button>
       </div>
 
-      {/* Modal de Confirmação */}
       <Modal
         isOpen={modalExcluirAberto}
         onRequestClose={cancelarExclusao}
