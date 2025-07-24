@@ -167,6 +167,7 @@ const VeterinariaEscalaEquinoList = () => {
                   )}
                   {botoes.includes('excluir') && (
                     <BotaoAcaoRows
+                      tipo='button'
                       onClick={() => confirmarExclusao(item)}
                       title="Excluir Escala"
                       className="botao-excluir"

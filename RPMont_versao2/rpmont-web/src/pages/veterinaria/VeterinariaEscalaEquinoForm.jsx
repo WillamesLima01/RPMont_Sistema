@@ -82,7 +82,9 @@ const VeterinariaEscalaEquino = () => {
   };
 
   const cancelar = () => {
-    navigate("/escala-equinos-List");
+
+    {modoEdicao ? navigate("/escala-equinos-List") : navigate("/veterinaria-List")}
+    
   };
 
   const gerarIntervalosTempo = () => {
@@ -187,7 +189,7 @@ const VeterinariaEscalaEquino = () => {
 
               <div className="d-flex justify-content-end gap-2 mt-4">
                 <button type="button" className="btn btn-outline-danger" onClick={cancelar}>Cancelar</button>
-                <button type="submit" className="btn btn-success">Salvar Escala</button>
+                <button type="submit" className="btn btn-success">{modoEdicao ? 'Editar Escala' : 'Salvar Escala'}</button>
               </div>
             </form>
           </div>

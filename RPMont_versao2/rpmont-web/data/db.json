@@ -377,13 +377,13 @@
       "data": "2025-05-02"
     },
     {
-      "id": "abc123",
       "idEquino": "3",
       "localTrabalho": "Cristo Redentor",
       "jornadaTrabalho": "07:00h às 13:00h",
       "cavaleiro": "CB Oliveira",
       "cargaHoraria": 6,
-      "data": "2025-05-19"
+      "data": "2025-07-24",
+      "id": "abc123"
     },
     {
       "idEquino": "3",
@@ -472,15 +472,6 @@
       "localTrabalho": "Busto de Tamandaré",
       "jornadaTrabalho": "17:00h às 23:00h",
       "cavaleiro": "SGT Márcio",
-      "cargaHoraria": 6,
-      "data": "2025-05-18"
-    },
-    {
-      "id": "005b",
-      "idEquino": "4",
-      "localTrabalho": "Busto de Tamandaré",
-      "jornadaTrabalho": "17:00h às 23:00h",
-      "cavaleiro": "CB Anacleto",
       "cargaHoraria": 6,
       "data": "2025-05-18"
     }
