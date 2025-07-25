@@ -1,53 +1,34 @@
 .navbar-logo {
-    height: 30px;
+  height: 30px;
 }
- 
-  /* Quando o link é da página ativa */
-  .active {
-    color: yellow;
-  }
-  /* Estilo do dropdown para combinar com a navbar */
+
+/* Quando o link é da página ativa */
+.active {
+  color: yellow;
+}
+
+/* Estilo do dropdown geral */
 .dropdown-menu {
   background-color: #0d6efd; /* azul Bootstrap */
   border: none;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Itens do dropdown */
 .dropdown-menu .dropdown-item {
   color: #ffffff; /* texto branco */
-  padding: 8px 20px;
-}
-
-.dropdown-menu .dropdown-item:hover,
-.dropdown-menu .dropdown-item:focus {
-  background-color: #0b5ed7; /* azul um pouco mais escuro */
-  color: #ffffff;
-}
-
-/* Estilo do dropdown para combinar com a navbar azul */
-.navbar .dropdown-menu {
-  background-color: #0d6efd; /* Azul escuro */
-  border: none;
-  padding: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.navbar .dropdown-item {
-  color: #ffffff; /* Texto branco */
   padding: 10px 16px;
   font-weight: 500;
   transition: background-color 0.2s ease;
 }
 
-.navbar .dropdown-item:hover,
-.navbar .dropdown-item:focus {
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
   background-color: #084298; /* Azul mais escuro no hover */
   color: #ffffff;
 }
 
+/* Cabeçalhos dentro do dropdown */
 .navbar .dropdown-header {
   background-color: #0b5ed7;
   color: #ffffff;
@@ -56,20 +37,93 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Dropdown específico da navbar */
+.navbar .dropdown-menu {
+  background-color: #0d6efd;
+  border: none;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
 /* LINKS principais da navbar */
 .navbar .nav-link {
-  color: #ffffff !important; /* Branco por padrão */
+  color: #ffffff !important;
   transition: color 0.3s ease;
 }
 
-/* Quando passa o mouse */
 .navbar .nav-link:hover {
-  color: #00d4ff !important; /* Azul claro */
+  color: #00d4ff !important;
 }
 
-/* Quando está na rota ativa (mantém o amarelo) */
 .navbar .nav-link.active {
   color: yellow !important;
   font-weight: bold;
 }
 
+/* =============================== */
+/* SUBMENU FERRAGEAMENTO FUNCIONAL */
+/* =============================== */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+  border-radius: 8px;
+  min-width: 180px;
+  z-index: 1050;
+  background-color: #0d6efd;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+  display: block;
+}
+
+/* Corrige visual da seta */
+.dropdown-submenu > .dropdown-toggle::after {
+  content: "▶";
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.6rem;
+  vertical-align: middle;
+  opacity: 0.8;
+}
+
+/* Garante que o item pai também tenha fundo visível no hover */
+.dropdown-submenu > .dropdown-toggle:hover {
+  background-color: #084298;
+  color: #ffffff;
+}
+
+/* Submenu funcional para Ferrageamento */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+  border-radius: 8px;
+  min-width: 180px;
+  background-color: #0d6efd;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  z-index: 9999; /* força a ficar por cima */
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+  display: block;
+}
