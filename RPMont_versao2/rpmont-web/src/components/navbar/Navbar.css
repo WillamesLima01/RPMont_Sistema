@@ -11,12 +11,15 @@
 .dropdown-menu {
   background-color: #0d6efd; /* azul Bootstrap */
   border: none;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  min-width: 200px;
+  overflow: hidden;
 }
 
 /* Itens do dropdown */
 .dropdown-menu .dropdown-item {
-  color: #ffffff; /* texto branco */
+  color: #ffffff;
   padding: 10px 16px;
   font-weight: 500;
   transition: background-color 0.2s ease;
@@ -24,7 +27,7 @@
 
 .dropdown-menu .dropdown-item:hover,
 .dropdown-menu .dropdown-item:focus {
-  background-color: #084298; /* Azul mais escuro no hover */
+  background-color: #084298;
   color: #ffffff;
 }
 
@@ -37,93 +40,42 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Dropdown específico da navbar */
-.navbar .dropdown-menu {
-  background-color: #0d6efd;
-  border: none;
-  padding: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
 /* LINKS principais da navbar */
 .navbar .nav-link {
-  color: #ffffff !important;
+  color: #ffffff;
   transition: color 0.3s ease;
 }
 
 .navbar .nav-link:hover {
-  color: #00d4ff !important;
+  color: #00d4ff 
 }
 
 .navbar .nav-link.active {
-  color: yellow !important;
+  color: yellow;
   font-weight: bold;
 }
 
-/* =============================== */
-/* SUBMENU FERRAGEAMENTO FUNCIONAL */
-/* =============================== */
-.dropdown-submenu {
-  position: relative;
-}
-
-.dropdown-submenu > .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-top: -1px;
-  border-radius: 8px;
-  min-width: 180px;
-  z-index: 1050;
-  background-color: #0d6efd;
-  border: none;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.dropdown-submenu:hover > .dropdown-menu {
-  display: block;
-}
-
-/* Corrige visual da seta */
-.dropdown-submenu > .dropdown-toggle::after {
-  content: "▶";
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 0.6rem;
-  vertical-align: middle;
-  opacity: 0.8;
-}
-
-/* Garante que o item pai também tenha fundo visível no hover */
-.dropdown-submenu > .dropdown-toggle:hover {
+/* Estilo visual especial para Ferrageamento */
+.ferrageamento-header {
   background-color: #084298;
-  color: #ffffff;
+  color: #fff;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 6px;
+  text-align: center;
+  letter-spacing: 1px;
+  border-radius: 4px;
 }
 
-/* Submenu funcional para Ferrageamento */
-.dropdown-submenu {
-  position: relative;
+.ferrageamento-item {
+  padding-left: 32px !important;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
-.dropdown-submenu > .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-top: -1px;
-  border-radius: 8px;
-  min-width: 180px;
-  background-color: #0d6efd;
-  border: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  padding: 0;
-  z-index: 9999; /* força a ficar por cima */
-}
-
-.dropdown-submenu:hover > .dropdown-menu {
-  display: block;
+.ferrageamento-item:hover {
+  background-color: #0a58ca !important;
+  color: #fff !important;
 }

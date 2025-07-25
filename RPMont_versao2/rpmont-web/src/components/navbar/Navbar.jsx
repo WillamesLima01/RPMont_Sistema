@@ -47,6 +47,7 @@ const Navbar = () => {
                 Atendimentos
               </Link>
             </li>
+
             <li className="nav-item dropdown">
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
@@ -54,30 +55,18 @@ const Navbar = () => {
                   '/veterinaria-Equinos-Baixados',
                 ])}`}
                 id="navbarDropdownEquinos"
-                role="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
                 Equinos
               </button>
               <ul className="dropdown-menu" aria-labelledby="navbarDropdownEquinos">
-                <li>
-                  <Link to="/veterinaria-List" className="dropdown-item">
-                    Equinos Aptos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/veterinaria-Equinos-Baixados" className="dropdown-item">
-                    Equinos Baixados
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/veterinaria-List?filtro=todos" className="dropdown-item">
-                    Listar Todos os Equinos
-                  </Link>
-                </li>
+                <li><Link to="/veterinaria-List" className="dropdown-item">Equinos Aptos</Link></li>
+                <li><Link to="/veterinaria-Equinos-Baixados" className="dropdown-item">Equinos Baixados</Link></li>
+                <li><Link to="/veterinaria-List?filtro=todos" className="dropdown-item">Listar Todos os Equinos</Link></li>
               </ul>
             </li>
+
             <li className="nav-item">
               <Link
                 to="/escala-equinos-List"
@@ -86,6 +75,7 @@ const Navbar = () => {
                 Consultar Escala Equinos
               </Link>
             </li>
+
             <li className="nav-item">
               <Link
                 to="/carga-horaria-equino"
@@ -94,6 +84,7 @@ const Navbar = () => {
                 Carga Horária Equinos
               </Link>
             </li>
+
             <li className="nav-item dropdown">
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${
@@ -110,17 +101,12 @@ const Navbar = () => {
                 Relatórios
               </button>
               <ul className="dropdown-menu">
-                <li>
-                  <Link to="/relatorio-servico" className="dropdown-item">Relatório de Serviço</Link>
-                </li>
-                <li>
-                  <Link to="/relatorio-equinos" className="dropdown-item">Imprimir Relatório Equinos</Link>
-                </li>
-                <li>
-                  <Link to="/consultar-relatorios" className="dropdown-item">Consultar Relatórios de Serviços</Link>
-                </li>
+                <li><Link to="/relatorio-servico" className="dropdown-item">Relatório de Serviço</Link></li>
+                <li><Link to="/relatorio-equinos" className="dropdown-item">Imprimir Relatório Equinos</Link></li>
+                <li><Link to="/consultar-relatorios" className="dropdown-item">Consultar Relatórios de Serviços</Link></li>
               </ul>
             </li>
+
             <li className="nav-item dropdown">
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
@@ -128,6 +114,7 @@ const Navbar = () => {
                   '/ferrageamento-equino',
                   '/toalete-equino',
                   '/vermifugacao-equino',
+                  '/vacinacao-equino'
                 ])}`}
                 id="navbarDropdownManejo"
                 data-bs-toggle="dropdown"
@@ -135,52 +122,22 @@ const Navbar = () => {
               >
                 Manejo Sanitário Equino
               </button>
-              <ul
-                className="dropdown-menu p-2"
-                aria-labelledby="navbarDropdownManejo"
-                style={{ minWidth: '250px' }}
-              >
+              <ul className="dropdown-menu p-2" aria-labelledby="navbarDropdownManejo" style={{ minWidth: '260px' }}>
                 <li className="dropdown-header text-muted fw-bold">Procedimentos a Realizar</li>
-                <li>
-                  <Link to="/manejo-sanitario-list" className="dropdown-item">
-                    Ferrageamento, Toalete, Vermifugação e Vacinação
-                  </Link>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
+                <li><Link to="/manejo-sanitario-list" className="dropdown-item">Ferrageamento, Toalete, Vermifugação e Vacinação</Link></li>
+                <li><hr className="dropdown-divider" /></li>
+
                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
-                <li>
-                  <Link to="/veterinaria-toalete-list" className="dropdown-item">
-                    Toalete
-                  </Link>
-                </li>
-                <li className="dropdown-submenu">
-                  <a href="#" className="dropdown-item ferrageamento-toggle">
-                    Ferrageamento
-                  </a>
-                  <ul className="dropdown-menu submenu-ferrageamento">
-                    <li>
-                      <Link to="/ferrageamento-equino" className="dropdown-item">Ferrar</Link>
-                    </li>
-                    <li>
-                      <Link to="/reprego-equino" className="dropdown-item">Reprego</Link>
-                    </li>
-                    <li>
-                      <Link to="/curativo-equino" className="dropdown-item">Curativo</Link>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <Link to="/vermifugacao-equino" className="dropdown-item">
-                    Vermifugação
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/vacinacao-equino" className="dropdown-item">
-                    Vacinação
-                  </Link>
-                </li>
+                <li><Link to="/veterinaria-toalete-list" className="dropdown-item">Toalete</Link></li>
+                <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
+                <li><Link to="/vacinacao-equino" className="dropdown-item">Vacinação</Link></li>
+
+                {/* Ferrageamento como bloco fixo */}
+                <li className="ferrageamento-header">Ferrageamento</li>
+                <li><Link to="/ferrageamento-equino" className="dropdown-item ferrageamento-item">Ferrar</Link></li>
+                <li><Link to="/reprego-equino" className="dropdown-item ferrageamento-item">Reprego</Link></li>
+                <li><Link to="/curativo-equino" className="dropdown-item ferrageamento-item">Curativo</Link></li>
+
               </ul>
             </li>
           </ul>
@@ -188,28 +145,13 @@ const Navbar = () => {
           <ul className="navbar-nav">
             <li className="nav-item">
               <div className="btn-group">
-                <button
-                  type="button"
-                  className="btn btn-primary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+                <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                   Willames Lima
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      Meu Perfil
-                    </Link>
-                  </li>
-                  <li>
-                    <hr className="dropdown-divider" />
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/">
-                      Desconectar
-                    </Link>
-                  </li>
+                  <li><Link className="dropdown-item" to="#">Meu Perfil</Link></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><Link className="dropdown-item" to="/">Desconectar</Link></li>
                 </ul>
               </div>
             </li>
