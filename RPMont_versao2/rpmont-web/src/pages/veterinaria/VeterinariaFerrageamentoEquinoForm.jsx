@@ -15,6 +15,9 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
   const [equino, setEquino] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [idFerrageamento, setIdFerrageamento] = useState(null);
+
 
   const [formData, setFormData] = useState({
     equinoId: id,
@@ -39,17 +42,39 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const tiposFerrageamento = ['A Quente', 'A Frio'];
 
   useEffect(() => {
-    const buscarEquino = async () => {
+  const buscarDadosFerrageamentoEEquino = async () => {
       try {
-        const res = await axios.get('/equinos');
-        const encontrado = res.data.find(e => String(e.id) === String(id));
-        setEquino(encontrado);
+        // Busca o ferrageamento pelo ID
+        const res = await axios.get(`/ferrageamentoEquino`);
+        const ferrageamento = res.data.find(f => String(f.id) === String(id));
+
+        if (ferrageamento) {
+          setModoEdicao(true);
+          setIdFerrageamento(ferrageamento.id);
+          setFormData(prev => ({
+            ...prev,
+            procedimento: 'Ferrar',
+            tipoFerradura: ferrageamento.tipoFerradura || '',
+            tipoCravo: ferrageamento.tipoCravo || '',
+            tipoJustura: ferrageamento.tipoJustura || '',
+            tipoFerrageamento: ferrageamento.tipoFerrageamento || '',
+            ferros: ferrageamento.ferros || 4,
+            cravos: ferrageamento.cravos || 16,
+            observacoes: ferrageamento.observacoes || '',
+            equinoId: ferrageamento.equinoId || ''
+          }));
+        }
+
+        // Busca o equino correspondente
+        const equinoRes = await axios.get(`/equinos/${ferrageamento.equinoId}`);
+        setEquino(equinoRes.data);
+
       } catch (error) {
-        console.error('Erro ao buscar equino:', error);
+        console.error('Erro ao buscar dados do ferrageamento ou do equino:', error);
       }
     };
 
-    buscarEquino();
+    buscarDadosFerrageamentoEEquino();
   }, [id]);
 
   const handleChange = (e) => {
@@ -74,8 +99,8 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
   try {
     if (formData.procedimento === 'Ferrar') {
-      await axios.post('/ferrageamentoEquino', {
-        equinoId: id,
+      const dados = {
+        equinoId: formData.equinoId,
         tipoFerradura: formData.tipoFerradura,
         tipoCravo: formData.tipoCravo,
         tipoJustura: formData.tipoJustura,
@@ -84,7 +109,13 @@ const VeterinariaFerrageamentoEquinoForm = () => {
         cravos: Number(formData.cravos),
         observacoes: formData.observacoes,
         data: dataAtual
-      });
+      };
+
+      if (modoEdicao) {
+        await axios.put(`/ferrageamentoEquino/${idFerrageamento}`, dados);
+      } else {
+        await axios.post('/ferrageamentoEquino', dados);
+      }
     }
 
     if (formData.procedimento === 'Reprego') {
@@ -265,7 +296,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
         <div className="d-flex justify-content-end gap-2">
           <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancelar</button>
-          <button type="submit" className="btn btn-success">Salvar</button>
+          <button type="submit" className="btn btn-success">{modoEdicao ? "Editar" : "Salvar"}</button>
         </div>
       </form>
 
@@ -275,9 +306,14 @@ const VeterinariaFerrageamentoEquinoForm = () => {
         tipo="mensagem"
         tamanho="medio"
         icone={<FaCheckCircle size={48} color="#4caf50" />}
-        titulo="Dados salvos com sucesso!"
-        subtitulo="O registro foi adicionado corretamente ao banco de dados."
-      />        
+        titulo={modoEdicao ? "Dados atualizados com sucesso!" : "Dados salvos com sucesso!"}
+        subtitulo={
+          modoEdicao
+            ? "O registro foi atualizado corretamente no banco de dados."
+            : "O registro foi adicionado corretamente ao banco de dados."
+        }
+      />
+     
     </div>
   );
 };

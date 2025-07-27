@@ -9,7 +9,7 @@ import axios from '../../api';
 import './ModalVermifugacao.css';
 import ModalGenerico from './ModalGenerico.jsx';
 
-const ModalVermifugacao = ({ open, onClose, equino }) => {
+const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const [vermifugo, setVermifugo] = useState('');
   const [observacao, setObservacao] = useState('');
   const [vermifugosAnteriores, setVermifugosAnteriores] = useState([]);
@@ -29,10 +29,15 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
 
     if (open) {
       carregarVermifugos();
-      setVermifugo('');
-      setObservacao('');
+      if (dadosEditar) {
+        setVermifugo(dadosEditar.vermifugo || '');
+        setObservacao(dadosEditar.observacao || '');
+      } else {
+        setVermifugo('');
+        setObservacao('');
+      }
     }
-  }, [open]);
+  }, [open, dadosEditar]);
 
   const handleSalvar = async () => {
     if (!vermifugo.trim()) {
@@ -40,7 +45,7 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
       return;
     }
 
-    const novaVermifugacao = {
+    const vermifugacao = {
       equinoId: equino.id,
       vermifugo: vermifugo.trim(),
       observacao: observacao.trim(),
@@ -48,9 +53,15 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
     };
 
     try {
-      await axios.post('/vermifugacoes', novaVermifugacao);
-      setModalSucessoAberto(true);
+      if (dadosEditar) {
+        // Edição
+        await axios.put(`/vermifugacoes/${dadosEditar.id}`, { ...dadosEditar, ...vermifugacao });
+      } else {
+        // Cadastro
+        await axios.post('/vermifugacoes', vermifugacao);
+      }
 
+      setModalSucessoAberto(true);
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
@@ -65,7 +76,7 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
       <Modal open={open} onClose={onClose}>
         <Box className="modal-vermifugacao">
           <Typography variant="h6" component="h2" className="text-primary">
-            Vermifugação do Equino
+            {dadosEditar ? 'Editar Vermifugação' : 'Nova Vermifugação'}
           </Typography>
 
           <div className="mb-3">
@@ -96,23 +107,23 @@ const ModalVermifugacao = ({ open, onClose, equino }) => {
 
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button variant="outlined" color="secondary" onClick={onClose}>Cancelar</Button>
-            <Button variant="contained" color="success" onClick={handleSalvar}>Salvar</Button>
+            <Button variant="contained" color="success" onClick={handleSalvar}>
+              {dadosEditar ? 'Salvar Alterações' : 'Salvar'}
+            </Button>
           </div>
         </Box>
       </Modal>
 
-      {/* Modal de sucesso */}
       <ModalGenerico
         open={modalSucessoAberto}
         onClose={() => setModalSucessoAberto(false)}
         tipo="mensagem"
         titulo="Sucesso"
-        subtitulo="Dados salvos no banco de dados com sucesso."
+        subtitulo={`Vermifugação ${dadosEditar ? 'atualizada' : 'cadastrada'} com sucesso.`}
         cor="success"
         tamanho="pequeno"
       />
 
-      {/* Modal de erro */}
       <ModalGenerico
         open={modalErroAberto}
         onClose={() => setModalErroAberto(false)}

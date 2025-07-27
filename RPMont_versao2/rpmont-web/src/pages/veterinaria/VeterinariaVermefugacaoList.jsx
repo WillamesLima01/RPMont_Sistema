@@ -8,10 +8,12 @@ import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
+import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 
-const VeterinariaFerrageamentoEquinoList = () => {
+
+const VeterinariaVermifugacaoList = () => {
   const [equinos, setEquinos] = useState([]);
-  const [toaletes, setToaletes] = useState([]);
+  const [vermifugacoes, setVermifugacoes] = useState([]);
   const [resultado, setResultado] = useState([]);
   const [filtroNome, setFiltroNome] = useState('');
   const [filtroInicio, setFiltroInicio] = useState('');
@@ -19,20 +21,22 @@ const VeterinariaFerrageamentoEquinoList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
-  const [toaleteSelecionado, setToaleteSelecionado] = useState(null);
+  const [itemSelecionado, setItemSelecionado] = useState(null);
   const [botoes, setBotoes] = useState([]);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [equinoSelecionado, setEquinoSelecionado] = useState(null);
+  const [dadosEditar, setDadosEditar] = useState(null);
+
 
   useEffect(() => {
     const carregarDados = async () => {
-      const [eqRes, toRes] = await Promise.all([
+      const [eqRes, vermRes] = await Promise.all([
         axios.get('/equinos'),
-        axios.get('/toaletes')
+        axios.get('/vermifugacoes')
       ]);
       setEquinos(eqRes.data);
-      setToaletes(toRes.data);
-      setResultado(toRes.data);
-
-      // ✅ Define os botões a serem exibidos
+      setVermifugacoes(vermRes.data);
+      setResultado(vermRes.data);
       setBotoes(['editar', 'excluir']);
     };
     carregarDados();
@@ -46,7 +50,7 @@ const VeterinariaFerrageamentoEquinoList = () => {
     new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
   const filtrar = () => {
-    let filtrados = toaletes;
+    let filtrados = vermifugacoes;
     if (filtroNome) filtrados = filtrados.filter(t => t.equinoId === filtroNome);
     if (filtroInicio) filtrados = filtrados.filter(t => new Date(t.data) >= new Date(filtroInicio + 'T00:00:00'));
     if (filtroFim) filtrados = filtrados.filter(t => new Date(t.data) <= new Date(filtroFim + 'T23:59:59'));
@@ -58,70 +62,59 @@ const VeterinariaFerrageamentoEquinoList = () => {
     setFiltroNome('');
     setFiltroInicio('');
     setFiltroFim('');
-    setResultado(toaletes);
+    setResultado(vermifugacoes);
     setCurrentPage(1);
   };
 
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text('Relatório de Toalete dos Equinos', 14, 15);
+    doc.text('Relatório de Vermifugação dos Equinos', 14, 15);
 
-    const dadosTabela = resultado.map((t, i) => {
-      const equino = equinos.find(eq => eq.id === t.equinoId);
+    const dadosTabela = resultado.map((v, i) => {
+      const equino = equinos.find(eq => eq.id === v.equinoId);
       return [
         i + 1,
         equino?.name || '-',
-        formatarData(t.data),
-        t.tosa ? 'Sim' : 'Não',
-        t.banho ? 'Sim' : 'Não',
-        t.limpezaOuvidos ? 'Sim' : 'Não',
-        t.limpezaGenital ? 'Sim' : 'Não',
-        t.limpezaCascos ? 'Sim' : 'Não',
-        t.ripagemCrina ? 'Sim' : 'Não',
-        t.ripagemCola ? 'Sim' : 'Não',
-        t.escovacao ? 'Sim' : 'Não',
-        t.rasqueamento ? 'Sim' : 'Não',
-        t.observacoes || '-'
+        formatarData(v.data),
+        v.vermifugo || '-',
+        v.observacao || '-'
       ];
     });
 
     autoTable(doc, {
       startY: 25,
-      head: [[
-        '#', 'Nome', 'Data', 'Tosa', 'Banho', 'Ouvidos', 'Genital',
-        'Cascos', 'Rip. Crina', 'Rip. Cola', 'Escovação', 'Rasqueamento', 'Obs.'
-      ]],
+      head: [['#', 'Nome', 'Data', 'Vermífugo', 'Observações']],
       body: dadosTabela,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [22, 160, 133] }
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [40, 167, 69] }
     });
 
-    doc.save('relatorio_toalete.pdf');
+    doc.save('relatorio_vermifugacao.pdf');
   };
 
-  const confirmarExclusao = (toalete) => {
-    setToaleteSelecionado(toalete);
+  const confirmarExclusao = (item) => {
+    setItemSelecionado(item);
     setModalExcluirAberto(true);
   };
 
   const cancelarExclusao = () => {
     setModalExcluirAberto(false);
-    setToaleteSelecionado(null);
+    setItemSelecionado(null);
   };
 
-  const excluirToaleteSelecionado = () => {
-    if (!toaleteSelecionado) return;
+  const excluirItemSelecionado = () => {
+    if (!itemSelecionado) return;
 
-    axios.delete(`/toaletes/${toaleteSelecionado.id}`)
+    axios.delete(`/vermifugacoes/${itemSelecionado.id}`)
       .then(() => {
-        const atualizados = toaletes.filter(a => a.id !== toaleteSelecionado.id);
-        setToaletes(atualizados);
+        const atualizados = vermifugacoes.filter(a => a.id !== itemSelecionado.id);
+        setVermifugacoes(atualizados);
         setResultado(atualizados);
         setModalExcluirAberto(false);
       })
       .catch(error => {
-        console.error("Erro ao excluir toalete:", error);
+        console.error("Erro ao excluir vermifugação:", error);
       });
   };
 
@@ -130,7 +123,7 @@ const VeterinariaFerrageamentoEquinoList = () => {
       <Navbar />
 
       <CabecalhoEquinos
-        titulo='Procedimentos de Toalete'
+        titulo='Procedimentos de Vermifugação'
         equinos={equinos}
         filtroNome={filtroNome}
         setFiltroNome={setFiltroNome}
@@ -150,43 +143,43 @@ const VeterinariaFerrageamentoEquinoList = () => {
       <table className='table table-hover'>
         <thead>
           <tr>
-            <th>Nome</th><th>Tosa</th><th>Banho</th><th>Ouvidos</th><th>Genital</th>
-            <th>Cascos</th><th>Rip. Crina</th><th>Rip. Cola</th><th>Escovação</th><th>Rasqueamento</th>
-            <th>Data</th><th>Observações</th><th className='text-end'>Ações</th>
+            <th>Nome</th>
+            <th>Vermífugo</th>
+            <th>Data</th>
+            <th>Observações</th>
+            <th className='text-end'>Ações</th>
           </tr>
         </thead>
         <tbody>
-          {itensPaginados.map(toalete => {
-            const equino = equinos.find(eq => eq.id === toalete.equinoId);
+          {itensPaginados.map(item => {
+            const equino = equinos.find(eq => eq.id === item.equinoId);
             return (
-              <tr key={toalete.id}>
+              <tr key={item.id}>
                 <td>{equino?.name || '-'}</td>
-                <td>{toalete.tosa ? 'Sim' : 'Não'}</td>
-                <td>{toalete.banho ? 'Sim' : 'Não'}</td>
-                <td>{toalete.limpezaOuvidos ? 'Sim' : 'Não'}</td>
-                <td>{toalete.limpezaGenital ? 'Sim' : 'Não'}</td>
-                <td>{toalete.limpezaCascos ? 'Sim' : 'Não'}</td>
-                <td>{toalete.ripagemCrina ? 'Sim' : 'Não'}</td>
-                <td>{toalete.ripagemCola ? 'Sim' : 'Não'}</td>
-                <td>{toalete.escovacao ? 'Sim' : 'Não'}</td>
-                <td>{toalete.rasqueamento ? 'Sim' : 'Não'}</td>
-                <td>{formatarData(toalete.data)}</td>
-                <td>{toalete.observacoes || '-'}</td>
+                <td>{item.vermifugo}</td>
+                <td>{formatarData(item.data)}</td>
+                <td>{item.observacao || '-'}</td>
                 <td className='text-end'>
                   <div className='d-flex justify-content-end'>
                     {botoes.includes('editar') && (
-                      <BotaoAcaoRows
-                        to={`/veterinaria-toalete-equino/${toalete.id}`}
-                        title='Editar Toalete'
-                        className='botao-editar'
-                        icone='bi-pencil'
-                      />
+                        <BotaoAcaoRows
+                            tipo='button'
+                            onClick={() => {
+                            const equino = equinos.find(eq => eq.id === item.equinoId);
+                            setEquinoSelecionado(equino);
+                            setDadosEditar(item);
+                            setModalAberto(true);
+                            }}
+                            title='Editar Vermifugação'
+                            className='botao-editar'
+                            icone='bi-pencil'
+                        />
                     )}
                     {botoes.includes('excluir') && (
                       <BotaoAcaoRows
                         tipo='button'
-                        onClick={() => confirmarExclusao(toalete)}
-                        title="Excluir Toalete"
+                        onClick={() => confirmarExclusao(item)}
+                        title="Excluir Vermifugação"
                         className="botao-excluir"
                         icone="bi-trash"
                       />
@@ -220,15 +213,27 @@ const VeterinariaFerrageamentoEquinoList = () => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => eq.id === toaleteSelecionado?.equinoId)?.name}"?`}
+        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.name}"?`}
       >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>
-          <button className='btn btn-danger' onClick={excluirToaleteSelecionado} data-modal-focus>Excluir</button>
+          <button className='btn btn-danger' onClick={excluirItemSelecionado} data-modal-focus>Excluir</button>
         </div>
       </ModalGenerico>
+
+      <ModalVermifugacao
+        open={modalAberto}
+        onClose={() => {
+            setModalAberto(false);
+            setEquinoSelecionado(null);
+            setDadosEditar(null);
+        }}
+        equino={equinoSelecionado}
+        dadosEditar={dadosEditar}
+      />
+
     </div>
   );
 };
 
-export default VeterinariaFerrageamentoEquinoList;
+export default VeterinariaVermifugacaoList;

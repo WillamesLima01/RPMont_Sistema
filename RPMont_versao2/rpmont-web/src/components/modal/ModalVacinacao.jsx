@@ -9,7 +9,7 @@ import axios from '../../api';
 import './ModalVermifugacao.css';
 import ModalGenerico from './ModalGenerico.jsx';
 
-const ModalVacinacao = ({ open, onClose, equino }) => {
+const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const [nomeVacina, setNomeVacina] = useState('');
   const [observacao, setObservacao] = useState('');
   const [vacinasAnteriores, setVacinasAnteriores] = useState([]);
@@ -29,10 +29,16 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
 
     if (open) {
       carregarVacinas();
-      setNomeVacina('');
-      setObservacao('');
+
+      if (dadosEditar) {
+        setNomeVacina(dadosEditar.nomeVacina || '');
+        setObservacao(dadosEditar.observacao || '');
+      } else {
+        setNomeVacina('');
+        setObservacao('');
+      }
     }
-  }, [open]);
+  }, [open, dadosEditar]);
 
   const handleSalvar = async () => {
     if (!nomeVacina.trim()) {
@@ -40,7 +46,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
       return;
     }
 
-    const novaVacinacao = {
+    const vacinacao = {
       id_Eq: equino.id,
       nomeVacina: nomeVacina.trim(),
       observacao: observacao.trim(),
@@ -48,16 +54,19 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
     };
 
     try {
-      await axios.post('/vacinacoes', novaVacinacao);
-      setModalSucessoAberto(true);
+      if (dadosEditar) {
+        await axios.put(`/vacinacoes/${dadosEditar.id}`, { ...dadosEditar, ...vacinacao });
+      } else {
+        await axios.post('/vacinacoes', vacinacao);
+      }
 
+      setModalSucessoAberto(true);
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
       }, 3000);
     } catch (error) {
       console.error('Erro ao salvar vacinação:', error);
-      // Você pode adicionar um segundo modal de erro aqui se quiser.
     }
   };
 
@@ -66,7 +75,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
       <Modal open={open} onClose={onClose}>
         <Box className="modal-vermifugacao">
           <Typography variant="h6" component="h2" className="text-primary">
-            Vacinação do Equino
+            {dadosEditar ? 'Editar Vacinação' : 'Nova Vacinação'}
           </Typography>
 
           <div className="mb-3">
@@ -97,7 +106,9 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
 
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button variant="outlined" color="secondary" onClick={onClose}>Cancelar</Button>
-            <Button variant="contained" color="success" onClick={handleSalvar}>Salvar</Button>
+            <Button variant="contained" color="success" onClick={handleSalvar}>
+              {dadosEditar ? 'Salvar Alterações' : 'Salvar'}
+            </Button>
           </div>
         </Box>
       </Modal>
@@ -108,7 +119,7 @@ const ModalVacinacao = ({ open, onClose, equino }) => {
         onClose={() => setModalSucessoAberto(false)}
         tipo="mensagem"
         titulo="Sucesso"
-        subtitulo="Vacinação registrada com sucesso."
+        subtitulo={dadosEditar ? 'Vacinação atualizada com sucesso.' : 'Vacinação registrada com sucesso.'}
         cor="success"
         tamanho="pequeno"
       />

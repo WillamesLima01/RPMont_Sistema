@@ -1,16 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './navbar.css';
 import { Link, useLocation } from 'react-router-dom';
 import iconNav from '../../assets/icon40.png';
 
 const Navbar = () => {
   const location = useLocation();
+  const [submenuFerrageamentoAberto, setSubmenuFerrageamentoAberto] = useState(false);
 
   const isActive = (paths) => {
     if (Array.isArray(paths)) {
       return paths.some((path) => location.pathname.startsWith(path)) ? 'active' : '';
     }
     return location.pathname.startsWith(paths) ? 'active' : '';
+  };
+
+  const toggleSubmenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSubmenuFerrageamentoAberto((prev) => !prev);
+  };
+
+  const fecharMenu = () => {
+    setSubmenuFerrageamentoAberto(false);
   };
 
   return (
@@ -132,12 +143,23 @@ const Navbar = () => {
                 <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
                 <li><Link to="/vacinacao-equino" className="dropdown-item">Vacinação</Link></li>
 
-                {/* Ferrageamento como bloco fixo */}
-                <li className="ferrageamento-header">Ferrageamento</li>
-                <li><Link to="/ferrageamento-equino" className="dropdown-item ferrageamento-item">Ferrar</Link></li>
-                <li><Link to="/reprego-equino" className="dropdown-item ferrageamento-item">Reprego</Link></li>
-                <li><Link to="/curativo-equino" className="dropdown-item ferrageamento-item">Curativo</Link></li>
-
+                {/* FERRAGEAMENTO COM SUBMENU CONTROLADO */}
+                <li className="dropdown-submenu">
+                  <button
+                    onClick={toggleSubmenu}
+                    className="dropdown-item d-flex justify-content-between align-items-center"
+                  >
+                    Ferrageamento
+                    <i className={`fa fa-chevron-${submenuFerrageamentoAberto ? 'down' : 'right'} ms-2`}></i>
+                  </button>
+                  {submenuFerrageamentoAberto && (
+                    <ul className="list-unstyled ps-3">
+                      <li><Link to="/ferrageamento-equino" className="dropdown-item" onClick={fecharMenu}>Ferrar</Link></li>
+                      <li><Link to="/reprego-equino" className="dropdown-item" onClick={fecharMenu}>Reprego</Link></li>
+                      <li><Link to="/curativo-equino" className="dropdown-item" onClick={fecharMenu}>Curativo</Link></li>
+                    </ul>
+                  )}
+                </li>
               </ul>
             </li>
           </ul>
