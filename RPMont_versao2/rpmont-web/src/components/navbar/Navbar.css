@@ -14,7 +14,8 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   min-width: 200px;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 80vh;
 }
 
 /* Itens do dropdown */
@@ -53,4 +54,35 @@
 .navbar .nav-link.active {
   color: yellow;
   font-weight: bold;
+}
+
+/* Torna o menu rolável em telas pequenas */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .dropdown-submenu ul {
+    position: static;
+    display: block;
+    padding-left: 1rem;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .dropdown-submenu .dropdown-item {
+    padding-left: 2rem;
+  }
+}
+
+/* Garante que a lista interna de Ferrageamento apareça corretamente */
+.dropdown-submenu ul {
+  max-height: 60vh;       /* pode aumentar para 70vh se quiser mais espaço */
+  overflow-y: auto;
+  padding-left: 1rem;
+}
+
+.dropdown-submenu ul .dropdown-item {
+  white-space: normal;
 }

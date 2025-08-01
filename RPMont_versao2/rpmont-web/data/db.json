@@ -649,6 +649,18 @@
       "observacoes": "assss",
       "data": "2025-07-27T13:31:23.763Z",
       "id": "4b5b"
+    },
+    {
+      "equinoId": "6d3e",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 18,
+      "observacoes": "Ferragem feita a frio",
+      "data": "2025-08-01T21:03:01.458Z",
+      "id": "2017"
     }
   ],
   "ferrageamentoRepregoEquino": [
@@ -689,6 +701,13 @@
       "tipoCurativo": "compressão para parar o sangramento",
       "observacoes": "",
       "data": "2025-06-12T22:38:43.144Z"
+    },
+    {
+      "id": "1f11",
+      "equinoId": "2",
+      "tipoCurativo": "compressão para parar o sangramento com pressão",
+      "observacoes": "Foi observado um sangramento muito forte",
+      "data": "2025-08-01T21:12:07.143Z"
     }
   ],
   "vermifugacoes": [

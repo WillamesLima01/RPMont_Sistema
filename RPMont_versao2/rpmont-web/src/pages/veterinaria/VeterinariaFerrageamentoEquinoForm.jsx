@@ -7,10 +7,11 @@ import { FaCheckCircle } from 'react-icons/fa';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx'
 import Navbar from '../../components/navbar/Navbar.jsx';
 
+
 Modal.setAppElement('#root');
 
 const VeterinariaFerrageamentoEquinoForm = () => {
-  const { id } = useParams();
+  const { tipo, id } = useParams();
   const navigate = useNavigate();
 
   const [equino, setEquino] = useState(null);
@@ -42,40 +43,93 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const tiposFerrageamento = ['A Quente', 'A Frio'];
 
   useEffect(() => {
-  const buscarDadosFerrageamentoEEquino = async () => {
-      try {
-        // Busca o ferrageamento pelo ID
-        const res = await axios.get(`/ferrageamentoEquino`);
-        const ferrageamento = res.data.find(f => String(f.id) === String(id));
+  const buscarDados = async () => {
+    try {
+      // ✅ MODO CRIAÇÃO (sem tipo)
+      if (!tipo) {
+        const equinoRes = await axios.get(`/equinos/${id}`);
+        setEquino(equinoRes.data);
+        setFormData(prev => ({
+          ...prev,
+          equinoId: id,
+        }));
+        return; // encerrar aqui
+      }
 
-        if (ferrageamento) {
-          setModoEdicao(true);
-          setIdFerrageamento(ferrageamento.id);
-          setFormData(prev => ({
-            ...prev,
-            procedimento: 'Ferrar',
-            tipoFerradura: ferrageamento.tipoFerradura || '',
-            tipoCravo: ferrageamento.tipoCravo || '',
-            tipoJustura: ferrageamento.tipoJustura || '',
-            tipoFerrageamento: ferrageamento.tipoFerrageamento || '',
-            ferros: ferrageamento.ferros || 4,
-            cravos: ferrageamento.cravos || 16,
-            observacoes: ferrageamento.observacoes || '',
-            equinoId: ferrageamento.equinoId || ''
-          }));
+      // ✅ MODO EDIÇÃO (com tipo)
+      let endpoint = '';
+      let procedimento = '';
+      let dados = null;
+
+      switch (tipo) {
+        case 'ferrar':
+          endpoint = `/ferrageamentoEquino/${id}`;
+          procedimento = 'Ferrar';
+          break;
+        case 'reprego':
+          endpoint = `/ferrageamentoRepregoEquino/${id}`;
+          procedimento = 'Reprego';
+          break;
+        case 'curativo':
+          endpoint = `/ferrageamentoCurativoEquino/${id}`;
+          procedimento = 'Curativo';
+          break;
+        default:
+          console.error('Tipo de procedimento inválido:', tipo);
+          return;
+      }
+
+      const res = await axios.get(endpoint);
+      dados = res.data;
+
+      setModoEdicao(true);
+      setIdFerrageamento(dados.id);
+
+      setFormData(prev => {
+        const base = {
+          ...prev,
+          procedimento,
+          observacoes: dados.observacoes || '',
+          equinoId: dados.equinoId || '',
+          data: dados.data || ''
+        };
+
+        if (tipo === 'ferrar') {
+          return {
+            ...base,
+            tipoFerradura: dados.tipoFerradura || '',
+            tipoCravo: dados.tipoCravo || '',
+            tipoJustura: dados.tipoJustura || '',
+            tipoFerrageamento: dados.tipoFerrageamento || '',
+            ferros: dados.ferros || 4,
+            cravos: dados.cravos || 16
+          };
+        } else if (tipo === 'reprego') {
+          return {
+            ...base,
+            patas: dados.patas || [],
+            ferroNovo: dados.ferroNovo || 'Não',
+            cravosUsados: dados.cravosUsados || 0
+          };
+        } else if (tipo === 'curativo') {
+          return {
+            ...base,
+            tipoCurativo: dados.tipoCurativo || ''
+          };
         }
 
-        // Busca o equino correspondente
-        const equinoRes = await axios.get(`/equinos/${ferrageamento.equinoId}`);
-        setEquino(equinoRes.data);
+        return base;
+      });
 
-      } catch (error) {
-        console.error('Erro ao buscar dados do ferrageamento ou do equino:', error);
-      }
-    };
+      const equinoRes = await axios.get(`/equinos/${dados.equinoId}`);
+      setEquino(equinoRes.data);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    }
+  };
 
-    buscarDadosFerrageamentoEEquino();
-  }, [id]);
+  buscarDados();
+}, [id, tipo]);
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;

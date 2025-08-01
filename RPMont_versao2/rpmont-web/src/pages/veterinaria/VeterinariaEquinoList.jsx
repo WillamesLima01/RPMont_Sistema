@@ -11,7 +11,7 @@ import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle, FaHandPaper } f
 import './Veterinaria.css';
 import { v4 as uuidv4 } from 'uuid';
 
-const VeterinariaEquinoList = ({ titulo = '' }) => {
+const VeterinariaEquinoList = () => {
   const [equinos, setEquinos] = useState([]);
   const [equinosFiltrados, setEquinosFiltrados] = useState([]);
   const [botoes, setBotoes] = useState([]);
@@ -133,8 +133,8 @@ const buscarDataInternet = async () => {
     const dataUTC = resposta.data.utc_datetime;
     return new Date(dataUTC).toISOString().split('T')[0];  // yyyy-mm-dd
   } catch (error) {
-    console.warn('⚠️ Erro ao buscar data da internet. Usando data local.');
-    return new Date().toISOString().split('T')[0];  // yyyy-mm-dd (data local)
+    console.warn('⚠️ Erro ao buscar data da internet:', error);
+    return new Date().toISOString().split('T')[0];
   }
 };
 
@@ -347,7 +347,7 @@ const baixarEquino = async () => {
         tipo="confirmacao"
         tamanho="medio"
         titulo="Atenção!"
-        subtitulo="Equino encontra-se com status Baixado."
+        subtitulo={mensagemAviso || 'Equino encontra-se com status Baixado.'}
         icone={
           <i
             className="bi bi-sign-stop"

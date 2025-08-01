@@ -1,5 +1,3 @@
-// src/pages/veterinaria/VeterinariaFerrageamentoFerrarList.jsx
-
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import { FaExclamationTriangle } from 'react-icons/fa';
@@ -33,7 +31,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
     setEquinos(eqRes.data);
     setFerrageamentos(ferrarRes.data);
     setResultado(ferrarRes.data);
-    setBotoes(['editar', 'excluir']); // <-- aqui está o que faltava
+    setBotoes(['editar', 'excluir']);
   };
   carregarDados();
 }, []);
@@ -177,7 +175,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
                   <div className="d-flex justify-content-end">
                     {botoes.includes('editar') && (
                         <BotaoAcaoRows
-                            to={`/veterinaria-ferrageamento-equino/${item.id}`}
+                            to={`/veterinaria-ferrageamento-equino/ferrar/${item.id}`}
                             title="Editar Ferrageamento"
                             className="botao-editar"
                             icone="bi-pencil"
