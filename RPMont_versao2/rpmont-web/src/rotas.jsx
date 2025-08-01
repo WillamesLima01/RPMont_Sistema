@@ -19,6 +19,7 @@ import VeterinariaToaleteList from './pages/veterinaria/VeterinariaToaleteList.j
 import VeterinariaVermifugacaoList from './pages/veterinaria/VeterinariaVermefugacaoList.jsx';
 import VeterinariaVacinacaoList from './pages/veterinaria/VeterinariaVacinacaoList.jsx';
 import VeterinariaFerrageamentoFerrarList from './pages/veterinaria/VeterinariaFerrageamentoFerrarList.jsx';
+import VeterinariaFerrageamentoRepregoList from './pages/veterinaria/VeterinariaFerrageamentoRepregoList.jsx';
 
 const rotas = () => {
   return (
@@ -40,7 +41,8 @@ const rotas = () => {
         <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
         <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />     
         <Route path="/veterinaria-toalete-List" element={<VeterinariaToaleteList />} />
-        <Route path="/ferrageamento-equino" element={<VeterinariaFerrageamentoFerrarList />} />        
+        <Route path="/ferrageamento-equino" element={<VeterinariaFerrageamentoFerrarList />} />    
+        <Route path="/reprego-equino" element={<VeterinariaFerrageamentoRepregoList />} />             
         <Route path="/vermifugacao-equino" element={<VeterinariaVermifugacaoList />} />  
         <Route path="/vacinacao-equino" element={<VeterinariaVacinacaoList />} />                  
         <Route path="/veterinaria-ferrageamento-equino/:id" element={<VeterinariaFerrageamentoEquinoform />} />                   
