@@ -9,6 +9,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
+import dayjs from 'dayjs';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+dayjs.extend(isSameOrBefore);
 
 const VeterinariaVacinacaoList = () => {
   const [equinos, setEquinos] = useState([]);
@@ -26,6 +29,22 @@ const VeterinariaVacinacaoList = () => {
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
   const [dadosEditar, setDadosEditar] = useState(null);
 
+const HOJE = dayjs().startOf('day');
+const LIMITE = HOJE.add(15, 'day');
+
+const proximaDataDe = (item) => {
+  // se você futuramente salvar "proximaData", ela tem prioridade
+  const d = item?.proximaData || item?.data;
+  const dt = d ? dayjs(d).startOf('day') : null;
+  return dt?.isValid() ? dt : null;
+};
+
+const estaDentroDe15Dias = (item) => {
+  const prox = proximaDataDe(item);
+  if (!prox) return false;
+  // hoje ou próximos 15 dias (sem vencidos)
+  return prox.isSame(HOJE, 'day') || (prox.isAfter(HOJE) && prox.isSameOrBefore(LIMITE));
+};
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -152,8 +171,9 @@ const VeterinariaVacinacaoList = () => {
         <tbody>
           {itensPaginados.map(item => {
             const equino = equinos.find(eq => eq.id === item.id_Eq);
+            const dentro15 = estaDentroDe15Dias(item);
             return (
-              <tr key={item.id}>
+              <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
                 <td>{equino?.name || '-'}</td>
                 <td>{item.nomeVacina}</td>
                 <td>{formatarData(item.data)}</td>

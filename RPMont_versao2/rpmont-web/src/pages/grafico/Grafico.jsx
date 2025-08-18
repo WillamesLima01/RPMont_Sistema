@@ -274,10 +274,10 @@ const Grafico = () => {
               {alertas.length > 6 && <div>… e mais {alertas.length - 6}</div>}
 
               <Stack direction="row" gap={1} sx={{ mt: 1 }}>
-                <Button component={Link} to="/veterinaria-vacinacao-list" size="small" variant="outlined" color="inherit">
+                <Button component={Link} to="/vacinacao-equino" size="small" variant="outlined" color="inherit">
                   Vacinações
                 </Button>
-                <Button component={Link} to="/veterinaria-vermifugacao-list" size="small" variant="outlined" color="inherit">
+                <Button component={Link} to="/vermifugacao-equino" size="small" variant="outlined" color="inherit">
                   Vermifugações
                 </Button>
               </Stack>

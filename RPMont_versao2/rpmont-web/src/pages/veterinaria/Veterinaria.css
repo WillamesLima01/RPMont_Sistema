@@ -1,121 +1,115 @@
+/* Botão padrão pequeno */
 .btn-tm {
-    width: 30px;
-    height: 30px;
+  width: 30px;
+  height: 30px;
 }
 
+/* ------------------- TITULOS ------------------- */
 .titulo-principal {
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    gap: 8px;
-    position: relative;
-    color:#0d6efd;
-  }
-
-  .icone-doctor {
-    width: 40px;
-    height: 40px;
-    background-image: url('../../assets/Doctor-icon.png');
-    background-size: 70%; /* Maior sem cortar */
-    background-repeat: no-repeat;
-    background-position: center;
-    border: 2px solid #0d6efd;
-    border-radius: 50%;
-    background-color: white;
-  }
-
-  .page-atendimento {
-    display: flex;
-    justify-content: center;
-    padding: 80px 20px 40px;
-    background: #f4f6f9;
-    min-height: 100vh;    
-  }
-
-  .card-atendimento {
-    background-color: rgb(212, 216, 218);
-    padding: 20px 120px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    max-width: 1000px;
-    width: 100%;   
-  }  
-
-  .page-escala {
-    display: flex;
-    justify-content: center;
-    padding: 80px 40px;
-    background: #f4f6f9;
-    min-height: 100vh;
-  }
-
-  .card-escala {
-    background-color: rgb(212, 216, 218);
-    padding: 30px 80px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    max-width: 1000px;
-    width: 100%;    
-  }  
-  
-  .titulo-wrapper {
-    width: 100%;
-    text-align: center;   
-    margin-bottom: 0; 
-  }
-  
-  .titulo-principal-Atendimento {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #0d6efd;
-    margin: 0;
-  }  
-  
-  .bg1 { background-color: #e9f0ff; }
-    
-  .modalContent .mensagem-azul {
-    color: #0d6efd;
-    font-weight: 600;
-  }
-
-  .form-label{
-    font-size: 1rem;    
-    color: #0d6efd;      
-  }  
-
-  .text-muted {
-    font-size: 0.4;
-  }
-
-  .titulo-lista {
-    color: #007bff; /* azul moderno */
-    font-weight: bold;
-    font-size: 2rem;
-    margin-bottom: 0.2rem;
-  }
-  
-  .total-atendimentos {
-    display: block;
-    font-size: 0.95rem;
-    color: #6c757d; /* cinza elegante */
-    margin-top: 0.2rem;
-  }
-
-  /* Estilo para o container geral com os dois blocos lado a lado */
-.card-atendimento {
+  font-size: 2rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  gap: 8px;
+  position: relative;
+  color:#0d6efd;
 }
 
-.card-atendimento .mb-3 {
-  width: 100%;
+.titulo-principal-Atendimento {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0d6efd;
   margin: 0;
 }
 
-/* Bloco flutuante dos dados do equino e da escala */
+.titulo-lista {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 2rem;
+  margin-bottom: 0.2rem;
+}
+
+.total-atendimentos {
+  display: block;
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin-top: 0.2rem;
+}
+
+.titulo-wrapper {
+  width: 100%;
+  text-align: center;   
+  margin-bottom: 0; 
+}
+
+/* ------------------- ICONES ------------------- */
+.icone-doctor {
+  width: 40px;
+  height: 40px;
+  background-image: url('../../assets/Doctor-icon.png');
+  background-size: 70%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 2px solid #0d6efd;
+  border-radius: 50%;
+  background-color: white;
+}
+
+/* ------------------- PAGINAS ------------------- */
+.page-atendimento,
+.page-escala {
+  display: flex;
+  justify-content: center;
+  padding: 80px 20px 40px;
+  background: #f4f6f9;
+  min-height: 100vh;    
+}
+
+.page-escala { padding: 80px 40px; }
+
+.card-atendimento,
+.card-escala {
+  background-color: rgb(212, 216, 218);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 1000px;
+  width: 100%;
+}
+
+.card-atendimento { padding: 20px 120px; }
+.card-escala { padding: 30px 80px; }
+
+.bg1 { background-color: #e9f0ff; }
+
+/* ------------------- FORMULARIO ------------------- */
+.form-label {
+  font-size: 1rem;    
+  color: #0d6efd;      
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.form-floating label {
+  color: #0d6efd;
+}
+
+.text-muted { font-size: 0.4; }
+
+.card-atendimento form { width: 100%; }
+.card-atendimento .mb-3 {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+.card-atendimento textarea.form-control {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;  
+}
+
+/* ------------------- BLOCOS ------------------- */
 .bloco-flutuante {
   flex: 1 1 48%;
   min-width: 300px;
@@ -125,8 +119,6 @@
   padding: 20px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
 }
-
-/* Título interno dos blocos */
 .bloco-flutuante h4 {
   font-size: 1.25rem;
   color: #114477;
@@ -135,89 +127,27 @@
   padding-bottom: 5px;
 }
 
-/* Campos de formulário */
-.form-label {
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-}
-
-/* Cards com cores alternadas */
 .info-box {
   border-radius: 12px;
   padding: 15px;
   color: #333;
   box-shadow: 0 3px 6px rgba(0,0,0,0.05); 
- 
 }
-
 .info-box strong {
   display: block;
   font-size: 0.9rem;
   color: #0d6efd;
   margin-bottom: 5px;    
 }
+.info-box p { margin: 0; font-size: 1rem; color: #222; }
 
-.info-box p {
-  margin: 0;
-  font-size: 1rem;
-  color: #222;
-}
-
-/* Responsividade extra para telas menores */
-@media (max-width: 768px) {
-  .bloco-flutuante {
-    flex: 1 1 100%;
-  }
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-  .card-atendimento {
-    padding: 20px;
-  }
-}
-
-/* Textarea 100% da largura */
-.card-atendimento form {
-  width: 100%;
-}
-
-.card-atendimento .mb-3 {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.card-atendimento textarea.form-control {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 100%;
-  box-sizing: border-box;  
-}
-
-.form-floating label {
-  color: #0d6efd;
-}
-
-.calculadora-dosagem {
-  background-color: #e7f1fa; /* azul claro suave */
-  width: 100%;
-  border: 1px solid #c6d8e1;
-}
-
-/*css do veterinaria Relatorio serviço*/
+/* ------------------- RELATÓRIO ------------------- */
 .relatorio-container {
   padding: 2rem;
   max-width: 900px;
   margin: auto;
 }
-
-.titulo {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
+.titulo { text-align: center; margin-bottom: 2rem; }
 .box-info {
   background-color: #f8f9fa;
   border-left: 5px solid #0d6efd;
@@ -225,24 +155,11 @@
   border-radius: 0.5rem;
   margin-bottom: 2rem;
 }
+.secao { margin-top: 1.5rem; }
+.secao h5 { margin-bottom: 0.5rem; }
+@media print { .no-print { display: none; } }
 
-.secao {
-  margin-top: 1.5rem;
-}
-
-.secao h5 {
-  margin-bottom: 0.5rem;
-}
-
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* Veterinaria.css */
-
-/* Botão de ferrageamento com alinhamento horizontal e ícone */
+/* ------------------- BOTÕES ------------------- */
 .btn-ferrageamento, .btn-toalete {
   display: inline-flex;
   align-items: center;
@@ -250,41 +167,54 @@
   padding: 4px 8px;
   font-size: 0.875rem;
 }
+.btn-ferrageamento img { width: 15px; height: 19px; }
+.btn-vermifugacao i { color: gold; font-size: 0.9rem; }
 
-/* Imagem da ferradura dentro do botão */
-.btn-ferrageamento img {
-  width: 15px;
-  height: 19px;
+/* ------------------- ALERTAS ------------------- */
+.btn-alerta {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: #fff !important;
+  animation: btnPulse 1.2s ease-in-out infinite;
+}
+@keyframes btnPulse {
+  0% { box-shadow: 0 0 0 0 rgba(220,53,69,.6); }
+  70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
 }
 
-.btn-vermifugacao i {
-  color: gold; /* ou yellow */
-  font-size: 0.9rem;
+/* Botão cabeça de cavalo (vermelho) */
+/* botão da cabeça do cavalo */
+.botao-alerta-cavalo {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: #fff !important;
+  border: 2px solid #dc3545 !important;
+  color: #dc3545 !important;
+  padding: 6px 10px;
+  border-radius: .5rem;
+  font-weight: 600;
+  margin-right: .35rem;
+  transition: 0.2s;
 }
 
-/* Estilização do conteúdo do modal */
-.modal-content-custom {
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+.botao-alerta-cavalo:hover {
+  background: #dc3545 !important;
+  color: #fff !important;
 }
 
-/* Título da mensagem */
-.modal-success-title {
-  margin-top: 20px;
-  font-size: 1.5rem;
-  color: #28a745;
-  font-weight: bold;
+.botao-alerta-cavalo:hover {
+  background: #dc3545 !important;
+  color: #fff !important;
+}
+.botao-alerta-cavalo i,
+.botao-alerta-cavalo .fa,
+.botao-alerta-cavalo .fas {
+  color: inherit !important;
 }
 
-/* Ícone de sucesso */
-.modal-success-icon {
-  font-size: 3rem;
-  color: #28a745;
-}
-
+/* ------------------- IMAGENS ------------------- */
 .imagem {
   width: 32%;
   height: auto;
@@ -295,13 +225,36 @@
   transition: border 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
-
 .imagem:hover {
-  border: 2px solid #007bff; /* azul suave */
+  border: 2px solid #007bff;
   transform: scale(1.03);
 }
+.imagem.chanfro { object-position: center 20%; }
 
-.imagem.chanfro {
-  object-position: center 20%;
+/* ------------------- MODAIS ------------------- */
+.modal-content-custom {
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
+.modal-success-title {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: #28a745;
+  font-weight: bold;
+}
+.modal-success-icon { font-size: 3rem; color: #28a745; }
+.modalContent .mensagem-azul {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+/* ------------------- RESPONSIVIDADE ------------------- */
+@media (max-width: 768px) {
+  .bloco-flutuante { flex: 1 1 100%; }
+  .card-atendimento { padding: 20px; }
+}
+
 

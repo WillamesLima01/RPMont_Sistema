@@ -7,9 +7,62 @@ import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
-import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle, FaHandPaper } from 'react-icons/fa';
+import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle } from 'react-icons/fa';
 import './Veterinaria.css';
 import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
+
+const INTERVALOS = {
+  vacinacaoDias: 365,     // não usado no cálculo de alerta (data já é próxima), mantém se precisar em outro lugar
+  vermifugacaoDias: 90,
+  toaleteDias: 30,
+  ferrageamentoDias: 45,
+};
+
+/* ===== Helpers ===== */
+
+// Considera `data` como PRÓXIMA execução (sem somar intervalo)
+const estaNosProximos15Dias = (proximaISO) => {
+  if (!proximaISO) return false;
+  const hoje = dayjs();
+  const prox = dayjs(proximaISO);
+  const dias = prox.diff(hoje, 'day');
+  return dias >= 0 && dias <= 15;
+};
+
+// Mapa <equinoId, ISOString da PRÓXIMA data mais próxima (>= hoje)>
+const proximaPorEquino = (lista, getId) => {
+  const m = new Map();
+  const hoje = dayjs();
+  for (const item of lista || []) {
+    const id = String(getId(item));
+    const d = dayjs(item.data);
+    if (!id || !d.isValid()) continue;
+    if (d.isBefore(hoje, 'day')) continue; // só hoje ou futuras
+    const atual = m.get(id);
+    if (!atual || d.isBefore(dayjs(atual))) {
+      m.set(id, d.toISOString());
+    }
+  }
+  return m;
+};
+
+// rótulos e rotas para o botão do cavalo
+const labelProced = (tipo) =>
+  tipo === 'vacinacao' ? 'Vacinação' :
+  tipo === 'vermifugacao' ? 'Vermifugação' :
+  tipo === 'toalete' ? 'Toalete' :
+  tipo === 'ferrageamento' ? 'Ferrageamento' : 'Procedimento';
+
+const rotaProced = (tipo, equinoId) => {
+  switch (tipo) {
+    case 'vacinacao':     return '/vacinacao-equino';
+    case 'vermifugacao':  return '/vermifugacao-equino';
+    case 'toalete':       return `/veterinaria-toalete-equino/${equinoId}`;
+    case 'ferrageamento': return `/veterinaria-ferrageamento-equino/${equinoId}`;
+    default:              return '#';
+  }
+};
 
 const VeterinariaEquinoList = () => {
   const [equinos, setEquinos] = useState([]);
@@ -25,18 +78,26 @@ const VeterinariaEquinoList = () => {
   const [modalSucessoBaixaAberto, setModalSucessoBaixaAberto] = useState(false);
   const [modalAvisoAberto, setModalAvisoAberto] = useState(false);
   const [mensagemAviso, setMensagemAviso] = useState('');
- 
-  const itensPorPagina = 15;
-  const filtroQuery = useSearchParams()[0].get('filtro');
-  const location = useLocation();
 
+  const itensPorPagina = 15;
+  const [searchParams] = useSearchParams();
+  const filtroQuery = searchParams.get('filtro');
+  const location = useLocation();
   const totalPaginas = Math.ceil(equinosFiltrados.length / itensPorPagina);
 
+  // Carrega equinos e marca alertas/botão cavalo
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        const res = await axios.get('/equinos');
-        let dados = res.data;
+        const [eq, vac, ver, toa, fer] = await Promise.allSettled([
+          axios.get('/equinos'),
+          axios.get('/vacinacoes'),
+          axios.get('/vermifugacoes'),
+          axios.get('/toaletes'),
+          axios.get('/ferrageamentoEquino'),
+        ]);
+
+        let listaEquinos = (eq.status === 'fulfilled' ? eq.value.data : []) || [];
 
         const filtroFinal =
           filtroQuery ||
@@ -47,23 +108,73 @@ const VeterinariaEquinoList = () => {
             : 'todos');
 
         if (filtroFinal === 'Baixado') {
-          dados = dados.filter(eq => eq.status === 'Baixado');
+          listaEquinos = listaEquinos.filter((e) => e.status === 'Baixado');
         } else if (filtroFinal === 'Apto') {
-          dados = dados.filter(eq => eq.status === 'Ativo');
+          listaEquinos = listaEquinos.filter((e) => e.status === 'Ativo');
         }
 
-        setEquinos(dados);
-      } catch (error) {
-        console.error('Erro ao carregar equinos:', error);
+        // listas
+        const vacinacoes = (vac.status === 'fulfilled' ? vac.value.data : []) || [];
+        const vermifugacoes = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
+        const toaletes = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
+        const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
+
+        // PRÓXIMAS por equino (atenção aos IDs)
+        const proxVac = proximaPorEquino(vacinacoes,    (v) => v.id_Eq);     // vacinas: id_Eq
+        const proxVer = proximaPorEquino(vermifugacoes, (v) => v.equinoId);  // vermífugo: equinoId
+        const proxToa = proximaPorEquino(toaletes,      (t) => t.equinoId ?? t.idEquino ?? t.id_Eq);
+        const proxFer = proximaPorEquino(ferrageamentos,(f) => f.equinoId ?? f.idEquino ?? f.id_Eq);
+
+        const agora = dayjs();
+
+        const comFlags = listaEquinos.map((eq) => {
+          const id = String(eq.id);
+
+          const pVac = proxVac.get(id) || null;
+          const pVer = proxVer.get(id) || null;
+          const pToa = proxToa.get(id) || null;
+          const pFer = proxFer.get(id) || null;
+
+          const fVac = estaNosProximos15Dias(pVac);
+          const fVer = estaNosProximos15Dias(pVer);
+          const fToa = estaNosProximos15Dias(pToa);
+          const fFer = estaNosProximos15Dias(pFer);
+
+          // escolhe a mais breve entre as <= 15 dias
+          let melhor = null;
+          const pick = (tipo, iso) => {
+            if (!iso) return;
+            const d = dayjs(iso);
+            const dias = d.diff(agora, 'day');
+            if (dias < 0 || dias > 15) return;
+            if (!melhor || d.isBefore(dayjs(melhor.proxima))) {
+              melhor = { tipo, proxima: iso, dias };
+            }
+          };
+          pick('vacinacao', pVac);
+          pick('vermifugacao', pVer);
+          pick('toalete', pToa);
+          pick('ferrageamento', pFer);
+
+          return {
+            ...eq,
+            _alertas: {
+              vacinacao: fVac,
+              vermifugacao: fVer,
+              toalete: fToa,
+              ferrageamento: fFer,
+            },
+            _proximoAlerta: melhor, // null ou {tipo, proxima, dias}
+          };
+        });
+
+        setEquinos(comFlags);
+        setEquinosFiltrados(comFlags);
+      } catch (e) {
+        console.error('Erro ao carregar dados:', e);
       }
-    };
-
-    fetchData();
-  }, [filtroQuery, location.pathname]);
-
-  useEffect(() => {
-    setEquinosFiltrados(equinos);
-  }, [equinos]);
+    })();
+  }, [location.pathname, filtroQuery]);
 
   useEffect(() => {
     switch (location.pathname) {
@@ -82,28 +193,28 @@ const VeterinariaEquinoList = () => {
   }, [location.pathname]);
 
   const handleFiltrar = () => {
-    setPaginaAtual(1); // Resetar paginação ao filtrar
-    if (filtroNome === '') {
+    setPaginaAtual(1);
+    if (!filtroNome) {
       setEquinosFiltrados(equinos);
-    } else {
-      const filtrados = equinos.filter(eq =>
-        eq.name.toLowerCase().includes(filtroNome.toLowerCase())
-      );
-      setEquinosFiltrados(filtrados);
+      return;
     }
+    const termo = filtroNome.toLowerCase();
+    setEquinosFiltrados(
+      equinos.filter((eq) => (eq.name || '').toLowerCase().includes(termo))
+    );
   };
 
-  const abrirModalVermifugacao = equino => {
+  const abrirModalVermifugacao = (equino) => {
     setEquinoSelecionado(equino);
     setModalVermifugacaoAberto(true);
   };
 
-  const abrirModalVacinacao = equino => {
+  const abrirModalVacinacao = (equino) => {
     setEquinoSelecionado(equino);
     setModalVacinacaoAberto(true);
   };
 
-  const confirmarExclusao = equino => {
+  const confirmarExclusao = (equino) => {
     setEquinoSelecionado(equino);
     setModalExcluirAberto(true);
   };
@@ -115,71 +226,67 @@ const VeterinariaEquinoList = () => {
 
   const excluirEquinoSelecionado = () => {
     if (!equinoSelecionado) return;
-
-    axios.delete(`/equinos/${equinoSelecionado.id}`)
+    axios
+      .delete(`/equinos/${equinoSelecionado.id}`)
       .then(() => {
-        const atualizados = equinos.filter(e => e.id !== equinoSelecionado.id);
+        const atualizados = equinos.filter((e) => e.id !== equinoSelecionado.id);
         setEquinos(atualizados);
         setEquinosFiltrados(atualizados);
         setModalExcluirAberto(false);
       })
-      .catch(error => console.error("Erro ao excluir equino:", error));
+      .catch((error) => console.error('Erro ao excluir equino:', error));
   };
 
-  // Função auxiliar para buscar data da internet (com fallback para data local)
-const buscarDataInternet = async () => {
-  try {
-    const resposta = await axios.get('https://worldtimeapi.org/api/ip');
-    const dataUTC = resposta.data.utc_datetime;
-    return new Date(dataUTC).toISOString().split('T')[0];  // yyyy-mm-dd
-  } catch (error) {
-    console.warn('⚠️ Erro ao buscar data da internet:', error);
-    return new Date().toISOString().split('T')[0];
-  }
-};
+  // Data online (fallback local)
+  const buscarDataInternet = async () => {
+    try {
+      const resposta = await axios.get('https://worldtimeapi.org/api/ip');
+      const dataUTC = resposta.data.utc_datetime;
+      return new Date(dataUTC).toISOString().split('T')[0];
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  };
 
-const baixarEquino = async () => {
-  try {
-    const dataBaixaFinal = await buscarDataInternet();  // Usa data da internet ou local como fallback
+  const baixarEquino = async () => {
+    try {
+      const dataBaixaFinal = await buscarDataInternet();
+      await axios.patch(`/equinos/${equinoSelecionado.id}`, { status: 'Baixado' });
 
-    await axios.patch(`/equinos/${equinoSelecionado.id}`, { status: 'Baixado' });
+      const novoRegistro = {
+        id: uuidv4(),
+        idEquino: String(equinoSelecionado.id),
+        dataBaixa: dataBaixaFinal,
+        dataRetorno: null,
+      };
+      await axios.post('/equinosBaixados', novoRegistro);
 
-    const novoRegistro = {
-      id: uuidv4(),
-      idEquino: String(equinoSelecionado.id),
-      dataBaixa: dataBaixaFinal,
-      dataRetorno: null
-    };
+      const equinosAtualizados = equinos.map((e) =>
+        e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
+      );
+      setEquinos(equinosAtualizados);
+      setEquinosFiltrados(equinosAtualizados);
 
-    await axios.post('/equinosBaixados', novoRegistro);
-
-    const equinosAtualizados = equinos.map(e =>
-      e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
-    );
-
-    setEquinos(equinosAtualizados);
-    setEquinosFiltrados(equinosAtualizados);
-
-    setModalConfirmarBaixaAberto(false);
-    setModalSucessoBaixaAberto(true);
-
-  } catch (error) {
-    console.error('Erro ao baixar o equino:', error);
-    alert('Erro ao baixar o equino.');
-  }
-};
-
+      setModalConfirmarBaixaAberto(false);
+      setModalSucessoBaixaAberto(true);
+    } catch (error) {
+      console.error('Erro ao baixar o equino:', error);
+      alert('Erro ao baixar o equino.');
+    }
+  };
 
   const confirmarBaixaEquino = (equino) => {
     if (equino.status === 'Baixado') {
       setMensagemAviso(`Atenção! O equino "${equino.name}" já está com status Baixado.`);
       setModalAvisoAberto(true);
-      return; // Interrompe o fluxo
+      return;
     }
-  
     setEquinoSelecionado(equino);
     setModalConfirmarBaixaAberto(true);
-  };  
+  };
+
+  // classes/estilos
+  const clsBtn = (base, alerta) => `${base} ${alerta ? 'btn-alerta' : ''}`;
 
   return (
     <div className="container-fluid mt-page">
@@ -197,7 +304,7 @@ const baixarEquino = async () => {
         }
         resultado={equinosFiltrados}
       />
-      
+
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
@@ -216,57 +323,132 @@ const baixarEquino = async () => {
           <tbody>
             {equinosFiltrados
               .slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
-              .map(equino => (
-                <tr key={equino.id}>
-                  <td>{equino.name}</td>
-                  <td>{equino.raca}</td>
-                  <td>{equino.pelagem}</td>
-                  <td>{equino.numeroRegistro}</td>
-                  <td>{equino.dataNascimento}</td>
-                  <td>{equino.status}</td>
-                  <td>{equino.sexo}</td>
-                  <td>{equino.unidade}</td>
-                  <td className="text-end">
-                    {botoes.includes('toalete') && (
-                      <BotaoAcaoRows to={`/veterinaria-toalete-equino/${equino.id}`} title="Toalete" className="botao-toalete" icone="bi-scissors" />
-                    )}
-                    {botoes.includes('ferrageamento') && (
-                      <BotaoAcaoRows to={`/veterinaria-ferrageamento-equino/${equino.id}`} title="Ferrageamento" className="botao-ferrageamento" icone="bi-hammer" />
-                    )}
-                    {botoes.includes('vermifugacao') && (
-                      <BotaoAcaoRows tipo="button" onClick={() => abrirModalVermifugacao(equino)} title="Vermifugação" className="botao-vermifugacao" icone="bi-bug" />
-                    )}
-                    {botoes.includes('editar') && (
-                      <BotaoAcaoRows to={`/edit-equino/${equino.id}`} title="Editar" className="botao-editar" icone="bi-pencil" />
-                    )}
-                    {botoes.includes('excluir') && (
-                      <BotaoAcaoRows onClick={() => confirmarExclusao(equino)} tipo="button" title="Excluir Equino" className="botao-excluir" icone="bi-trash" />
-                    )}
-                    {botoes.includes('baixar') && (
-                      <BotaoAcaoRows onClick={() => confirmarBaixaEquino(equino)} tipo="button" title="Baixar" className="botao-baixar" icone="bi-arrow-down-circle" />
-                    )}
-                    {botoes.includes('escalas') && (
-                      <BotaoAcaoRows to={`/escala-equinos/${equino.id}`} title="Escalas" className="botao-escalas" icone="bi bi-calendar-week" />
-                    )}
-                    {botoes.includes('atendimento') && (
-                      <BotaoAcaoRows to={`/atendimento-equino/${equino.id}`} title="Atendimento" className="botao-atendimento" icone="bi-clipboard2-pulse" />
-                    )}
-                    {botoes.includes('retorno') && (
-                      <BotaoAcaoRows onClick={() => alert('Retornar às atividades')} title="Retornar às atividades" className="botao-retorno" icone="bi-arrow-up-circle" />
-                    )}
-                    {botoes.includes('rd') && (
-                      <BotaoAcaoRows to={`/veterinaria-resenha-equino/${equino.id}`} title="Resenha Descritiva" className="botao-rd" icone="fas fa-horse" />
-                    )}
-                    {botoes.includes('vacinacao') && (
-                      <BotaoAcaoRows tipo="button" onClick={() => abrirModalVacinacao(equino)} title="Vacinação" className="botao-vacinacao" icone="fas fa-syringe" />
-                    )}
-                  </td>
-                </tr>
-              ))}
+              .map((equino) => {
+                const alertas = equino._alertas || {};
+                const proximo = equino._proximoAlerta; // {tipo, proxima, dias} ou null
+                const mostrarCavalo = !!proximo;
+
+                return (
+                  <tr key={equino.id}>
+                    <td>{equino.name}</td>
+                    <td>{equino.raca}</td>
+                    <td>{equino.pelagem}</td>
+                    <td>{equino.numeroRegistro}</td>
+                    <td>{equino.dataNascimento}</td>
+                    <td>{equino.status}</td>
+                    <td>{equino.sexo}</td>
+                    <td>{equino.unidade}</td>
+                    <td className="text-end">
+                      {/* Botão cavalo (apenas quando há procedimento nos próximos 15 dias) */}
+                      {mostrarCavalo && (
+                        <BotaoAcaoRows
+                          to={rotaProced(proximo.tipo, equino.id)}
+                          title={`Pendente em ${proximo.dias}d • ${labelProced(proximo.tipo)}`}
+                          className="botao-alerta-cavalo"
+                          icone="fas fa-horse"
+                        />
+                      )}
+
+                      {/* Botões normais, com destaque vermelho apenas no procedimento em alerta */}
+                      {botoes.includes('toalete') && (
+                        <BotaoAcaoRows
+                          to={`/veterinaria-toalete-equino/${equino.id}`}
+                          title="Toalete"
+                          className={clsBtn('botao-toalete', alertas.toalete)}
+                          icone="bi-scissors"
+                        />
+                      )}
+                      {botoes.includes('ferrageamento') && (
+                        <BotaoAcaoRows
+                          to={`/veterinaria-ferrageamento-equino/${equino.id}`}
+                          title="Ferrageamento"
+                          className={clsBtn('botao-ferrageamento', alertas.ferrageamento)}
+                          icone="bi-hammer"
+                        />
+                      )}
+                      {botoes.includes('vermifugacao') && (
+                        <BotaoAcaoRows
+                          tipo="button"
+                          onClick={() => setModalVermifugacaoAberto(true) || setEquinoSelecionado(equino)}
+                          title="Vermifugação"
+                          className={clsBtn('botao-vermifugacao', alertas.vermifugacao)}
+                          icone="bi-bug"
+                        />
+                      )}
+                      {botoes.includes('editar') && (
+                        <BotaoAcaoRows
+                          to={`/edit-equino/${equino.id}`}
+                          title="Editar"
+                          className="botao-editar"
+                          icone="bi-pencil"
+                        />
+                      )}
+                      {botoes.includes('excluir') && (
+                        <BotaoAcaoRows
+                          onClick={() => confirmarExclusao(equino)}
+                          tipo="button"
+                          title="Excluir Equino"
+                          className="botao-excluir"
+                          icone="bi-trash"
+                        />
+                      )}
+                      {botoes.includes('baixar') && (
+                        <BotaoAcaoRows
+                          onClick={() => confirmarBaixaEquino(equino)}
+                          tipo="button"
+                          title="Baixar"
+                          className="botao-baixar"
+                          icone="bi-arrow-down-circle"
+                        />
+                      )}
+                      {botoes.includes('escalas') && (
+                        <BotaoAcaoRows
+                          to={`/escala-equinos/${equino.id}`}
+                          title="Escalas"
+                          className="botao-escalas"
+                          icone="bi bi-calendar-week"
+                        />
+                      )}
+                      {botoes.includes('atendimento') && (
+                        <BotaoAcaoRows
+                          to={`/atendimento-equino/${equino.id}`}
+                          title="Atendimento"
+                          className="botao-atendimento"
+                          icone="bi-clipboard2-pulse"
+                        />
+                      )}
+                      {botoes.includes('retorno') && (
+                        <BotaoAcaoRows
+                          onClick={() => alert('Retornar às atividades')}
+                          title="Retornar às atividades"
+                          className="botao-retorno"
+                          icone="bi-arrow-up-circle"
+                        />
+                      )}
+                      {botoes.includes('rd') && (
+                        <BotaoAcaoRows
+                          to={`/veterinaria-resenha-equino/${equino.id}`}
+                          title="Resenha Descritiva"
+                          className="botao-rd"
+                          icone="fas fa-horse"
+                        />
+                      )}
+                      {botoes.includes('vacinacao') && (
+                        <BotaoAcaoRows
+                          tipo="button"
+                          onClick={() => setModalVacinacaoAberto(true) || setEquinoSelecionado(equino)}
+                          title="Vacinação"
+                          className={clsBtn('botao-vacinacao', alertas.vacinacao)}
+                          icone="fas fa-syringe"
+                        />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
 
-        {/* Paginação */}
         {equinosFiltrados.length > itensPorPagina && (
           <div className="d-flex justify-content-center mt-3">
             <button
@@ -277,7 +459,7 @@ const baixarEquino = async () => {
               Anterior
             </button>
 
-            <span>Página {paginaAtual} de {totalPaginas}</span>
+            <span> Página {paginaAtual} de {totalPaginas} </span>
 
             <button
               className="btn btn-outline-secondary ms-2"
@@ -312,8 +494,12 @@ const baixarEquino = async () => {
         titulo={`Tem certeza que deseja excluir o equino ${equinoSelecionado?.name}?`}
       >
         <div className="d-flex justify-content-center gap-3 mt-4">
-          <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
-          <button className="btn btn-danger" onClick={excluirEquinoSelecionado}>Excluir</button>
+          <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>
+            Cancelar
+          </button>
+          <button className="btn btn-danger" onClick={excluirEquinoSelecionado}>
+            Excluir
+          </button>
         </div>
       </ModalGenerico>
 
@@ -326,8 +512,12 @@ const baixarEquino = async () => {
         titulo={`Deseja realmente baixar o equino ${equinoSelecionado?.name}?`}
       >
         <div className="d-flex justify-content-center gap-3 mt-4">
-          <button className="btn btn-outline-secondary" onClick={() => setModalConfirmarBaixaAberto(false)}>Cancelar</button>
-          <button className="btn btn-danger" onClick={baixarEquino}>Confirmar Baixa</button>
+          <button className="btn btn-outline-secondary" onClick={() => setModalConfirmarBaixaAberto(false)}>
+            Cancelar
+          </button>
+          <button className="btn btn-danger" onClick={baixarEquino}>
+            Confirmar Baixa
+          </button>
         </div>
       </ModalGenerico>
 
@@ -338,7 +528,7 @@ const baixarEquino = async () => {
         tamanho="pequeno"
         icone={<FaCheckCircle size={50} color="#4caf50" />}
         titulo={`Equino ${equinoSelecionado?.name} baixado com sucesso!`}
-        tempoDeDuracao={3000} // Fecha sozinho
+        tempoDeDuracao={3000}
       />
 
       <ModalGenerico
@@ -348,15 +538,7 @@ const baixarEquino = async () => {
         tamanho="medio"
         titulo="Atenção!"
         subtitulo={mensagemAviso || 'Equino encontra-se com status Baixado.'}
-        icone={
-          <i
-            className="bi bi-sign-stop"
-            style={{
-              fontSize: '100px',
-              color: 'red'
-            }}
-          ></i>
-        }
+        icone={<i className="bi bi-sign-stop" style={{ fontSize: '100px', color: 'red' }}></i>}
       />
     </div>
   );
