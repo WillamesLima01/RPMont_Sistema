@@ -9,10 +9,27 @@ import axios from '../../api';
 import './ModalVermifugacao.css';
 import ModalGenerico from './ModalGenerico.jsx';
 
+const isoFromDateOnly = (yyyy_mm_dd) => {
+  if (!yyyy_mm_dd) return null;
+  // grava às 00:00:00Z do dia
+  return new Date(`${yyyy_mm_dd}T00:00:00.000Z`).toISOString();
+};
+
+const dateOnlyFromIso = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  // formata yyyy-mm-dd pro input type="date"
+  return String(d.getUTCFullYear()) + '-' +
+         String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+         String(d.getUTCDate()).padStart(2, '0');
+};
+
 const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const [nomeVacina, setNomeVacina] = useState('');
   const [observacao, setObservacao] = useState('');
   const [vacinasAnteriores, setVacinasAnteriores] = useState([]);
+  const [dataProximoProcedimento, setDataProximoProcedimento] = useState(''); // yyyy-mm-dd
+
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
   const [modalErroAberto, setModalErroAberto] = useState(false);
 
@@ -20,7 +37,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
     const carregarVacinas = async () => {
       try {
         const { data } = await axios.get('/vacinacoes');
-        const nomes = [...new Set(data.map(v => v.nomeVacina))];
+        const nomes = [...new Set(data.map(v => v.nomeVacina).filter(Boolean))];
         setVacinasAnteriores(nomes);
       } catch (error) {
         console.error('Erro ao buscar vacinas:', error);
@@ -33,9 +50,11 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
       if (dadosEditar) {
         setNomeVacina(dadosEditar.nomeVacina || '');
         setObservacao(dadosEditar.observacao || '');
+        setDataProximoProcedimento(dateOnlyFromIso(dadosEditar.dataProximoProcedimento));
       } else {
         setNomeVacina('');
         setObservacao('');
+        setDataProximoProcedimento('');
       }
     }
   }, [open, dadosEditar]);
@@ -46,25 +65,40 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
       return;
     }
 
-    const vacinacao = {
+    // (opcional) recusa data passada
+    if (dataProximoProcedimento) {
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const escolhida = new Date(`${dataProximoProcedimento}T00:00:00`);
+      if (escolhida < hoje) {
+        alert('A data do próximo procedimento não pode ser anterior a hoje.');
+        return;
+      }
+    }
+
+    const payload = {
       id_Eq: equino.id,
       nomeVacina: nomeVacina.trim(),
       observacao: observacao.trim(),
       data: new Date().toISOString(),
+      // salva somente se o usuário informou
+      ...(dataProximoProcedimento
+        ? { dataProximoProcedimento: isoFromDateOnly(dataProximoProcedimento) }
+        : {})
     };
 
     try {
       if (dadosEditar) {
-        await axios.put(`/vacinacoes/${dadosEditar.id}`, { ...dadosEditar, ...vacinacao });
+        await axios.put(`/vacinacoes/${dadosEditar.id}`, { ...dadosEditar, ...payload });
       } else {
-        await axios.post('/vacinacoes', vacinacao);
+        await axios.post('/vacinacoes', payload);
       }
 
       setModalSucessoAberto(true);
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
-      }, 3000);
+      }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vacinação:', error);
     }
@@ -102,6 +136,18 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
             className="mt-3"
             value={observacao}
             onChange={(e) => setObservacao(e.target.value)}
+          />
+
+          {/* NOVO: Próxima dose (data do próximo procedimento) */}
+          <TextField
+            label="Próxima dose (opcional)"
+            type="date"
+            fullWidth
+            className="mt-3"
+            InputLabelProps={{ shrink: true }}
+            value={dataProximoProcedimento}
+            onChange={(e) => setDataProximoProcedimento(e.target.value)}
+            helperText="Defina quando deverá ocorrer a próxima vacinação (usado para avisos de vencimento)."
           />
 
           <div className="d-flex justify-content-end gap-2 mt-4">

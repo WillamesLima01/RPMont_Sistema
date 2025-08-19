@@ -16,11 +16,15 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
   const [modalErroAberto, setModalErroAberto] = useState(false);
 
+  // Novo: data do próximo procedimento (obrigatória)
+  const [proximaData, setProximaData] = useState('');       // yyyy-MM-dd (para o input date)
+  const [erroProximaData, setErroProximaData] = useState(''); // mensagem de erro
+
   useEffect(() => {
     const carregarVermifugos = async () => {
       try {
         const { data } = await axios.get('/vermifugacoes');
-        const nomes = [...new Set(data.map(v => v.vermifugo))];
+        const nomes = [...new Set(data.map(v => v.vermifugo).filter(Boolean))];
         setVermifugosAnteriores(nomes);
       } catch (error) {
         console.error('Erro ao buscar vermífugos:', error);
@@ -29,15 +33,55 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
     if (open) {
       carregarVermifugos();
+
       if (dadosEditar) {
         setVermifugo(dadosEditar.vermifugo || '');
         setObservacao(dadosEditar.observacao || '');
+        // Preenche a data próxima (se existir) no formato yyyy-MM-dd
+        if (dadosEditar.dataProximoProcedimento) {
+          try {
+            const d = new Date(dadosEditar.dataProximoProcedimento);
+            if (!isNaN(d)) {
+              setProximaData(d.toISOString().slice(0, 10));
+            } else {
+              setProximaData('');
+            }
+          } catch {
+            setProximaData('');
+          }
+        } else {
+          setProximaData('');
+        }
       } else {
         setVermifugo('');
         setObservacao('');
+        setProximaData('');
       }
+
+      setErroProximaData('');
     }
   }, [open, dadosEditar]);
+
+  // Validação simples da data (obrigatória e não no passado)
+  const validarProximaData = () => {
+    if (!proximaData) {
+      setErroProximaData('Informe a data do próximo procedimento.');
+      return false;
+    }
+    const hoje = new Date();
+    const d = new Date(`${proximaData}T00:00:00`);
+    // zera hora de "hoje" para comparar apenas a data
+    const hojeSemHora = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate()));
+    const dataSemHora = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+
+    if (dataSemHora < hojeSemHora) {
+      setErroProximaData('A data do próximo procedimento não pode estar no passado.');
+      return false;
+    }
+
+    setErroProximaData('');
+    return true;
+  };
 
   const handleSalvar = async () => {
     if (!vermifugo.trim()) {
@@ -45,19 +89,21 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       return;
     }
 
+    if (!validarProximaData()) return;
+
     const vermifugacao = {
       equinoId: equino.id,
       vermifugo: vermifugo.trim(),
       observacao: observacao.trim(),
-      data: new Date().toISOString(),
+      data: new Date().toISOString(), // data do registro atual
+      // novo campo persistido:
+      dataProximoProcedimento: new Date(`${proximaData}T00:00:00`).toISOString(),
     };
 
     try {
       if (dadosEditar) {
-        // Edição
         await axios.put(`/vermifugacoes/${dadosEditar.id}`, { ...dadosEditar, ...vermifugacao });
       } else {
-        // Cadastro
         await axios.post('/vermifugacoes', vermifugacao);
       }
 
@@ -65,7 +111,7 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
-      }, 3000);
+      }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vermifugação:', error);
     }
@@ -103,6 +149,21 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
             className="mt-3"
             value={observacao}
             onChange={(e) => setObservacao(e.target.value)}
+          />
+
+          {/* NOVO: Data do próximo procedimento (obrigatória) */}
+          <TextField
+            type="date"
+            label="Próximo procedimento"
+            fullWidth
+            required
+            className="mt-3"
+            value={proximaData}
+            onChange={(e) => setProximaData(e.target.value)}
+            onBlur={validarProximaData}
+            InputLabelProps={{ shrink: true }}
+            error={!!erroProximaData}
+            helperText={erroProximaData || 'Informe quando o próximo vermífugo deve ser aplicado.'}
           />
 
           <div className="d-flex justify-content-end gap-2 mt-4">

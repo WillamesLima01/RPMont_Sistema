@@ -716,35 +716,35 @@
       "equinoId": "3",
       "vermifugo": "Ivermectina",
       "observacao": "Dose padrão aplicada",
-      "data": "2025-06-12T14:30:00.000Z"
+      "dataProximoProcedimento": "2025-08-20T14:30:00.000Z"
     },
     {
       "id": "2",
       "equinoId": "1",
       "vermifugo": "Albendazol",
       "observacao": "Reforço após 3 meses",
-      "data": "2025-03-10T10:15:00.000Z"
+      "dataProximoProcedimento": "2025-08-26T10:15:00.000Z"
     },
     {
       "id": "21b7",
       "equinoId": "6",
       "vermifugo": "Ivermectina",
       "observacao": "",
-      "data": "2025-06-13T09:53:57.770Z"
+      "dataProximoProcedimento": "2025-06-13T09:53:57.770Z"
     },
     {
       "id": "c054",
       "equinoId": "5",
       "vermifugo": "Albendazol",
       "observacao": "aplicar de 3 em 3 meses",
-      "data": "2025-07-27T12:05:33.563Z"
+      "dataProximoProcedimento": "2025-07-27T12:05:33.563Z"
     },
     {
       "id": "d8ca",
       "equinoId": "4",
       "vermifugo": "Ivermectina",
       "observacao": "Repetir a dosagem a cada 3 meses.",
-      "data": "2025-08-23T16:12:13.451Z"
+      "dataProximoProcedimento": "2025-08-23T16:12:13.451Z"
     }
   ],
   "resenhas": [
@@ -764,21 +764,29 @@
       "id_Eq": "1",
       "nomeVacina": "Raiva animal",
       "observacao": "foi aplicado 1 ml da vacina atm",
-      "data": "2025-07-27T12:10:51.563Z"
+      "dataProximoProcedimento": "2025-07-27T12:10:51.563Z"
     },
     {
       "id": "6c39",
       "id_Eq": "3",
       "nomeVacina": "Raiva animal",
       "observacao": "imunizado",
-      "data": "2025-08-27T12:11:21.460Z"
+      "dataProximoProcedimento": "2025-08-27T12:11:21.460Z"
     },
     {
       "id": "7e29",
       "id_Eq": "10",
       "nomeVacina": "RAV",
       "observacao": "imunizado contra raiva animal",
-      "data": "2025-07-27T12:12:23.861Z"
+      "dataProximoProcedimento": "2025-08-29T12:12:23.861Z"
+    },
+    {
+      "id": "a4c1",
+      "id_Eq": "9",
+      "nomeVacina": "Raiva animal",
+      "observacao": "observar data de vencimento",
+      "data": "2025-08-19T14:11:45.426Z",
+      "dataProximoProcedimento": "2025-08-20T00:00:00.000Z"
     }
   ]
 }

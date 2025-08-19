@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
 const INTERVALOS = {
-  vacinacaoDias: 365,     // não usado no cálculo de alerta (data já é próxima), mantém se precisar em outro lugar
+  vacinacaoDias: 365,     // mantido para fallback
   vermifugacaoDias: 90,
   toaleteDias: 30,
   ferrageamentoDias: 45,
@@ -21,29 +21,67 @@ const INTERVALOS = {
 
 /* ===== Helpers ===== */
 
-// Considera `data` como PRÓXIMA execução (sem somar intervalo)
+// dias inteiros até a data, ignorando horas/fuso (compara meia-noite local)
+const diasAte = (iso) => {
+  if (!iso) return Number.POSITIVE_INFINITY;
+  const MS_DIA = 24 * 60 * 60 * 1000;
+
+  const alvo = new Date(iso);
+  if (isNaN(alvo)) return Number.POSITIVE_INFINITY;
+
+  const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate()); // 00:00 local da data alvo
+  const hoje = new Date();
+  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // 00:00 local de hoje
+
+  return Math.floor((alvoLocal.getTime() - hojeLocal.getTime()) / MS_DIA);
+};
+
+// considera proximaISO como PRÓXIMA data já calculada
 const estaNosProximos15Dias = (proximaISO) => {
-  if (!proximaISO) return false;
-  const hoje = dayjs();
-  const prox = dayjs(proximaISO);
-  const dias = prox.diff(hoje, 'day');
+  const dias = diasAte(proximaISO);
   return dias >= 0 && dias <= 15;
 };
 
-// Mapa <equinoId, ISOString da PRÓXIMA data mais próxima (>= hoje)>
-const proximaPorEquino = (lista, getId) => {
+// Mapa <equinoId, ISO da PRÓXIMA data mais próxima >= hoje>
+const proximaPorEquino = (lista, getId, intervaloDias) => {
   const m = new Map();
-  const hoje = dayjs();
+
+  // meia-noite local de hoje
+  const hoje = new Date();
+  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
+
   for (const item of lista || []) {
     const id = String(getId(item));
-    const d = dayjs(item.data);
-    if (!id || !d.isValid()) continue;
-    if (d.isBefore(hoje, 'day')) continue; // só hoje ou futuras
-    const atual = m.get(id);
-    if (!atual || d.isBefore(dayjs(atual))) {
-      m.set(id, d.toISOString());
+    if (!id) continue;
+
+    // 1) pega a próxima data
+    let iso = item.dataProximoProcedimento || item.proximaData;
+    if (!iso && item.data && intervaloDias) {
+      const base = new Date(item.data);
+      if (!isNaN(base)) {
+        const calc = new Date(base.getTime() + intervaloDias * 24 * 60 * 60 * 1000);
+        iso = calc.toISOString();
+      }
+    }
+    if (!iso) continue;
+
+    // 2) ignora passado (considerando meia-noite local)
+    const alvo = new Date(iso);
+    if (isNaN(alvo)) continue;
+    const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate()).getTime();
+    if (alvoLocal < hojeLocal) continue;
+
+    // 3) guarda a mais próxima
+    const atualISO = m.get(id);
+    if (!atualISO) {
+      m.set(id, iso);
+    } else {
+      const atual = new Date(atualISO);
+      const atualLocal = new Date(atual.getFullYear(), atual.getMonth(), atual.getDate()).getTime();
+      if (alvoLocal < atualLocal) m.set(id, iso);
     }
   }
+
   return m;
 };
 
@@ -113,19 +151,17 @@ const VeterinariaEquinoList = () => {
           listaEquinos = listaEquinos.filter((e) => e.status === 'Ativo');
         }
 
-        // listas
+        // tabelas
         const vacinacoes = (vac.status === 'fulfilled' ? vac.value.data : []) || [];
         const vermifugacoes = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
         const toaletes = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
 
         // PRÓXIMAS por equino (atenção aos IDs)
-        const proxVac = proximaPorEquino(vacinacoes,    (v) => v.id_Eq);     // vacinas: id_Eq
-        const proxVer = proximaPorEquino(vermifugacoes, (v) => v.equinoId);  // vermífugo: equinoId
-        const proxToa = proximaPorEquino(toaletes,      (t) => t.equinoId ?? t.idEquino ?? t.id_Eq);
-        const proxFer = proximaPorEquino(ferrageamentos,(f) => f.equinoId ?? f.idEquino ?? f.id_Eq);
-
-        const agora = dayjs();
+        const proxVac = proximaPorEquino(vacinacoes, (v) => v.id_Eq, INTERVALOS.vacinacaoDias);
+        const proxVer = proximaPorEquino(vermifugacoes, (v) => v.equinoId, INTERVALOS.vermifugacaoDias);
+        const proxToa = proximaPorEquino(toaletes, (t) => t.equinoId ?? t.idEquino ?? t.id_Eq, INTERVALOS.toaleteDias);
+        const proxFer = proximaPorEquino(ferrageamentos, (f) => f.equinoId ?? f.idEquino ?? f.id_Eq, INTERVALOS.ferrageamentoDias);
 
         const comFlags = listaEquinos.map((eq) => {
           const id = String(eq.id);
@@ -140,15 +176,14 @@ const VeterinariaEquinoList = () => {
           const fToa = estaNosProximos15Dias(pToa);
           const fFer = estaNosProximos15Dias(pFer);
 
-          // escolhe a mais breve entre as <= 15 dias
+          // escolhe a mais breve entre as <= 15 dias (usando diasAte para evitar TZ)
           let melhor = null;
           const pick = (tipo, iso) => {
             if (!iso) return;
-            const d = dayjs(iso);
-            const dias = d.diff(agora, 'day');
-            if (dias < 0 || dias > 15) return;
-            if (!melhor || d.isBefore(dayjs(melhor.proxima))) {
-              melhor = { tipo, proxima: iso, dias };
+            const dRest = diasAte(iso);
+            if (dRest < 0 || dRest > 15) return;
+            if (!melhor || dRest < melhor.dias) {
+              melhor = { tipo, proxima: iso, dias: dRest };
             }
           };
           pick('vacinacao', pVac);
@@ -285,7 +320,7 @@ const VeterinariaEquinoList = () => {
     setModalConfirmarBaixaAberto(true);
   };
 
-  // classes/estilos
+  // classes
   const clsBtn = (base, alerta) => `${base} ${alerta ? 'btn-alerta' : ''}`;
 
   return (

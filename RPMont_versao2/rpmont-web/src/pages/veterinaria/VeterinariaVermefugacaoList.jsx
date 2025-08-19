@@ -34,7 +34,7 @@ const VeterinariaVermifugacaoList = () => {
   const LIMITE = HOJE.add(15, 'day');
 
   const proximaDataDe = (item) => {
-    const d = item?.proximaData || item?.data;
+    const d = item?.dataProximoProcedimento || item?.data;
     const dt = d ? dayjs(d).startOf('day') : null;
     return dt?.isValid() ? dt : null;
   };
@@ -52,7 +52,7 @@ const VeterinariaVermifugacaoList = () => {
         axios.get('/vermifugacoes')
       ]);
       setEquinos(eqRes.data);
-      setVermifugacoes(vermRes.data);
+      setVermifugacoes(vermRes.dataProximoProcedimento);
       setResultado(vermRes.data);
       setBotoes(['editar', 'excluir']);
     };
@@ -69,8 +69,8 @@ const VeterinariaVermifugacaoList = () => {
   const filtrar = () => {
     let filtrados = vermifugacoes;
     if (filtroNome) filtrados = filtrados.filter(t => t.equinoId === filtroNome);
-    if (filtroInicio) filtrados = filtrados.filter(t => new Date(t.data) >= new Date(filtroInicio + 'T00:00:00'));
-    if (filtroFim) filtrados = filtrados.filter(t => new Date(t.data) <= new Date(filtroFim + 'T23:59:59'));
+    if (filtroInicio) filtrados = filtrados.filter(t => new Date(t.dataProximoProcedimento) >= new Date(filtroInicio + 'T00:00:00'));
+    if (filtroFim) filtrados = filtrados.filter(t => new Date(t.dataProximoProcedimento) <= new Date(filtroFim + 'T23:59:59'));
     setResultado(filtrados);
     setCurrentPage(1);
   };
@@ -162,7 +162,7 @@ const VeterinariaVermifugacaoList = () => {
           <tr>
             <th>Nome</th>
             <th>Vermífugo</th>
-            <th>Data</th>
+            <th>Data da próxima dose</th>
             <th>Observações</th>
             <th className='text-end'>Ações</th>
           </tr>
@@ -175,7 +175,7 @@ const VeterinariaVermifugacaoList = () => {
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
                 <td>{equino?.name || '-'}</td>
                 <td>{item.vermifugo}</td>
-                <td>{formatarData(item.data)}</td>
+                <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>
                 <td className='text-end'>
                   <div className='d-flex justify-content-end'>

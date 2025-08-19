@@ -40,7 +40,7 @@ const Grafico = () => {
 
   const normalizaData = (d) => (d ? dayjs(d) : null);
 
-  // Pega o último registro por equino (maior data)
+  // Pega o último registro por equino (maior data) — usado nas métricas de atendimentos/baixados
   const ultimoRegistroPorEquino = (registros, obterIdFn, campoData = 'data') => {
     const mapa = new Map();
     for (const r of registros || []) {
@@ -104,8 +104,41 @@ const Grafico = () => {
       });
   }, []);
 
-  // ====== Checar próximos vencimentos (usa data/proximaData como PRÓXIMO agendado) ======
+  /* ===== Checar próximos vencimentos =====
+     Agora usamos dataProximoProcedimento como a data-alvo de cada item.
+     Pegamos, por equino, a menor data futura (>= hoje). */
   useEffect(() => {
+    // menor data >= hoje por equino
+    const proximaPorEquino = (lista, getId, campo = 'dataProximoProcedimento', fallbackCampo = 'data') => {
+      const mapa = new Map();
+      const hoje = dayjs().startOf('day');
+
+      for (const item of lista || []) {
+        const id = String(getId(item));
+        if (!id) continue;
+
+        let d = normalizaData(item[campo]); // dataProximoProcedimento
+        if (!d?.isValid()) {
+          // fallback apenas se realmente não houver próximo informado
+          const df = normalizaData(item[fallbackCampo]);
+          if (df?.isValid()) d = df;
+        }
+        if (!d?.isValid()) continue;
+
+        const d0 = d.startOf('day');
+        if (d0.isBefore(hoje)) continue; // ignora vencidos
+
+        const atualIso = mapa.get(id);
+        if (!atualIso) {
+          mapa.set(id, d0.toISOString());
+        } else {
+          const atual = dayjs(atualIso);
+          if (d0.isBefore(atual)) mapa.set(id, d0.toISOString());
+        }
+      }
+      return mapa;
+    };
+
     (async () => {
       try {
         const [respEquinos, respVac, respVer] = await Promise.all([
@@ -118,62 +151,40 @@ const Grafico = () => {
         const vacinacoes = respVac.data || [];
         const vermifugacoes = respVer.data || [];
 
-        const ultVac = ultimoRegistroPorEquino(
+        const proxVac = proximaPorEquino(
           vacinacoes,
           (r) => String(r.id_Eq ?? r.equinoId ?? r.idEquino ?? r.id_equino),
+          'dataProximoProcedimento',
           'data'
         );
-        const ultVer = ultimoRegistroPorEquino(
+        const proxVer = proximaPorEquino(
           vermifugacoes,
           (r) => String(r.equinoId ?? r.idEquino ?? r.id_Eq ?? r.id_equino),
+          'dataProximoProcedimento',
           'data'
         );
 
         const hoje = dayjs().startOf('day');
-        const limite = hoje.add(15, 'day'); // janela de 15 dias
+        const limite = hoje.add(15, 'day');
         const mapaEquinos = new Map(equinos.map(e => [String(e.id ?? e.idEquino ?? e.id_equino), e]));
         const lista = [];
 
-        const proximaDataDoRegistro = (registro) => {
-          // usa proximaData se existir; caso contrário, usa data do registro como data-alvo
-          const d = normalizaData(registro?.proximaData || registro?.data);
-          return d?.isValid() ? d.startOf('day') : null;
+        const pushIfDentro15 = (tipo, eqId, iso) => {
+          if (!iso) return;
+          const d = dayjs(iso).startOf('day');
+          if (d.isBefore(hoje) || d.isAfter(limite)) return;
+          const eq = mapaEquinos.get(eqId) || {};
+          lista.push({
+            tipo,
+            equinoId: eqId,
+            nome: eq.name || eq.nome || `#${eqId}`,
+            dataProxima: d.format('DD/MM/YYYY'),
+            diasParaVencer: d.diff(hoje, 'day'),
+          });
         };
 
-        // Vacinação
-        for (const [eqId, reg] of ultVac.entries()) {
-          const prox = proximaDataDoRegistro(reg);
-          if (!prox) continue;
-          // hoje ou próximos 15 dias (sem incluir vencidos)
-          if (prox.isSame(hoje, 'day') || (prox.isAfter(hoje) && prox.isSameOrBefore(limite))) {
-            const eq = mapaEquinos.get(eqId) || {};
-            lista.push({
-              tipo: 'Vacinação',
-              equinoId: eqId,
-              nome: eq.name || eq.nome || `#${eqId}`,
-              dataUltimo: '-', // opcional: não usamos cálculo de última, só próxima
-              dataProxima: prox.format('DD/MM/YYYY'),
-              diasParaVencer: prox.diff(hoje, 'day')
-            });
-          }
-        }
-
-        // Vermifugação
-        for (const [eqId, reg] of ultVer.entries()) {
-          const prox = proximaDataDoRegistro(reg);
-          if (!prox) continue;
-          if (prox.isSame(hoje, 'day') || (prox.isAfter(hoje) && prox.isSameOrBefore(limite))) {
-            const eq = mapaEquinos.get(eqId) || {};
-            lista.push({
-              tipo: 'Vermifugação',
-              equinoId: eqId,
-              nome: eq.name || eq.nome || `#${eqId}`,
-              dataUltimo: '-',
-              dataProxima: prox.format('DD/MM/YYYY'),
-              diasParaVencer: prox.diff(hoje, 'day')
-            });
-          }
-        }
+        for (const [eqId, iso] of proxVac.entries()) pushIfDentro15('Vacinação', eqId, iso);
+        for (const [eqId, iso] of proxVer.entries()) pushIfDentro15('Vermifugação', eqId, iso);
 
         lista.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
 

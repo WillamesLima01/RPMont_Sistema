@@ -33,8 +33,8 @@ const HOJE = dayjs().startOf('day');
 const LIMITE = HOJE.add(15, 'day');
 
 const proximaDataDe = (item) => {
-  // se você futuramente salvar "proximaData", ela tem prioridade
-  const d = item?.proximaData || item?.data;
+  // agora priorizamos o campo que você já salva
+  const d = item?.dataProximoProcedimento || item?.proximaData || item?.data;
   const dt = d ? dayjs(d).startOf('day') : null;
   return dt?.isValid() ? dt : null;
 };
@@ -102,7 +102,7 @@ const estaDentroDe15Dias = (item) => {
 
     autoTable(doc, {
       startY: 25,
-      head: [['#', 'Nome', 'Data', 'Vacina', 'Observações']],
+      head: [['#', 'Nome', 'DataProximoProcedimento', 'Vacina', 'Observações']],
       body: dadosTabela,
       styles: { fontSize: 10 },
       headStyles: { fillColor: [52, 152, 219] }
@@ -163,7 +163,7 @@ const estaDentroDe15Dias = (item) => {
           <tr>
             <th>Nome</th>
             <th>Vacina</th>
-            <th>Data</th>
+            <th>Data da próxima dose</th>
             <th>Observações</th>
             <th className='text-end'>Ações</th>
           </tr>
@@ -176,7 +176,7 @@ const estaDentroDe15Dias = (item) => {
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
                 <td>{equino?.name || '-'}</td>
                 <td>{item.nomeVacina}</td>
-                <td>{formatarData(item.data)}</td>
+                <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>
                 <td className='text-end'>
                   <div className='d-flex justify-content-end'>
