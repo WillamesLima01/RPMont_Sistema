@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
@@ -16,19 +16,28 @@ const VeterinariaAtendimento = () => {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idEquino, setIdEquino] = useState(null);
 
-  // Estados para calculadora de dosagem
+  // Calculadora de dosagem
   const [peso, setPeso] = useState('');
   const [dosagem, setDosagem] = useState('');
   const [unidade, setUnidade] = useState('mg');
 
+  // Enfermidade (texto + autocomplete baseado nos atendimentos)
+  const [enfTexto, setEnfTexto] = useState('');
+  const [sugestoesEnf, setSugestoesEnf] = useState([]);
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const caixaEnfRef = useRef(null);
+  const blurTimer = useRef(null);
+
+  // Carregar atendimento -> equino OU direto equino
   useEffect(() => {
     axios.get(`/atendimentos/${id}`)
       .then(res => {
-        const atendimento = res.data;
-        setConsulta(atendimento.textoConsulta);
-        setIdEquino(atendimento.idEquino);
+        const a = res.data;
+        setConsulta(a.textoConsulta || '');
+        setEnfTexto(a.enfermidade || ''); // pré-preenche se edição
+        setIdEquino(a.idEquino);
         setModoEdicao(true);
-        return axios.get(`/equinos/${atendimento.idEquino}`);
+        return axios.get(`/equinos/${a.idEquino}`);
       })
       .then(res => setEquino(res.data))
       .catch(() => {
@@ -37,16 +46,45 @@ const VeterinariaAtendimento = () => {
             setEquino(res.data);
             setIdEquino(id);
           })
-          .catch(err => console.error("Erro ao buscar equino:", err));
+          .catch(err => console.error('Erro ao buscar equino:', err));
       });
   }, [id]);
 
+  // Carregar sugestões de enfermidades a partir dos atendimentos existentes
+  useEffect(() => {
+    axios.get('/atendimentos')
+      .then(res => {
+        const nomesUnicos = Array.from(
+          new Set(
+            (res.data || [])
+              .map(x => (x.enfermidade || '').trim())
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        setSugestoesEnf(nomesUnicos);
+      })
+      .catch(() => setSugestoesEnf([]));
+  }, []);
+
+  // Fechar sugestões ao clicar fora
+  useEffect(() => {
+    const handleClickFora = (e) => {
+      if (caixaEnfRef.current && !caixaEnfRef.current.contains(e.target)) {
+        setMostrarSugestoes(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickFora);
+    return () => document.removeEventListener('mousedown', handleClickFora);
+  }, []);
+
   const salvarConsulta = (e) => {
     e.preventDefault();
+
     const data = {
       idEquino,
       textoConsulta: consulta,
-      data: new Date().toISOString().split('T')[0]
+      enfermidade: enfTexto.trim(), // campo simples no atendimento
+      data: new Date().toISOString().split('T')[0],
     };
 
     const requisicao = modoEdicao
@@ -58,15 +96,16 @@ const VeterinariaAtendimento = () => {
         setModalAberto(true);
         setTimeout(() => {
           setModalAberto(false);
-          navigate(modoEdicao ? "/atendimento-List" : "/veterinaria-List");
+          navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-List');
         }, 2000);
       })
-      .catch(err => console.error("Erro ao salvar atendimento:", err));
+      .catch(err => {
+        console.error('Erro ao salvar atendimento:', err);
+        alert('Erro ao salvar atendimento. Verifique a rota /atendimentos da sua API.');
+      });
   };
 
-  const cancelar = () => {
-    navigate("/veterinaria-Equinos-Baixados");
-  };
+  const cancelar = () => navigate('/veterinaria-Equinos-Baixados');
 
   const calcularDosagem = () => {
     const p = parseFloat(peso);
@@ -76,6 +115,10 @@ const VeterinariaAtendimento = () => {
   };
 
   if (!equino) return <p>Carregando...</p>;
+
+  const sugestoesFiltradas = enfTexto
+    ? sugestoesEnf.filter(n => n.toLowerCase().includes(enfTexto.toLowerCase()))
+    : sugestoesEnf;
 
   return (
     <>
@@ -87,6 +130,7 @@ const VeterinariaAtendimento = () => {
               {modoEdicao ? 'Editar Consulta' : 'Atendimento Veterinário'}
             </h2>
           </div>
+
           <div className="row row-cols-1 row-cols-md-3 g-3 mb-1">
             <div className="col"><div className="info-box bg1"><strong>Nome:</strong><p>{equino.name}</p></div></div>
             <div className="col"><div className="info-box bg1"><strong>Raça:</strong><p>{equino.raca}</p></div></div>
@@ -137,20 +181,57 @@ const VeterinariaAtendimento = () => {
               <div className="col-md-4 d-flex justify-content-between align-items-center">
                 <div>
                   <strong>Dose total:</strong>{' '}
-                  {peso && dosagem ? `${(peso * dosagem).toFixed(2)} ${unidade}` : '--'}
+                  {peso && dosagem ? `${(parseFloat(peso || '0') * parseFloat(dosagem || '0')).toFixed(2)} ${unidade}` : '--'}
                 </div>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  onClick={() => {
-                    setPeso('');
-                    setDosagem('');
-                    setUnidade('mg');
-                  }}
+                  onClick={() => { setPeso(''); setDosagem(''); setUnidade('mg'); }}
                 >
                   Limpar
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Enfermidade (autocomplete simples, sem tabela) */}
+          <div className="mb-3 position-relative" ref={caixaEnfRef} style={{ zIndex: 10 }}>
+            <label className="form-label fw-bold">Enfermidade</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Digite ou selecione a enfermidade"
+              value={enfTexto}
+              onChange={(e) => {
+                setEnfTexto(e.target.value);
+                setMostrarSugestoes(true);
+              }}
+              onFocus={() => setMostrarSugestoes(true)}
+              onBlur={() => {
+                blurTimer.current = setTimeout(() => setMostrarSugestoes(false), 150);
+              }}
+              required
+            />
+            {mostrarSugestoes && sugestoesFiltradas.length > 0 && (
+              <ul
+                className="list-group shadow-sm"
+                style={{ position: 'absolute', width: '100%', maxHeight: 220, overflowY: 'auto', marginTop: 4 }}
+                onMouseDown={(e) => e.preventDefault()} // permite clicar sem perder foco
+              >
+                {sugestoesFiltradas.map((n) => (
+                  <li
+                    key={n}
+                    className="list-group-item list-group-item-action"
+                    role="button"
+                    onClick={() => { setEnfTexto(n); setMostrarSugestoes(false); }}
+                  >
+                    {n}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="form-text">
+              Dica: digite para filtrar. Se não encontrar, basta deixar o nome digitado — será salvo no atendimento.
             </div>
           </div>
 

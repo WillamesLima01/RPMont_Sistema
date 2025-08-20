@@ -272,18 +272,21 @@
     {
       "idEquino": "7",
       "textoConsulta": "Aplicação de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-05-02",
       "id": "62d1"
     },
     {
       "idEquino": "1",
       "textoConsulta": "Consulta preventiva",
+      "enfermidade": "mormo",
       "data": "2025-05-19",
       "id": "teste123"
     },
     {
       "idEquino": "1",
       "textoConsulta": "Aplicação de dipirona no soro para diminuir as dores causa pela lesão na posterior direita",
+      "enfermidade": "Dores",
       "data": "2025-04-01",
       "id": "2fcd"
     },
@@ -291,17 +294,20 @@
       "id": "7c7f",
       "idEquino": "1",
       "textoConsulta": "Foi realizado serviço de casqueamento e aplicação de medicamento na posterior esquerda com cascozan e antibiótico para frieira e rachadura.",
+      "enfermidade": "Frieira",
       "data": "2025-05-01"
     },
     {
       "id": "8edc",
       "idEquino": "1",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-04-01"
     },
     {
       "idEquino": "7",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-07-17",
       "id": "107b"
     },
@@ -309,53 +315,62 @@
       "id": "6a0d",
       "idEquino": "10",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-05-01"
     },
     {
       "id": "0712",
       "idEquino": "11",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-03-01"
     },
     {
       "id": "b32b",
       "idEquino": "4",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-03-01"
     },
     {
       "id": "b547",
       "idEquino": "6d3e",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-05-01"
     },
     {
       "id": "bfe6",
       "idEquino": "2",
       "textoConsulta": "Realização de vermefugo",
+      "enfermidade": "Verme",
       "data": "2025-03-01"
     },
     {
       "id": "1b70",
       "idEquino": "1",
       "textoConsulta": "Realizado exame de sangue",
+      "enfermidade": "Coceira",
       "data": "2025-04-01"
     },
     {
       "id": "0003",
       "idEquino": "5",
       "textoConsulta": "Feito o toalhete e aplicação de remédio para fugos",
+      "enfermidade": "fungos",
       "data": "2025-05-11"
     },
     {
       "id": "4db1",
       "idEquino": "f167",
       "textoConsulta": "Foi aplicado antibiótico para fortes dores na coluna, e realizado o exame de raio x.",
+      "enfermidade": "Dores",
       "data": "2025-05-02"
     },
     {
       "idEquino": "2",
       "textoConsulta": "Foi realizado curativo na orelha esquerda.",
+      "enfermidade": "Corte",
       "data": "2025-05-04",
       "id": "1305"
     },
@@ -363,7 +378,22 @@
       "id": "7ffe",
       "idEquino": "7",
       "textoConsulta": "Foi realizado raio x",
+      "enfermidade": "Calssificação",
       "data": "2025-07-17"
+    },
+    {
+      "id": "b0ed",
+      "idEquino": "8",
+      "textoConsulta": "foi aplicado dipirona",
+      "enfermidade": "sinuzite",
+      "data": "2025-08-20"
+    },
+    {
+      "id": "d692",
+      "idEquino": "3",
+      "textoConsulta": "o equino está se deitando muito",
+      "enfermidade": "cólica",
+      "data": "2025-08-20"
     }
   ],
   "escala": [
@@ -474,6 +504,24 @@
       "cavaleiro": "SGT Márcio",
       "cargaHoraria": 6,
       "data": "2025-05-18"
+    },
+    {
+      "id": "6e8b",
+      "idEquino": "10",
+      "localTrabalho": "busto de tamandaré",
+      "jornadaTrabalho": "17:30h às 23:30h",
+      "cavaleiro": "SGT Hugo",
+      "cargaHoraria": 6,
+      "data": "2025-08-20"
+    },
+    {
+      "id": "d73e",
+      "idEquino": "7483",
+      "localTrabalho": "Busto de tamandaré",
+      "jornadaTrabalho": "16:30h às 22:30h",
+      "cavaleiro": "CB Teixeira",
+      "cargaHoraria": 6,
+      "data": "2025-08-20"
     }
   ],
   "users": [
@@ -716,7 +764,8 @@
       "equinoId": "3",
       "vermifugo": "Ivermectina",
       "observacao": "Dose padrão aplicada",
-      "dataProximoProcedimento": "2025-08-20T14:30:00.000Z"
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-20T11:54:24.014Z"
     },
     {
       "id": "2",
@@ -771,7 +820,8 @@
       "id_Eq": "3",
       "nomeVacina": "Raiva animal",
       "observacao": "imunizado",
-      "dataProximoProcedimento": "2025-08-27T12:11:21.460Z"
+      "dataProximoProcedimento": "2025-09-27T00:00:00.000Z",
+      "data": "2025-08-20T12:02:11.483Z"
     },
     {
       "id": "7e29",
