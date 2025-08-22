@@ -394,6 +394,13 @@
       "textoConsulta": "o equino está se deitando muito",
       "enfermidade": "cólica",
       "data": "2025-08-20"
+    },
+    {
+      "id": "e1ac",
+      "idEquino": "fc22",
+      "textoConsulta": "Lavagem no esstomago.",
+      "enfermidade": "cólica",
+      "data": "2025-08-22"
     }
   ],
   "escala": [

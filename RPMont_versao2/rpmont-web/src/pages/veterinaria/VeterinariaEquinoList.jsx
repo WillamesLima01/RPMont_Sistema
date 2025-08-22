@@ -13,40 +13,39 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
 const INTERVALOS = {
-  vacinacaoDias: 365,     // mantido para fallback
+  vacinacaoDias: 365,
   vermifugacaoDias: 90,
   toaleteDias: 30,
   ferrageamentoDias: 45,
 };
 
-/* ===== Helpers ===== */
+// Normalização compatível (remove acentos) + lowercase
+const norm = (s) =>
+  (s ?? '')
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
-// dias inteiros até a data, ignorando horas/fuso (compara meia-noite local)
+/* ===== Helpers ===== */
 const diasAte = (iso) => {
   if (!iso) return Number.POSITIVE_INFINITY;
   const MS_DIA = 24 * 60 * 60 * 1000;
-
   const alvo = new Date(iso);
   if (isNaN(alvo)) return Number.POSITIVE_INFINITY;
-
-  const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate()); // 00:00 local da data alvo
+  const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate());
   const hoje = new Date();
-  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // 00:00 local de hoje
-
+  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
   return Math.floor((alvoLocal.getTime() - hojeLocal.getTime()) / MS_DIA);
 };
 
-// considera proximaISO como PRÓXIMA data já calculada
 const estaNosProximos15Dias = (proximaISO) => {
   const dias = diasAte(proximaISO);
   return dias >= 0 && dias <= 15;
 };
 
-// Mapa <equinoId, ISO da PRÓXIMA data mais próxima >= hoje>
 const proximaPorEquino = (lista, getId, intervaloDias) => {
   const m = new Map();
-
-  // meia-noite local de hoje
   const hoje = new Date();
   const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
 
@@ -54,7 +53,6 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
     const id = String(getId(item));
     if (!id) continue;
 
-    // 1) pega a próxima data
     let iso = item.dataProximoProcedimento || item.proximaData;
     if (!iso && item.data && intervaloDias) {
       const base = new Date(item.data);
@@ -65,13 +63,11 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
     }
     if (!iso) continue;
 
-    // 2) ignora passado (considerando meia-noite local)
     const alvo = new Date(iso);
     if (isNaN(alvo)) continue;
     const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate()).getTime();
     if (alvoLocal < hojeLocal) continue;
 
-    // 3) guarda a mais próxima
     const atualISO = m.get(id);
     if (!atualISO) {
       m.set(id, iso);
@@ -81,11 +77,9 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
       if (alvoLocal < atualLocal) m.set(id, iso);
     }
   }
-
   return m;
 };
 
-// rótulos e rotas para o botão do cavalo
 const labelProced = (tipo) =>
   tipo === 'vacinacao' ? 'Vacinação' :
   tipo === 'vermifugacao' ? 'Vermifugação' :
@@ -123,7 +117,6 @@ const VeterinariaEquinoList = () => {
   const location = useLocation();
   const totalPaginas = Math.ceil(equinosFiltrados.length / itensPorPagina);
 
-  // Carrega equinos e marca alertas/botão cavalo
   useEffect(() => {
     (async () => {
       try {
@@ -137,13 +130,14 @@ const VeterinariaEquinoList = () => {
 
         let listaEquinos = (eq.status === 'fulfilled' ? eq.value.data : []) || [];
 
-        const filtroFinal =
-          filtroQuery ||
-          (location.pathname === '/veterinaria-Equinos-Baixados'
-            ? 'Baixado'
-            : location.pathname === '/veterinaria-List'
-            ? 'Apto'
-            : 'todos');
+        const statusValidos = ['Baixado', 'Apto', 'todos'];
+        const filtroFinal = statusValidos.includes(filtroQuery)
+          ? filtroQuery
+          : (location.pathname === '/veterinaria-Equinos-Baixados'
+              ? 'Baixado'
+              : location.pathname === '/veterinaria-List'
+              ? 'Apto'
+              : 'todos');
 
         if (filtroFinal === 'Baixado') {
           listaEquinos = listaEquinos.filter((e) => e.status === 'Baixado');
@@ -151,13 +145,11 @@ const VeterinariaEquinoList = () => {
           listaEquinos = listaEquinos.filter((e) => e.status === 'Ativo');
         }
 
-        // tabelas
         const vacinacoes = (vac.status === 'fulfilled' ? vac.value.data : []) || [];
         const vermifugacoes = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
         const toaletes = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
 
-        // PRÓXIMAS por equino (atenção aos IDs)
         const proxVac = proximaPorEquino(vacinacoes, (v) => v.id_Eq, INTERVALOS.vacinacaoDias);
         const proxVer = proximaPorEquino(vermifugacoes, (v) => v.equinoId, INTERVALOS.vermifugacaoDias);
         const proxToa = proximaPorEquino(toaletes, (t) => t.equinoId ?? t.idEquino ?? t.id_Eq, INTERVALOS.toaleteDias);
@@ -165,7 +157,6 @@ const VeterinariaEquinoList = () => {
 
         const comFlags = listaEquinos.map((eq) => {
           const id = String(eq.id);
-
           const pVac = proxVac.get(id) || null;
           const pVer = proxVer.get(id) || null;
           const pToa = proxToa.get(id) || null;
@@ -176,7 +167,6 @@ const VeterinariaEquinoList = () => {
           const fToa = estaNosProximos15Dias(pToa);
           const fFer = estaNosProximos15Dias(pFer);
 
-          // escolhe a mais breve entre as <= 15 dias (usando diasAte para evitar TZ)
           let melhor = null;
           const pick = (tipo, iso) => {
             if (!iso) return;
@@ -199,12 +189,12 @@ const VeterinariaEquinoList = () => {
               toalete: fToa,
               ferrageamento: fFer,
             },
-            _proximoAlerta: melhor, // null ou {tipo, proxima, dias}
+            _proximoAlerta: melhor,
           };
         });
 
         setEquinos(comFlags);
-        setEquinosFiltrados(comFlags);
+        setEquinosFiltrados(comFlags); // base inicial (sem termo)
       } catch (e) {
         console.error('Erro ao carregar dados:', e);
       }
@@ -227,17 +217,31 @@ const VeterinariaEquinoList = () => {
     }
   }, [location.pathname]);
 
+  // Filtro por nome (aciona no botão "Filtrar")
   const handleFiltrar = () => {
     setPaginaAtual(1);
-    if (!filtroNome) {
+    const termo = norm(filtroNome.trim());
+    if (!termo) {
       setEquinosFiltrados(equinos);
       return;
     }
-    const termo = filtroNome.toLowerCase();
     setEquinosFiltrados(
-      equinos.filter((eq) => (eq.name || '').toLowerCase().includes(termo))
+      equinos.filter((eq) => norm(eq.name).includes(termo))
     );
   };
+
+  // Filtro "ao digitar" (live): quando equinos OU filtroNome mudarem
+  useEffect(() => {
+    const termo = norm(filtroNome.trim());
+    if (!termo) {
+      setEquinosFiltrados(equinos);
+      return;
+    }
+    setEquinosFiltrados(
+      equinos.filter((eq) => norm(eq.name).includes(termo))
+    );
+    setPaginaAtual(1);
+  }, [equinos, filtroNome]);
 
   const abrirModalVermifugacao = (equino) => {
     setEquinoSelecionado(equino);
@@ -272,7 +276,6 @@ const VeterinariaEquinoList = () => {
       .catch((error) => console.error('Erro ao excluir equino:', error));
   };
 
-  // Data online (fallback local)
   const buscarDataInternet = async () => {
     try {
       const resposta = await axios.get('https://worldtimeapi.org/api/ip');
@@ -320,7 +323,6 @@ const VeterinariaEquinoList = () => {
     setModalConfirmarBaixaAberto(true);
   };
 
-  // classes
   const clsBtn = (base, alerta) => `${base} ${alerta ? 'btn-alerta' : ''}`;
 
   return (
@@ -360,7 +362,7 @@ const VeterinariaEquinoList = () => {
               .slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
               .map((equino) => {
                 const alertas = equino._alertas || {};
-                const proximo = equino._proximoAlerta; // {tipo, proxima, dias} ou null
+                const proximo = equino._proximoAlerta;
                 const mostrarCavalo = !!proximo;
 
                 return (
@@ -374,7 +376,6 @@ const VeterinariaEquinoList = () => {
                     <td>{equino.sexo}</td>
                     <td>{equino.unidade}</td>
                     <td className="text-end">
-                      {/* Botão cavalo (apenas quando há procedimento nos próximos 15 dias) */}
                       {mostrarCavalo && (
                         <BotaoAcaoRows
                           to={rotaProced(proximo.tipo, equino.id)}
@@ -384,7 +385,6 @@ const VeterinariaEquinoList = () => {
                         />
                       )}
 
-                      {/* Botões normais, com destaque vermelho apenas no procedimento em alerta */}
                       {botoes.includes('toalete') && (
                         <BotaoAcaoRows
                           to={`/veterinaria-toalete-equino/${equino.id}`}
