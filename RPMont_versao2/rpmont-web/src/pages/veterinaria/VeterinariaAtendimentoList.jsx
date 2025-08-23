@@ -1,3 +1,4 @@
+// src/pages/veterinaria/VeterinariaAtendimentoList.jsx
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import Modal from 'react-modal';
@@ -6,12 +7,14 @@ import './Veterinaria.css';
 import axios from '../../api';
 import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
+
+// PDF
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 Modal.setAppElement('#root');
 
-const VeterinariaAtendimento = () => {
+const VeterinariaAtendimentoList = () => {
   const [equinos, setEquinos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
   const [resultado, setResultado] = useState([]);
@@ -30,7 +33,6 @@ const VeterinariaAtendimento = () => {
       setAtendimentos(res.data);
       setResultado(res.data);
     });
-
     setBotoes(['editar', 'excluir']);
   }, []);
 
@@ -41,7 +43,7 @@ const VeterinariaAtendimento = () => {
       filtrados = filtrados.filter(a => a.idEquino === filtroNome);
     }
     if (filtroInicio) {
-      filtrados = filtrados.filter(a => a.data >= filtroInicio);
+      filtrados = filtrados.filter(a => a.data >= filtroInicio); // ISO YYYY-MM-DD
     }
     if (filtroFim) {
       filtrados = filtrados.filter(a => a.data <= filtroFim);
@@ -59,40 +61,74 @@ const VeterinariaAtendimento = () => {
     setCurrentPage(1);
   };
 
+  // === GERAR PDF (usado pelo botão do cabeçalho) ===
   const exportarPDF = () => {
-  const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const margem = 40;
 
-  doc.setFontSize(16);
-  doc.text('Relatório de Atendimentos', 14, 15);
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text('Relatório de Atendimentos', margem, 30);
+    doc.setFontSize(10);
 
-  const dadosTabela = resultado.map((a, i) => {
-    const equino = equinos.find(eq => eq.id === a.idEquino);
-    return [
-      i + 1,
-      equino?.name || '-',
-      equino?.raca || '-',
-      equino?.numeroRegistro || '-',
-      a.data,
-      a.textoConsulta?.substring(0, 50) || '-', // corta o texto se for muito grande
-    ];
-  });
+    const linhasInfo = [];
+    if (filtroNome) {
+      const eq = equinos.find(e => e.id === filtroNome);
+      linhasInfo.push(`Equino: ${eq?.name ?? filtroNome}`);
+    }
+    if (filtroInicio) linhasInfo.push(`Início: ${filtroInicio}`);
+    if (filtroFim) linhasInfo.push(`Fim: ${filtroFim}`);
+    linhasInfo.push(`Total: ${resultado.length}`);
 
-  doc.autoTable({
-    startY: 20,
-    head: [['#', 'Nome do Equino', 'Raça', 'Registro', 'Data', 'Consulta']],
-    body: dadosTabela,
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [22, 160, 133] }
-  });
+    let y = 48;
+    linhasInfo.forEach(t => { doc.text(t, margem, y); y += 16; });
 
-  doc.save('relatorio_atendimentos.pdf');
-};
+    // Tabela
+    const head = [['#', 'Nome do Equino', 'Raça', 'Registro', 'Data', 'Consulta']];
+    const body = resultado.map((a, i) => {
+      const equino = equinos.find(eq => eq.id === a.idEquino);
+      return [
+        i + 1,
+        equino?.name || '-',
+        equino?.raca || '-',
+        equino?.numeroRegistro || '-',
+        a.data || '-',
+        a.textoConsulta || '-',
+      ];
+    });
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: y + 8,
+      styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
+      headStyles: { fillColor: [22, 160, 133] },
+      margin: { left: margem, right: margem },
+      columnStyles: {
+        0: { cellWidth: 40 },   // #
+        1: { cellWidth: 130 },  // Nome
+        2: { cellWidth: 100 },  // Raça
+        3: { cellWidth: 120 },  // Registro
+        4: { cellWidth: 90 },   // Data
+        5: { cellWidth: 'auto' } // Consulta
+      },
+      didDrawPage: (data) => {
+        const pages = doc.internal.getNumberOfPages();
+        const str = `Página ${data.pageNumber} de ${pages}`;
+        const w = doc.internal.pageSize.getWidth();
+        doc.setFontSize(9);
+        doc.text(str, w - margem, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+      },
+    });
+
+    doc.save('relatorio_atendimentos.pdf');
+  };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, endIndex);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
- 
+
   const confirmarExclusao = (atendimento) => {
     setAtendimentoSelecionado(atendimento);
     setModalExcluirAberto(true);
@@ -137,7 +173,7 @@ const VeterinariaAtendimento = () => {
         mostrarDatas={true}
         mostrarBotoesPDF={true}
         mostrarAdicionar={false}
-        resultado={resultado}  // ✅ AQUI
+        resultado={resultado}
       />
 
       <div>
@@ -239,4 +275,4 @@ const VeterinariaAtendimento = () => {
   );
 };
 
-export default VeterinariaAtendimento;
+export default VeterinariaAtendimentoList;

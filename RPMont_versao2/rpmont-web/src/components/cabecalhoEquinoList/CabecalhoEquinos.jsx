@@ -13,7 +13,7 @@ const CabecalhoEquinoLista = ({
   setFiltroInicio,
   filtroFim,
   setFiltroFim,
-  mostrarBotoesPDF = false,
+  mostrarBotoesPDF = true,
   gerarPDF,
   limparFiltros,
   resultado = []

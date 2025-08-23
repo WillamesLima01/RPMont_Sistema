@@ -21,6 +21,7 @@ import VeterinariaVacinacaoList from './pages/veterinaria/VeterinariaVacinacaoLi
 import VeterinariaFerrageamentoFerrarList from './pages/veterinaria/VeterinariaFerrageamentoFerrarList.jsx';
 import VeterinariaFerrageamentoRepregoList from './pages/veterinaria/VeterinariaFerrageamentoRepregoList.jsx';
 import VeterinariaFerrageamentoCurativoList from './pages/veterinaria/VeterinariaFerrageamentoCurativoList.jsx';
+import GraficoCargaHorariaEquinoAnual from './pages/grafico/GraficoCargaHorariaEquinoAnual.jsx';
 
 const rotas = () => {
   return (
@@ -49,7 +50,8 @@ const rotas = () => {
         <Route path="/vacinacao-equino" element={<VeterinariaVacinacaoList />} />     
         <Route path="/veterinaria-ferrageamento-equino/:id" element={<VeterinariaFerrageamentoEquinoForm />} />             
         <Route path="/veterinaria-ferrageamento-equino/:tipo/:id" element={<VeterinariaFerrageamentoEquinoForm />} />
-        <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm />} />                
+        <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm />} />  
+        <Route path="/grafico-carga-horaria-equino-anual" element={<GraficoCargaHorariaEquinoAnual />} />                       
         <Route path="/inicio" element={<Grafico />} />
       </Routes>
     </BrowserRouter>

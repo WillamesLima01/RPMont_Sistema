@@ -39,7 +39,7 @@
       "pelagem": "Preto",
       "numeroRegistro": "PMPB2025004",
       "dataNascimento": "2003-01-10",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont",
       "id": "4"
@@ -51,7 +51,7 @@
       "pelagem": "Tordilho",
       "numeroRegistro": "PMPB2025005",
       "dataNascimento": "2004-06-30",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont"
     },
@@ -73,7 +73,7 @@
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025007",
       "dataNascimento": "2006-11-11",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Macho",
       "unidade": "RPMont"
     },
@@ -205,7 +205,7 @@
       "id": "98a5",
       "idEquino": "7",
       "dataBaixa": "2025-05-15",
-      "dataRetorno": null
+      "dataRetorno": "2025-08-23"
     },
     {
       "id": "f049",
@@ -247,13 +247,13 @@
       "id": "f76ff25b-ab15-45c0-b6db-3672128e46ef",
       "idEquino": "5",
       "dataBaixa": "2025-07-18",
-      "dataRetorno": null
+      "dataRetorno": "2025-08-23"
     },
     {
       "id": "d6306936-5b2d-4afb-8990-cf496d09e617",
       "idEquino": "4",
       "dataBaixa": "2025-07-18",
-      "dataRetorno": null
+      "dataRetorno": "2025-08-23"
     },
     {
       "id": "1fe3ee96-3546-4b63-a874-3f95efb5ddaf",

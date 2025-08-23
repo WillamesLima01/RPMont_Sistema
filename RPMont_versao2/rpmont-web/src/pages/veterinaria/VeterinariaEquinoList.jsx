@@ -1,8 +1,10 @@
+// src/pages/veterinaria/VeterinariaEquinoList.jsx
 import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
-import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
+// ⬇️ trocado: agora importa o cabeçalho com o botão PDF embutido
+import CabecalhoEquinoLista from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
 import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
@@ -12,6 +14,11 @@ import './Veterinaria.css';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
+
+// >>> PDF
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 const INTERVALOS = {
   vacinacaoDias: 365,
   vermifugacaoDias: 90,
@@ -19,7 +26,7 @@ const INTERVALOS = {
   ferrageamentoDias: 45,
 };
 
-// Normalização compatível (remove acentos) + lowercase
+// Normalização (remove acentos) + lowercase
 const norm = (s) =>
   (s ?? '')
     .toString()
@@ -96,11 +103,31 @@ const rotaProced = (tipo, equinoId) => {
   }
 };
 
+// === Indexa campos úteis de busca e normaliza (sem acento/caixa)
+const buildIndex = (e) => {
+  const nome =
+    e?.name ??
+    e?.nome ??
+    e?.nomeEquino ??
+    '';
+  const extra = [
+    e?.numeroRegistro,
+    e?.raca,
+    e?.pelagem,
+    e?.unidade,
+    e?.status,
+    e?.sexo,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return norm(`${nome} ${extra}`);
+};
+
 const VeterinariaEquinoList = () => {
   const [equinos, setEquinos] = useState([]);
   const [equinosFiltrados, setEquinosFiltrados] = useState([]);
   const [botoes, setBotoes] = useState([]);
-  const [filtroNome, setFiltroNome] = useState('');
+  const [filtroNome, setFiltroNome] = useState(''); // pode ser ID, nome ou número de registro
   const [modalVermifugacaoAberto, setModalVermifugacaoAberto] = useState(false);
   const [modalVacinacaoAberto, setModalVacinacaoAberto] = useState(false);
   const [equinoSelecionado, setEquinoSelecionado] = useState(null);
@@ -142,6 +169,7 @@ const VeterinariaEquinoList = () => {
         if (filtroFinal === 'Baixado') {
           listaEquinos = listaEquinos.filter((e) => e.status === 'Baixado');
         } else if (filtroFinal === 'Apto') {
+          // "Apto" na UI = "Ativo" no dado
           listaEquinos = listaEquinos.filter((e) => e.status === 'Ativo');
         }
 
@@ -190,6 +218,8 @@ const VeterinariaEquinoList = () => {
               ferrageamento: fFer,
             },
             _proximoAlerta: melhor,
+            _index: buildIndex(eq),     // index de busca
+            _nameNorm: norm(eq?.name || ''), // nome normalizado
           };
         });
 
@@ -217,31 +247,122 @@ const VeterinariaEquinoList = () => {
     }
   }, [location.pathname]);
 
-  // Filtro por nome (aciona no botão "Filtrar")
-  const handleFiltrar = () => {
-    setPaginaAtual(1);
-    const termo = norm(filtroNome.trim());
-    if (!termo) {
+  // === Aplicador de filtro priorizando ID
+  const aplicarFiltro = (termoRaw) => {
+    const termoTrim = (termoRaw || '').trim();
+    const termoNorm = norm(termoTrim);
+
+    if (!termoTrim) {
       setEquinosFiltrados(equinos);
       return;
     }
+
+    // 1) ID exato
+    const byId = equinos.find((e) => String(e.id) === termoTrim);
+    if (byId) {
+      setEquinosFiltrados([byId]);
+      return;
+    }
+
+    // 2) Nome exato (normalizado) com match único
+    const exactNameMatches = equinos.filter((e) => e._nameNorm === termoNorm);
+    if (exactNameMatches.length === 1) {
+      setEquinosFiltrados(exactNameMatches);
+      return;
+    }
+
+    // 3) Número de registro exato
+    const exactReg = equinos.filter((e) => (e.numeroRegistro || '') === termoTrim);
+    if (exactReg.length === 1) {
+      setEquinosFiltrados(exactReg);
+      return;
+    }
+
+    // 4) Fallback: busca ampla
     setEquinosFiltrados(
-      equinos.filter((eq) => norm(eq.name).includes(termo))
+      equinos.filter((e) => (e._index || '').includes(termoNorm))
     );
   };
 
-  // Filtro "ao digitar" (live): quando equinos OU filtroNome mudarem
-  useEffect(() => {
-    const termo = norm(filtroNome.trim());
-    if (!termo) {
-      setEquinosFiltrados(equinos);
-      return;
-    }
-    setEquinosFiltrados(
-      equinos.filter((eq) => norm(eq.name).includes(termo))
-    );
+  // === Botão "Filtrar"
+  const handleFiltrar = () => {
     setPaginaAtual(1);
+    aplicarFiltro(filtroNome);
+  };
+
+  // === Filtro live
+  useEffect(() => {
+    setPaginaAtual(1);
+    aplicarFiltro(filtroNome);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equinos, filtroNome]);
+
+  // === GERAR PDF ===
+  const gerarPDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const margem = 40;
+    const titulo = 'Relação de Equinos';
+    const dataStr = dayjs().format('DD/MM/YYYY HH:mm');
+    const infoFiltro = (filtroNome || '').trim() ? `Filtro: ${filtroNome}` : '';
+    const totalStr = `Total: ${equinosFiltrados.length}`;
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text(titulo, margem, 30);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${dataStr}`, margem, 48);
+    if (infoFiltro) doc.text(infoFiltro, margem, 64);
+    doc.text(totalStr, margem, infoFiltro ? 80 : 64);
+
+    // Tabela
+    const head = [[      
+      'Nome',
+      'Raça',
+      'Pelagem',
+      'Número Registro',
+      'Nascimento',
+      'Status',
+      'Sexo',
+      'Unidade',
+    ]];
+
+    const body = equinosFiltrados.map((e) => ([      
+      e.name || '',
+      e.raca || '',
+      e.pelagem || '',
+      e.numeroRegistro || '',
+      e.dataNascimento ? dayjs(e.dataNascimento).format('DD/MM/YYYY') : '',
+      e.status || '',
+      e.sexo || '',
+      e.unidade || '',
+    ]));
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: infoFiltro ? 100 : 84,
+      styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
+      headStyles: { fillColor: [33, 150, 243] }, // azul padrão
+      margin: { left: margem, right: margem },
+      didDrawPage: (data) => {
+        // Rodapé com paginação
+        const pageNumber = doc.internal.getNumberOfPages();
+        const str = `Página ${data.pageNumber} de ${pageNumber}`;
+        doc.setFontSize(9);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        doc.text(str, pageWidth - margem, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+      },
+    });
+
+    doc.save(`relacao-equinos-${dayjs().format('YYYYMMDD-HHmm')}.pdf`);
+  };
+
+  // limpar filtros (para o botão do cabeçalho)
+  const limparFiltros = () => {
+    setFiltroNome('');
+    setEquinosFiltrados(equinos);
+    setPaginaAtual(1);
+  };
 
   const abrirModalVermifugacao = (equino) => {
     setEquinoSelecionado(equino);
@@ -300,7 +421,7 @@ const VeterinariaEquinoList = () => {
       await axios.post('/equinosBaixados', novoRegistro);
 
       const equinosAtualizados = equinos.map((e) =>
-        e.id === equinoSelecionado.id ? { ...e, status: 'Baixado' } : e
+        e.id === equinoSelecionado.id ? { ...e, status: 'Baixado', _index: buildIndex({ ...e, status: 'Baixado' }) } : e
       );
       setEquinos(equinosAtualizados);
       setEquinosFiltrados(equinosAtualizados);
@@ -329,10 +450,10 @@ const VeterinariaEquinoList = () => {
     <div className="container-fluid mt-page">
       <Navbar />
 
-      <CabecalhoEquinos
+      <CabecalhoEquinoLista
         titulo="Lista de Equinos"
         equinos={equinos}
-        filtroNome={filtroNome}
+        filtroNome={filtroNome}              // recebe ID, nome ou número de registro
         setFiltroNome={setFiltroNome}
         onFiltrar={handleFiltrar}
         mostrarAdicionar={
@@ -340,12 +461,18 @@ const VeterinariaEquinoList = () => {
           (!filtroQuery || filtroQuery === 'todos')
         }
         resultado={equinosFiltrados}
+        // ⬇️ habilita e conecta os botões do cabeçalho
+        mostrarBotoesPDF={true}
+        gerarPDF={gerarPDF}
+        limparFiltros={limparFiltros}
       />
+
+      {/* removi a toolbar extra de PDF para evitar botão duplicado */}
 
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
-            <tr>
+            <tr>              
               <th>Nome</th>
               <th>Raça</th>
               <th>Pelagem</th>
@@ -366,7 +493,7 @@ const VeterinariaEquinoList = () => {
                 const mostrarCavalo = !!proximo;
 
                 return (
-                  <tr key={equino.id}>
+                  <tr key={equino.id}>                    
                     <td>{equino.name}</td>
                     <td>{equino.raca}</td>
                     <td>{equino.pelagem}</td>

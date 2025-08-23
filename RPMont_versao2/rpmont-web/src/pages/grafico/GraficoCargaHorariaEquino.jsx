@@ -1,3 +1,4 @@
+// src/pages/veterinaria/GraficoCargaHorariaEquino.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import anychart from 'anychart';
 import 'anychart/dist/css/anychart-ui.min.css';
@@ -27,22 +28,27 @@ const GraficoCargaHorariaEquino = () => {
         axios.get('/equinos'),
       ]);
 
-      const escalas = resEscala.data;
-      const equinos = resEquinos.data;
+      const escalas = resEscala.data || [];
+      const equinos = resEquinos.data || [];
 
       const mesesSet = new Set();
       escalas.forEach(esc => {
-        const mes = esc.data.slice(0, 7);
-        mesesSet.add(mes);
+        const mes = (esc.data || '').slice(0, 7); // YYYY-MM
+        if (mes) mesesSet.add(mes);
       });
 
       const mesesArray = Array.from(mesesSet).sort();
       setMeses(mesesArray);
 
-      const mesPadrao = mesesArray[mesesArray.length - 1];
-      setMesSelecionado(mesPadrao);
-
-      montarGrafico(escalas, equinos, mesPadrao);
+      // Se houver dados, define o último mês como padrão e monta o gráfico
+      if (mesesArray.length > 0) {
+        const mesPadrao = mesesArray[mesesArray.length - 1];
+        setMesSelecionado(mesPadrao);
+        montarGrafico(escalas, equinos, mesPadrao);
+      } else {
+        // limpa o container se não houver dados
+        if (chartRef.current) chartRef.current.innerHTML = '';
+      }
     };
 
     carregarDados();
@@ -52,7 +58,7 @@ const GraficoCargaHorariaEquino = () => {
     if (mesSelecionado) {
       Promise.all([axios.get('/escala'), axios.get('/equinos')])
         .then(([resEscala, resEquinos]) => {
-          montarGrafico(resEscala.data, resEquinos.data, mesSelecionado);
+          montarGrafico(resEscala.data || [], resEquinos.data || [], mesSelecionado);
         });
     }
   }, [mesSelecionado]);
@@ -61,11 +67,19 @@ const GraficoCargaHorariaEquino = () => {
     if (!chartRef.current) return;
     chartRef.current.innerHTML = '';
 
-    const escalasFiltradas = escalas.filter(esc => esc.data.startsWith(mes));
+    const escalasFiltradas = (escalas || []).filter(esc => (esc.data || '').startsWith(mes));
     const equinoIds = [...new Set(escalasFiltradas.map(esc => esc.idEquino))];
-    const equinosFiltrados = equinos.filter(eq => equinoIds.includes(eq.id));
+    const equinosFiltrados = (equinos || []).filter(eq => equinoIds.includes(eq.id));
 
-    if (equinosFiltrados.length === 0) return;
+    if (equinosFiltrados.length === 0) {
+      // Sem dados no mês selecionado
+      const div = document.createElement('div');
+      div.className = 'p-3 text-center text-muted';
+      div.innerText = 'Não há registros de carga horária para o mês selecionado.';
+      chartRef.current.appendChild(div);
+      chartInstanceRef.current = null;
+      return;
+    }
 
     const dados = equinosFiltrados.map(eq => {
       const total = escalasFiltradas
@@ -86,7 +100,7 @@ const GraficoCargaHorariaEquino = () => {
     const chart = anychart.column();
     chart.animation(true);
 
-    let [ano, mesNum] = mes.split('-');
+    const [, mesNum] = mes.split('-');
     const nomeMes = mesesExtenso[mesNum] || mes;
 
     chart.title(`Carga Horária - ${nomeMes}`);
@@ -116,6 +130,14 @@ const GraficoCargaHorariaEquino = () => {
           <h2 className="titulo-principal flex-grow-1 mb-0">Carga Horária dos Equinos</h2>
 
           <div className="d-flex gap-2 justify-content-center flex-grow-1">
+            {/* NOVO: botão para o gráfico anual */}
+            <button
+              className="btn btn-secondary"
+              onClick={() => navigate('/grafico-carga-horaria-equino-anual')}
+            >
+              Ver Carga Horária Anual
+            </button>
+
             <button className="btn btn-primary" onClick={() => chartInstanceRef.current?.print()}>
               Imprimir Gráfico
             </button>
@@ -158,7 +180,6 @@ const GraficoCargaHorariaEquino = () => {
         </div>
 
         <div ref={chartRef} className="chart-container" />
-        
       </div>
     </div>
   );

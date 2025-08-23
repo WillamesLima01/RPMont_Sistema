@@ -1,3 +1,4 @@
+// src/pages/veterinaria/VeterinariaEscalaEquinoList.jsx
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import Modal from 'react-modal';
@@ -6,6 +7,10 @@ import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEqui
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import './Veterinaria.css';
 import axios from '../../api';
+
+// PDF
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 Modal.setAppElement('#root');
 
@@ -17,11 +22,11 @@ const VeterinariaEscalaEquinoList = () => {
   const [filtroInicio, setFiltroInicio] = useState('');
   const [filtroFim, setFiltroFim] = useState('');
   const [escalaSelecionado, setEscalaSelecionado] = useState(null);
-  const [resultado, setResultado] = useState([]);
+  const [resultado, setResultado] = useState([]); // usado no cabeçalho e no PDF
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itensPorPagina = 15;
 
-  const botoes = ['editar', 'excluir']; // ✅ Agora definido como constante
+  const botoes = ['editar', 'excluir'];
 
   useEffect(() => {
     buscarEscala();
@@ -34,7 +39,7 @@ const VeterinariaEscalaEquinoList = () => {
     axios.get('/escala')
       .then(response => {
         setEscala(response.data);
-        setResultado(response.data);
+        setResultado(response.data); // mantém cabeçalho/total sincronizados
       })
       .catch(error => console.error("Erro ao buscar escala:", error));
   };
@@ -55,6 +60,7 @@ const VeterinariaEscalaEquinoList = () => {
         }
 
         setEscala(filtrados);
+        setResultado(filtrados); // <-- mantém o cabeçalho e o PDF alinhados ao filtro
         setPaginaAtual(1);
       })
       .catch(error => console.error("Erro ao filtrar escala:", error));
@@ -64,7 +70,7 @@ const VeterinariaEscalaEquinoList = () => {
     setFiltroNome('');
     setFiltroInicio('');
     setFiltroFim('');
-    buscarEscala();
+    buscarEscala(); // restaura lista completa e resultado
   };
 
   const confirmarExclusao = (item) => {
@@ -80,7 +86,9 @@ const VeterinariaEscalaEquinoList = () => {
   const excluirEscala = () => {
     axios.delete(`/escala/${escalaSelecionado.id}`)
       .then(() => {
-        setEscala(escala.filter(e => e.id !== escalaSelecionado.id));
+        const novaLista = escala.filter(e => e.id !== escalaSelecionado.id);
+        setEscala(novaLista);
+        setResultado(novaLista);
         setModalExcluirAberto(false);
       })
       .catch(error => console.error("Erro ao excluir:", error));
@@ -104,8 +112,63 @@ const VeterinariaEscalaEquinoList = () => {
     if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
   };
 
+  // ====== PDF passado por props (gera a lista filtrada) ======
   const exportarPDF = () => {
-    console.log('Função exportarPDF ainda não implementada');
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const margem = 40;
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text('Lista de Escalas', margem, 30);
+    doc.setFontSize(10);
+
+    const info = [];
+    if (filtroNome) {
+      const eqSel = equinos.find(e => e.id === filtroNome);
+      info.push(`Equino: ${eqSel?.name ?? filtroNome}`);
+    }
+    if (filtroInicio) info.push(`Início: ${filtroInicio}`);
+    if (filtroFim) info.push(`Fim: ${filtroFim}`);
+    info.push(`Total: ${resultado.length}`);
+
+    let y = 48;
+    info.forEach(t => { doc.text(t, margem, y); y += 16; });
+
+    // Tabela com base em "resultado" (lista filtrada)
+    const head = [['Nome do Equino', 'Local de Trabalho', 'Jornada', 'Cavaleiro', 'Data']];
+    const body = (resultado || []).map(item => ([
+      getNomeEquino(item.idEquino),
+      item.localTrabalho || '-',
+      item.jornadaTrabalho || '-',
+      item.cavaleiro || '-',
+      item.data || '-',
+    ]));
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: y + 8,
+      styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
+      headStyles: { fillColor: [33, 150, 243] },
+      margin: { left: margem, right: margem },
+      columnStyles: {
+        0: { cellWidth: 180 }, // Nome do Equino
+        1: { cellWidth: 180 }, // Local
+        2: { cellWidth: 120 }, // Jornada
+        3: { cellWidth: 140 }, // Cavaleiro
+        4: { cellWidth: 90 },  // Data
+      },
+      didDrawPage: (data) => {
+        const pages = doc.internal.getNumberOfPages();
+        const w = doc.internal.pageSize.getWidth();
+        const h = doc.internal.pageSize.getHeight();
+        const str = `Página ${data.pageNumber} de ${pages}`;
+        doc.setFontSize(9);
+        doc.text(str, w - margem, h - 10, { align: 'right' });
+      },
+    });
+
+    doc.save('escala_equinos.pdf');
   };
 
   return (
