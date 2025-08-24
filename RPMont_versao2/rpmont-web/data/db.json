@@ -28,7 +28,7 @@
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025003",
       "dataNascimento": "2002-07-22",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Fêmea",
       "unidade": "RPMont",
       "id": "3"
@@ -161,7 +161,7 @@
       "pelagem": "castanho",
       "numeroRegistro": "PMPB202249484748",
       "dataNascimento": "2002-02-12",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Macho",
       "unidade": "RPMont"
     },
@@ -223,7 +223,7 @@
       "id": "c0dbd3f7-f5d9-412f-aee7-3ae013225e9f",
       "idEquino": "3",
       "dataBaixa": "2025-07-17",
-      "dataRetorno": null
+      "dataRetorno": "2025-08-24"
     },
     {
       "id": "a2b229bb-2166-485e-afb1-132c1297d714",
@@ -235,7 +235,7 @@
       "id": "15e99582-3a5c-4781-a393-bc671589fe73",
       "idEquino": "fc22",
       "dataBaixa": "2025-07-17",
-      "dataRetorno": null
+      "dataRetorno": "2025-08-24"
     },
     {
       "id": "1c4b3576-1764-43be-9a0a-22b7db13955a",
