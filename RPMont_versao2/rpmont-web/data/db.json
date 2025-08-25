@@ -587,7 +587,7 @@
       "escovacao": true,
       "rasqueamento": true,
       "observacoes": "",
-      "data": "2025-06-26T14:40:00.000Z"
+      "dataProximoProcedimento": "2025-07-26T14:40:00.000Z"
     },
     {
       "id": "addb",
@@ -602,82 +602,7 @@
       "escovacao": true,
       "rasqueamento": false,
       "observacoes": "Ferimento na posterior esquerda.",
-      "data": "2025-06-23T19:15:11.756Z"
-    },
-    {
-      "id": "77f5",
-      "equinoId": "3",
-      "tosa": false,
-      "banho": true,
-      "limpezaOuvidos": false,
-      "limpezaGenital": false,
-      "limpezaCascos": true,
-      "ripagemCrina": false,
-      "ripagemCola": true,
-      "escovacao": false,
-      "rasqueamento": true,
-      "observacoes": "",
-      "data": "2025-06-23T19:06:41.633Z"
-    },
-    {
-      "id": "160d",
-      "equinoId": "8",
-      "tosa": true,
-      "banho": false,
-      "limpezaOuvidos": true,
-      "limpezaGenital": false,
-      "limpezaCascos": true,
-      "ripagemCrina": false,
-      "ripagemCola": false,
-      "escovacao": false,
-      "rasqueamento": false,
-      "observacoes": "",
-      "data": "2025-06-23T20:21:53.316Z"
-    },
-    {
-      "id": "396f",
-      "equinoId": "1",
-      "tosa": true,
-      "banho": true,
-      "limpezaOuvidos": true,
-      "limpezaGenital": false,
-      "limpezaCascos": true,
-      "ripagemCrina": false,
-      "ripagemCola": false,
-      "escovacao": true,
-      "rasqueamento": true,
-      "observacoes": "",
-      "data": "2025-06-23T19:07:04.209Z"
-    },
-    {
-      "id": "6a52",
-      "equinoId": "2",
-      "tosa": true,
-      "banho": true,
-      "limpezaOuvidos": false,
-      "limpezaGenital": false,
-      "limpezaCascos": false,
-      "ripagemCrina": false,
-      "ripagemCola": false,
-      "escovacao": true,
-      "rasqueamento": true,
-      "observacoes": "",
-      "data": "2025-06-23T19:19:29.449Z"
-    },
-    {
-      "id": "4b94",
-      "equinoId": "11",
-      "tosa": true,
-      "banho": true,
-      "limpezaOuvidos": false,
-      "limpezaGenital": false,
-      "limpezaCascos": true,
-      "ripagemCrina": false,
-      "ripagemCola": false,
-      "escovacao": true,
-      "rasqueamento": true,
-      "observacoes": "",
-      "data": "2025-06-23T19:20:22.306Z"
+      "dataProximoProcedimento": "2025-07-23T19:15:11.756Z"
     }
   ],
   "ferrageamentoEquino": [
@@ -691,9 +616,10 @@
       "ferros": 4,
       "cravos": 16,
       "observacoes": "Ferrageamento preventivo",
-      "data": "2025-06-12"
+      "dataProximoProcedimento": "2025-08-27"
     },
     {
+      "id": "4b5b",
       "equinoId": "3",
       "tipoFerradura": "Geral",
       "tipoCravo": "Comum",
@@ -702,20 +628,7 @@
       "ferros": 4,
       "cravos": 18,
       "observacoes": "assss",
-      "data": "2025-07-27T13:31:23.763Z",
-      "id": "4b5b"
-    },
-    {
-      "equinoId": "6d3e",
-      "tipoFerradura": "Geral",
-      "tipoCravo": "Comum",
-      "tipoJustura": "Francesa",
-      "tipoFerrageamento": "A Frio",
-      "ferros": 4,
-      "cravos": 18,
-      "observacoes": "Ferragem feita a frio",
-      "data": "2025-08-01T21:03:01.458Z",
-      "id": "2017"
+      "dataProximoProcedimento": "2025-09-10"
     }
   ],
   "ferrageamentoRepregoEquino": [

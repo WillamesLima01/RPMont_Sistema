@@ -251,6 +251,11 @@
   font-weight: 600;
 }
 
+.botao-toalete.btn-alerta,
+.botao-ferrageamento.btn-alerta{
+  background:#dc3545!important; border-color:#dc3545!important; color:#fff!important;
+}
+
 /* ------------------- RESPONSIVIDADE ------------------- */
 @media (max-width: 768px) {
   .bloco-flutuante { flex: 1 1 100%; }

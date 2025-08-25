@@ -1,3 +1,4 @@
+// src/pages/veterinaria/VeterinariaFerrageamentoEquinoForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Veterinaria.css';
@@ -6,7 +7,6 @@ import Modal from 'react-modal';
 import { FaCheckCircle } from 'react-icons/fa';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx'
 import Navbar from '../../components/navbar/Navbar.jsx';
-
 
 Modal.setAppElement('#root');
 
@@ -18,7 +18,6 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idFerrageamento, setIdFerrageamento] = useState(null);
-
 
   const [formData, setFormData] = useState({
     equinoId: id,
@@ -33,7 +32,9 @@ const VeterinariaFerrageamentoEquinoForm = () => {
     tipoCurativo: '',
     ferroNovo: '',
     cravosUsados: 0,
-    observacoes: ''
+    observacoes: '',
+    // ⬇️ NOVO: data do próximo procedimento (para Ferrar)
+    dataProximoProcedimento: '',
   });
 
   const patasOptions = ['Anterior Esquerda', 'Anterior Direita', 'Posterior Esquerda', 'Posterior Direita'];
@@ -43,93 +44,94 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const tiposFerrageamento = ['A Quente', 'A Frio'];
 
   useEffect(() => {
-  const buscarDados = async () => {
-    try {
-      // ✅ MODO CRIAÇÃO (sem tipo)
-      if (!tipo) {
-        const equinoRes = await axios.get(`/equinos/${id}`);
-        setEquino(equinoRes.data);
-        setFormData(prev => ({
-          ...prev,
-          equinoId: id,
-        }));
-        return; // encerrar aqui
-      }
-
-      // ✅ MODO EDIÇÃO (com tipo)
-      let endpoint = '';
-      let procedimento = '';
-      let dados = null;
-
-      switch (tipo) {
-        case 'ferrar':
-          endpoint = `/ferrageamentoEquino/${id}`;
-          procedimento = 'Ferrar';
-          break;
-        case 'reprego':
-          endpoint = `/ferrageamentoRepregoEquino/${id}`;
-          procedimento = 'Reprego';
-          break;
-        case 'curativo':
-          endpoint = `/ferrageamentoCurativoEquino/${id}`;
-          procedimento = 'Curativo';
-          break;
-        default:
-          console.error('Tipo de procedimento inválido:', tipo);
+    const buscarDados = async () => {
+      try {
+        // ✅ MODO CRIAÇÃO (sem tipo) — id é o equinoId
+        if (!tipo) {
+          const equinoRes = await axios.get(`/equinos/${id}`);
+          setEquino(equinoRes.data);
+          setFormData(prev => ({
+            ...prev,
+            equinoId: id,
+          }));
           return;
-      }
-
-      const res = await axios.get(endpoint);
-      dados = res.data;
-
-      setModoEdicao(true);
-      setIdFerrageamento(dados.id);
-
-      setFormData(prev => {
-        const base = {
-          ...prev,
-          procedimento,
-          observacoes: dados.observacoes || '',
-          equinoId: dados.equinoId || '',
-          data: dados.data || ''
-        };
-
-        if (tipo === 'ferrar') {
-          return {
-            ...base,
-            tipoFerradura: dados.tipoFerradura || '',
-            tipoCravo: dados.tipoCravo || '',
-            tipoJustura: dados.tipoJustura || '',
-            tipoFerrageamento: dados.tipoFerrageamento || '',
-            ferros: dados.ferros || 4,
-            cravos: dados.cravos || 16
-          };
-        } else if (tipo === 'reprego') {
-          return {
-            ...base,
-            patas: dados.patas || [],
-            ferroNovo: dados.ferroNovo || 'Não',
-            cravosUsados: dados.cravosUsados || 0
-          };
-        } else if (tipo === 'curativo') {
-          return {
-            ...base,
-            tipoCurativo: dados.tipoCurativo || ''
-          };
         }
 
-        return base;
-      });
+        // ✅ MODO EDIÇÃO (com tipo) — id é o id do registro do procedimento
+        let endpoint = '';
+        let procedimento = '';
+        let dados = null;
 
-      const equinoRes = await axios.get(`/equinos/${dados.equinoId}`);
-      setEquino(equinoRes.data);
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
-    }
-  };
+        switch (tipo) {
+          case 'ferrar':
+            endpoint = `/ferrageamentoEquino/${id}`;
+            procedimento = 'Ferrar';
+            break;
+          case 'reprego':
+            endpoint = `/ferrageamentoRepregoEquino/${id}`;
+            procedimento = 'Reprego';
+            break;
+          case 'curativo':
+            endpoint = `/ferrageamentoCurativoEquino/${id}`;
+            procedimento = 'Curativo';
+            break;
+          default:
+            console.error('Tipo de procedimento inválido:', tipo);
+            return;
+        }
 
-  buscarDados();
-}, [id, tipo]);
+        const res = await axios.get(endpoint);
+        dados = res.data;
+
+        setModoEdicao(true);
+        setIdFerrageamento(dados.id);
+
+        setFormData(prev => {
+          const base = {
+            ...prev,
+            procedimento,
+            observacoes: dados.observacoes || '',
+            equinoId: dados.equinoId || '',
+          };
+
+          if (tipo === 'ferrar') {
+            return {
+              ...base,
+              tipoFerradura: dados.tipoFerradura || '',
+              tipoCravo: dados.tipoCravo || '',
+              tipoJustura: dados.tipoJustura || '',
+              tipoFerrageamento: dados.tipoFerrageamento || '',
+              ferros: dados.ferros ?? 4,
+              cravos: dados.cravos ?? 16,
+              // ⬇️ carrega se existir no registro
+              dataProximoProcedimento: (dados.dataProximoProcedimento || '').slice(0, 10) || '',
+            };
+          } else if (tipo === 'reprego') {
+            return {
+              ...base,
+              patas: dados.patas || [],
+              ferroNovo: dados.ferroNovo || 'Não',
+              cravosUsados: dados.cravosUsados ?? 0,
+            };
+          } else if (tipo === 'curativo') {
+            return {
+              ...base,
+              tipoCurativo: dados.tipoCurativo || '',
+            };
+          }
+
+          return base;
+        });
+
+        const equinoRes = await axios.get(`/equinos/${dados.equinoId}`);
+        setEquino(equinoRes.data);
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+      }
+    };
+
+    buscarDados();
+  }, [id, tipo]);
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -147,63 +149,66 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const dataAtual = new Date().toISOString();
+    try {
+      if (formData.procedimento === 'Ferrar') {
+        // ⬇️ SEM "data" — salvamos apenas os campos do procedimento e a data do próximo
+        const dados = {
+          equinoId: formData.equinoId,
+          tipoFerradura: formData.tipoFerradura,
+          tipoCravo: formData.tipoCravo,
+          tipoJustura: formData.tipoJustura,
+          tipoFerrageamento: formData.tipoFerrageamento,
+          ferros: Number(formData.ferros),
+          cravos: Number(formData.cravos),
+          observacoes: formData.observacoes,
+          dataProximoProcedimento: formData.dataProximoProcedimento || undefined,
+        };
 
-  try {
-    if (formData.procedimento === 'Ferrar') {
-      const dados = {
-        equinoId: formData.equinoId,
-        tipoFerradura: formData.tipoFerradura,
-        tipoCravo: formData.tipoCravo,
-        tipoJustura: formData.tipoJustura,
-        tipoFerrageamento: formData.tipoFerrageamento,
-        ferros: Number(formData.ferros),
-        cravos: Number(formData.cravos),
-        observacoes: formData.observacoes,
-        data: dataAtual
-      };
-
-      if (modoEdicao) {
-        await axios.put(`/ferrageamentoEquino/${idFerrageamento}`, dados);
-      } else {
-        await axios.post('/ferrageamentoEquino', dados);
+        if (modoEdicao) {
+          await axios.put(`/ferrageamentoEquino/${idFerrageamento}`, dados);
+        } else {
+          await axios.post('/ferrageamentoEquino', dados);
+        }
       }
+
+      if (formData.procedimento === 'Reprego') {
+        // Reprego não usa dataProximoProcedimento — mantém seu fluxo com "data"
+        const dataAtual = new Date().toISOString();
+        await axios.post('/ferrageamentoRepregoEquino', {
+          equinoId: id,
+          patas: formData.patas,
+          ferroNovo: formData.ferroNovo,
+          cravosUsados: Number(formData.cravosUsados),
+          observacoes: formData.observacoes,
+          data: dataAtual,
+        });
+      }
+
+      if (formData.procedimento === 'Curativo') {
+        // Curativo sem dataProximoProcedimento — mantém "data"
+        const dataAtual = new Date().toISOString();
+        await axios.post('/ferrageamentoCurativoEquino', {
+          equinoId: id,
+          tipoCurativo: formData.tipoCurativo,
+          observacoes: formData.observacoes,
+          data: dataAtual,
+        });
+      }
+
+      setModalAberto(true);
+      setTimeout(() => {
+        setModalAberto(false);
+        navigate('/manejo-sanitario-list');
+      }, 3000);
+    } catch (error) {
+      console.error('Erro ao salvar os dados:', error);
+      alert('Erro ao salvar.');
     }
+  };
 
-    if (formData.procedimento === 'Reprego') {
-      await axios.post('/ferrageamentoRepregoEquino', {
-        equinoId: id,
-        patas: formData.patas,
-        ferroNovo: formData.ferroNovo,
-        cravosUsados: Number(formData.cravosUsados),
-        observacoes: formData.observacoes,
-        data: dataAtual
-      });
-    }
-
-    if (formData.procedimento === 'Curativo') {
-      await axios.post('/ferrageamentoCurativoEquino', {
-        equinoId: id,
-        tipoCurativo: formData.tipoCurativo,
-        observacoes: formData.observacoes,
-        data: dataAtual
-      });
-    }
-
-    setModalAberto(true);
-    setTimeout(() => {
-      setModalAberto(false);
-      navigate('/manejo-sanitario-list');
-    }, 3000);
-
-  } catch (error) {
-    console.error('Erro ao salvar os dados:', error);
-  }
-};
-
- return (
+  return (
     <div className="container mt-5 pt-5">
       <Navbar />
       <h2 className="text-primary mb-4">Ferrageamento Equino</h2>
@@ -262,6 +267,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
                 </select>
               </div>
             </div>
+
             <div className="row">
               <div className="col-md-4 mb-3">
                 <label className="form-label">Tipo de Justura</label>
@@ -283,6 +289,20 @@ const VeterinariaFerrageamentoEquinoForm = () => {
                   <option value="">Selecione</option>
                   {tiposFerrageamento.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
                 </select>
+              </div>
+            </div>
+
+            {/* ⬇️ CAMPO NOVO — aparece somente para Ferrar */}
+            <div className="row">
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Data do próximo procedimento</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  name="dataProximoProcedimento"
+                  value={formData.dataProximoProcedimento || ''}
+                  onChange={handleChange}
+                />
               </div>
             </div>
           </>
@@ -367,7 +387,6 @@ const VeterinariaFerrageamentoEquinoForm = () => {
             : "O registro foi adicionado corretamente ao banco de dados."
         }
       />
-     
     </div>
   );
 };

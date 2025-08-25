@@ -14,7 +14,6 @@ import './Veterinaria.css';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
-
 // >>> PDF
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -195,6 +194,12 @@ const VeterinariaEquinoList = () => {
           const fToa = estaNosProximos15Dias(pToa);
           const fFer = estaNosProximos15Dias(pFer);
 
+          // 👉 dias restantes para tooltips (quando em alerta)
+          const diasVac = Number.isFinite(diasAte(pVac)) ? diasAte(pVac) : null;
+          const diasVer = Number.isFinite(diasAte(pVer)) ? diasAte(pVer) : null;
+          const diasToa = Number.isFinite(diasAte(pToa)) ? diasAte(pToa) : null;
+          const diasFer = Number.isFinite(diasAte(pFer)) ? diasAte(pFer) : null;
+
           let melhor = null;
           const pick = (tipo, iso) => {
             if (!iso) return;
@@ -216,6 +221,13 @@ const VeterinariaEquinoList = () => {
               vermifugacao: fVer,
               toalete: fToa,
               ferrageamento: fFer,
+            },
+            // 👉 guarda dias para montar o title do botão
+            _diasRestantes: {
+              vacinacao: diasVac,
+              vermifugacao: diasVer,
+              toalete: diasToa,
+              ferrageamento: diasFer,
             },
             _proximoAlerta: melhor,
             _index: buildIndex(eq),     // index de busca
@@ -294,8 +306,7 @@ const VeterinariaEquinoList = () => {
   useEffect(() => {
     setPaginaAtual(1);
     aplicarFiltro(filtroNome);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [equinos, filtroNome]);
+  }, [equinos, filtroNome]); // eslint-disable-line
 
   // === GERAR PDF ===
   const gerarPDF = () => {
@@ -315,7 +326,7 @@ const VeterinariaEquinoList = () => {
     doc.text(totalStr, margem, infoFiltro ? 80 : 64);
 
     // Tabela
-    const head = [[      
+    const head = [[
       'Nome',
       'Raça',
       'Pelagem',
@@ -326,7 +337,7 @@ const VeterinariaEquinoList = () => {
       'Unidade',
     ]];
 
-    const body = equinosFiltrados.map((e) => ([      
+    const body = equinosFiltrados.map((e) => ([
       e.name || '',
       e.raca || '',
       e.pelagem || '',
@@ -472,7 +483,7 @@ const VeterinariaEquinoList = () => {
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
-            <tr>              
+            <tr>
               <th>Nome</th>
               <th>Raça</th>
               <th>Pelagem</th>
@@ -493,7 +504,7 @@ const VeterinariaEquinoList = () => {
                 const mostrarCavalo = !!proximo;
 
                 return (
-                  <tr key={equino.id}>                    
+                  <tr key={equino.id}>
                     <td>{equino.name}</td>
                     <td>{equino.raca}</td>
                     <td>{equino.pelagem}</td>
@@ -512,22 +523,34 @@ const VeterinariaEquinoList = () => {
                         />
                       )}
 
+                      {/* 👉 Toalete com alerta e dias restantes */}
                       {botoes.includes('toalete') && (
                         <BotaoAcaoRows
                           to={`/veterinaria-toalete-equino/${equino.id}`}
-                          title="Toalete"
+                          title={
+                            alertas.toalete && Number.isFinite(equino._diasRestantes?.toalete)
+                              ? `Toalete • vence em ${equino._diasRestantes.toalete}d`
+                              : 'Toalete'
+                          }
                           className={clsBtn('botao-toalete', alertas.toalete)}
                           icone="bi-scissors"
                         />
                       )}
+
+                      {/* 👉 Ferrageamento com alerta e dias restantes */}
                       {botoes.includes('ferrageamento') && (
                         <BotaoAcaoRows
                           to={`/veterinaria-ferrageamento-equino/${equino.id}`}
-                          title="Ferrageamento"
+                          title={
+                            alertas.ferrageamento && Number.isFinite(equino._diasRestantes?.ferrageamento)
+                              ? `Ferrageamento • vence em ${equino._diasRestantes.ferrageamento}d`
+                              : 'Ferrageamento'
+                          }
                           className={clsBtn('botao-ferrageamento', alertas.ferrageamento)}
                           icone="bi-hammer"
                         />
                       )}
+
                       {botoes.includes('vermifugacao') && (
                         <BotaoAcaoRows
                           tipo="button"
