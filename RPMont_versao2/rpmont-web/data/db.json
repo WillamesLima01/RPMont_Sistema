@@ -73,7 +73,7 @@
       "pelagem": "Alazão",
       "numeroRegistro": "PMPB2025007",
       "dataNascimento": "2006-11-11",
-      "status": "Ativo",
+      "status": "Baixado",
       "sexo": "Macho",
       "unidade": "RPMont"
     },
@@ -266,6 +266,18 @@
       "idEquino": "8",
       "dataBaixa": "2025-07-18",
       "dataRetorno": null
+    },
+    {
+      "id": "14a2b9b8-2874-42f7-bddc-445ad9a3c128",
+      "idEquino": "7",
+      "dataBaixa": "2025-08-30",
+      "dataRetorno": null
+    },
+    {
+      "id": "e393ee3b-5e9e-4715-a3cd-173adbcaf573",
+      "idEquino": "7",
+      "dataBaixa": "2025-08-30",
+      "dataRetorno": null
     }
   ],
   "atendimentos": [
@@ -401,6 +413,13 @@
       "textoConsulta": "Lavagem no esstomago.",
       "enfermidade": "cólica",
       "data": "2025-08-22"
+    },
+    {
+      "id": "e341",
+      "idEquino": "7",
+      "textoConsulta": "Foi aplicado soro com medicação no equino para aliviar as dores da cólica",
+      "enfermidade": "cólica",
+      "data": "2025-08-30"
     }
   ],
   "escala": [
@@ -529,6 +548,33 @@
       "cavaleiro": "CB Teixeira",
       "cargaHoraria": 6,
       "data": "2025-08-20"
+    },
+    {
+      "id": "2399",
+      "idEquino": "4",
+      "localTrabalho": "busto de tamandaré",
+      "jornadaTrabalho": "17:30h às 23:00h",
+      "cavaleiro": "SD Maia",
+      "cargaHoraria": 5.5,
+      "data": "2025-08-30"
+    },
+    {
+      "id": "dfb1",
+      "idEquino": "3",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "17:30h às 22:30h",
+      "cavaleiro": "CB Márcio Pereira",
+      "cargaHoraria": 5,
+      "data": "2025-08-30"
+    },
+    {
+      "id": "1a61",
+      "idEquino": "7483",
+      "localTrabalho": "Busto de tamandaré",
+      "jornadaTrabalho": "17:30h às 23:30h",
+      "cavaleiro": "SGT Giuliano",
+      "cargaHoraria": 6,
+      "data": "2025-08-30"
     }
   ],
   "users": [
@@ -587,7 +633,8 @@
       "escovacao": true,
       "rasqueamento": true,
       "observacoes": "",
-      "dataProximoProcedimento": "2025-07-26T14:40:00.000Z"
+      "dataProximoProcedimento": "2025-07-26T14:40:00.000Z",
+      "data": "2025-08-30T23:07:58.860Z"
     },
     {
       "id": "addb",
@@ -602,7 +649,24 @@
       "escovacao": true,
       "rasqueamento": false,
       "observacoes": "Ferimento na posterior esquerda.",
-      "dataProximoProcedimento": "2025-07-23T19:15:11.756Z"
+      "dataProximoProcedimento": "2025-07-23T19:15:11.756Z",
+      "data": "2025-08-30T23:07:58.860Z"
+    },
+    {
+      "id": "aab4",
+      "equinoId": "10",
+      "tosa": true,
+      "banho": true,
+      "limpezaOuvidos": true,
+      "limpezaGenital": true,
+      "limpezaCascos": true,
+      "ripagemCrina": true,
+      "ripagemCola": true,
+      "escovacao": true,
+      "rasqueamento": true,
+      "observacoes": "",
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-20T11:54:24.014Z"
     }
   ],
   "ferrageamentoEquino": [
@@ -616,7 +680,8 @@
       "ferros": 4,
       "cravos": 16,
       "observacoes": "Ferrageamento preventivo",
-      "dataProximoProcedimento": "2025-08-27"
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-30T11:54:24.014Z"
     },
     {
       "id": "4b5b",
@@ -628,7 +693,34 @@
       "ferros": 4,
       "cravos": 18,
       "observacoes": "assss",
-      "dataProximoProcedimento": "2025-09-10"
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-20T11:54:24.014Z"
+    },
+    {
+      "id": "4f7b",
+      "equinoId": "6",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 24,
+      "observacoes": "",
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-30T11:54:24.014Z"
+    },
+    {
+      "id": "1578",
+      "equinoId": "9",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 24,
+      "observacoes": "",
+      "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
+      "data": "2025-08-30T11:54:24.014Z"
     }
   ],
   "ferrageamentoRepregoEquino": [
@@ -653,6 +745,17 @@
       "cravosUsados": 4,
       "observacoes": "",
       "data": "2025-06-12T22:37:51.447Z"
+    },
+    {
+      "id": "494d",
+      "equinoId": "7",
+      "patas": [
+        "Anterior Direita"
+      ],
+      "ferroNovo": "Não",
+      "cravosUsados": 6,
+      "observacoes": "",
+      "data": "2025-08-30T23:07:23.683Z"
     }
   ],
   "ferrageamentoCurativoEquino": [
@@ -661,7 +764,7 @@
       "equinoId": "1",
       "tipoCurativo": "Curativo no casco posterior esquerdo",
       "observacoes": "Inflamação leve tratada com pomada",
-      "data": "2025-06-12"
+      "data": "2025-08-30T22:38:43.144Z"
     },
     {
       "id": "0c50",
@@ -675,7 +778,7 @@
       "equinoId": "2",
       "tipoCurativo": "compressão para parar o sangramento com pressão",
       "observacoes": "Foi observado um sangramento muito forte",
-      "data": "2025-08-01T21:12:07.143Z"
+      "data": "2025-08-30T21:12:07.143Z"
     }
   ],
   "vermifugacoes": [
@@ -692,28 +795,48 @@
       "equinoId": "1",
       "vermifugo": "Albendazol",
       "observacao": "Reforço após 3 meses",
-      "dataProximoProcedimento": "2025-08-26T10:15:00.000Z"
+      "dataProximoProcedimento": "2025-08-26T10:15:00.000Z",
+      "data": "2025-08-20T11:54:24.014Z"
     },
     {
       "id": "21b7",
       "equinoId": "6",
       "vermifugo": "Ivermectina",
       "observacao": "",
-      "dataProximoProcedimento": "2025-06-13T09:53:57.770Z"
+      "dataProximoProcedimento": "2025-06-13T09:53:57.770Z",
+      "data": "2025-08-30T11:54:24.014Z"
     },
     {
       "id": "c054",
       "equinoId": "5",
       "vermifugo": "Albendazol",
       "observacao": "aplicar de 3 em 3 meses",
-      "dataProximoProcedimento": "2025-07-27T12:05:33.563Z"
+      "dataProximoProcedimento": "2025-07-27T12:05:33.563Z",
+      "data": "2025-08-20T11:54:24.014Z"
     },
     {
       "id": "d8ca",
       "equinoId": "4",
       "vermifugo": "Ivermectina",
       "observacao": "Repetir a dosagem a cada 3 meses.",
-      "dataProximoProcedimento": "2025-08-23T16:12:13.451Z"
+      "dataProximoProcedimento": "2025-08-23T16:12:13.451Z",
+      "data": "2025-08-30T11:54:24.014Z"
+    },
+    {
+      "id": "10a7",
+      "equinoId": "6",
+      "vermifugo": "Ivermectina",
+      "observacao": "sem alteração",
+      "data": "2025-08-30T23:04:41.236Z",
+      "dataProximoProcedimento": "2025-09-24T03:00:00.000Z"
+    },
+    {
+      "id": "fac0",
+      "equinoId": "1",
+      "vermifugo": "Ivermectina",
+      "observacao": "sem alteração",
+      "data": "2025-08-30T23:05:04.682Z",
+      "dataProximoProcedimento": "2025-09-09T03:00:00.000Z"
     }
   ],
   "resenhas": [
@@ -733,7 +856,8 @@
       "id_Eq": "1",
       "nomeVacina": "Raiva animal",
       "observacao": "foi aplicado 1 ml da vacina atm",
-      "dataProximoProcedimento": "2025-07-27T12:10:51.563Z"
+      "dataProximoProcedimento": "2025-07-27T12:10:51.563Z",
+      "data": "2025-08-20T12:02:11.483Z"
     },
     {
       "id": "6c39",
@@ -748,7 +872,8 @@
       "id_Eq": "10",
       "nomeVacina": "RAV",
       "observacao": "imunizado contra raiva animal",
-      "dataProximoProcedimento": "2025-08-29T12:12:23.861Z"
+      "dataProximoProcedimento": "2025-08-29T12:12:23.861Z",
+      "data": "2025-08-20T12:02:11.483Z"
     },
     {
       "id": "a4c1",
@@ -757,6 +882,22 @@
       "observacao": "observar data de vencimento",
       "data": "2025-08-19T14:11:45.426Z",
       "dataProximoProcedimento": "2025-08-20T00:00:00.000Z"
+    },
+    {
+      "id": "669c",
+      "id_Eq": "5",
+      "nomeVacina": "Raiva animal",
+      "observacao": "sem alteração",
+      "data": "2025-08-30T23:03:35.859Z",
+      "dataProximoProcedimento": "2025-11-30T00:00:00.000Z"
+    },
+    {
+      "id": "962c",
+      "id_Eq": "10",
+      "nomeVacina": "Raiva animal",
+      "observacao": "Sem alteração",
+      "data": "2025-08-30T23:04:00.699Z",
+      "dataProximoProcedimento": "2025-11-30T00:00:00.000Z"
     }
   ]
 }

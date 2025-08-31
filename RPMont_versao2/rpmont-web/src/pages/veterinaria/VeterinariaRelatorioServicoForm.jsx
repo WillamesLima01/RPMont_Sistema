@@ -5,6 +5,23 @@ import 'jspdf-autotable';
 import axios from '../../api';
 import './Veterinaria.css';
 
+// >>> helper simples para normalizar qualquer formato de data em 'yyyy-mm-dd' (sem mexer em fuso)
+function normalizeToYMD(input) {
+  if (!input) return null;
+
+  if (typeof input === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;          // yyyy-mm-dd
+    if (/^\d{4}-\d{2}-\d{2}T/.test(input)) return input.slice(0, 10); // ISO com T/Z -> yyyy-mm-dd
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {                    // dd/mm/yyyy
+      const [dd, mm, yyyy] = input.split('/');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+  }
+
+  const d = new Date(input);
+  return isNaN(d) ? null : d.toISOString().slice(0, 10);
+}
+
 const VeterinariaRelatorioServicoForm = () => {
   const [militar, setMilitar] = useState(null);
   const [dadosServico, setDadosServico] = useState(null);
@@ -18,15 +35,19 @@ const VeterinariaRelatorioServicoForm = () => {
   const navigate = useNavigate();
 
   // FORMATOS
-  const formatarData = (dataISO) => {
-    const [ano, mes, dia] = dataISO.split("-");
+  const formatarData = (dataPossivelISO) => {
+    const ymd = normalizeToYMD(dataPossivelISO);
+    if (!ymd) return '-';
+    const [ano, mes, dia] = ymd.split("-");
     return `${dia}/${mes}/${ano}`;
   };
 
   const formatarDataPosterior = (dataISO) => {
-    const data = new Date(dataISO);
+    const ymd = normalizeToYMD(dataISO);
+    if (!ymd) return '-';
+    const data = new Date(`${ymd}T00:00:00`);
     data.setDate(data.getDate() + 1);
-    return formatarData(data.toISOString().split('T')[0]);
+    return formatarData(data.toISOString().slice(0, 10));
   };
 
   useEffect(() => {
@@ -40,70 +61,158 @@ const VeterinariaRelatorioServicoForm = () => {
 
   // CONFIRMAR MODAL
   const confirmarDataServico = () => {
-  if (!dataServico) {
-    setMensagemErroModal('Por favor, informe a data do serviço.');
-    return;
-  }
-
-  setMensagemErroModal('');
-  setShowModal(false);
-  buscarDados();
-};
+    if (!dataServico) {
+      setMensagemErroModal('Por favor, informe a data do serviço.');
+      return;
+    }
+    setMensagemErroModal('');
+    setShowModal(false);
+    buscarDados();
+  };
 
   // BUSCAR DADOS
   const buscarDados = async () => {
     try {
       setCarregando(true);
 
-      const [atendimentosRes, escalasRes, baixadosRes, equinosRes] = await Promise.all([
-        axios.get(`/atendimentos?data=${dataServico}`),
-        axios.get(`/escala?data=${dataServico}`),
-        axios.get(`/equinosBaixados?data=${dataServico}`),
+      const ymdAlvo = normalizeToYMD(dataServico);
+      if (!ymdAlvo) {
+        throw new Error('Data inválida');
+      }
+
+      const [
+        atendimentosRes,
+        escalasRes,
+        baixadosRes,
+        vermifugacoesRes,
+        repregoRes,
+        curativoRes,
+        ferrageamentoGeralRes,
+        equinosRes
+      ] = await Promise.all([
+        axios.get(`/atendimentos`),
+        axios.get(`/escala`),
+        axios.get(`/equinosBaixados`),
+        axios.get(`/vermifugacoes`),
+        axios.get(`/ferrageamentoRepregoEquino`),
+        axios.get(`/ferrageamentoCurativoEquino`),
+        axios.get(`/ferrageamentoEquino`), // geral
         axios.get(`/equinos`)
       ]);
 
-      const equinos = equinosRes.data;
+      const equinos = equinosRes.data || [];
+      const getEq = (id) => equinos.find(e => String(e.id) === String(id)) || {};
 
-      const atendimentos = atendimentosRes.data.map(item => {
-        const eq = equinos.find(e => e.id === item.idEquino);
+      // ATENDIMENTOS (data)
+      const atendimentos = (atendimentosRes.data || [])
+        .filter(a => normalizeToYMD(a.data) === ymdAlvo)
+        .map(item => {
+          const eq = getEq(item.idEquino);
+          return {
+            ...item,
+            name: eq.name || 'Desconhecido',
+            raca: eq.raca || '-',
+            numeroRegistro: eq.numeroRegistro || '-',
+            sexo: eq.sexo || '-',
+            unidade: eq.unidade || '-',
+          };
+        });
+
+      // ESCALAS (data)
+      const escalas = (escalasRes.data || [])
+        .filter(s => normalizeToYMD(s.data) === ymdAlvo)
+        .map(item => {
+          const eq = getEq(item.idEquino);
+          return {
+            ...item,
+            name: eq.name || 'Desconhecido',
+            raca: eq.raca || '-',
+            numeroRegistro: eq.numeroRegistro || '-',
+            sexo: eq.sexo || '-',
+            localTrabalho: item.localTrabalho,
+            jornadaTrabalho: item.jornadaTrabalho,
+            cavaleiro: item.cavaleiro,
+          };
+        });
+
+      // EQUINOS BAIXADOS (dataBaixa)
+      const baixados = (baixadosRes.data || [])
+        .filter(b => normalizeToYMD(b.dataBaixa) === ymdAlvo)
+        .map(item => {
+          const eq = getEq(item.idEquino);
+          return {
+            ...item,
+            nomeEquino: eq.name || 'Desconhecido',
+            dataBaixa: item.dataBaixa
+          };
+        });
+
+      // EQUINOS RETORNADOS (dataRetorno)
+      const retornos = (baixadosRes.data || [])
+        .filter(b => normalizeToYMD(b.dataRetorno) === ymdAlvo)
+        .map(item => {
+          const eq = getEq(item.idEquino);
+          return {
+            ...item,
+            nomeEquino: eq.name || 'Desconhecido',
+            dataRetorno: item.dataRetorno
+          };
+        });
+
+      // VERMIFUGAÇÕES (data)
+      const vermifugacoes = (vermifugacoesRes.data || [])
+        .filter(v => normalizeToYMD(v.data) === ymdAlvo)
+        .map(v => {
+          const eq = getEq(v.equinoId);
+          return {
+            ...v,
+            nomeEquino: eq.name || 'Desconhecido',
+          };
+        });
+
+      // FERRAGEAMENTO — REPREGO (data)
+      const repregos = (repregoRes.data || [])
+        .filter(r => normalizeToYMD(r.data) === ymdAlvo)
+        .map(r => {
+          const eq = getEq(r.equinoId);
+          return {
+            ...r,
+            nomeEquino: eq.name || 'Desconhecido',
+          };
+        });
+      
+      // FERRAGEAMENTO — CURATIVO
+      const curativos = (curativoRes.data || [])
+      .filter(c => normalizeToYMD(c.data) === ymdAlvo)   // <<<< sempre usa "data"
+      .map(c => {
+        const eq = getEq(c.equinoId);
         return {
-          ...item,
-          name: eq?.name || 'Desconhecido',
-          raca: eq?.raca || '-',
-          numeroRegistro: eq?.numeroRegistro || '-',
-          sexo: eq?.sexo || '-',
-          unidade: eq?.unidade || '-',
+          ...c,
+          nomeEquino: eq.name || 'Desconhecido',
         };
       });
-
-      const escalas = escalasRes.data.map(item => {
-        const eq = equinos.find(e => e.id === item.idEquino);
+            
+      // FERRAGEAMENTO — GERAL (filtra EXCLUSIVAMENTE por "data")
+      const ferrageamentos = (ferrageamentoGeralRes.data || [])
+      .filter(f => normalizeToYMD(f.data) === ymdAlvo)
+      .map(f => {
+        const eq = getEq(f.equinoId);
         return {
-          ...item,
-          name: eq?.name || 'Desconhecido',
-          raca: eq?.raca || '-',
-          numeroRegistro: eq?.numeroRegistro || '-',
-          sexo: eq?.sexo || '-',
-          localTrabalho: item.localTrabalho,
-          jornadaTrabalho: item.jornadaTrabalho,
-          cavaleiro: item.cavaleiro,
-        };
-      });
-
-      const baixados = baixadosRes.data.map(item => {
-        const eq = equinos.find(e => e.id === item.idEquino);
-        return {
-          ...item,
-          nomeEquino: eq?.name || 'Desconhecido',
-          dataBaixa: item.dataBaixa
+          ...f,
+          nomeEquino: eq.name || 'Desconhecido',
         };
       });
 
       setDadosServico({
-        data: dataServico,
+        data: ymdAlvo,
         atendimentos,
         escalas,
-        baixados
+        baixados,
+        retornos,
+        vermifugacoes,
+        repregos,
+        curativos,
+        ferrageamentos,
       });
 
     } catch (error) {
@@ -118,118 +227,206 @@ const VeterinariaRelatorioServicoForm = () => {
     alert("Relatório salvo com sucesso (simulado)!");
   };
 
-const gerarPDF = () => {
-  if (!dadosServico || !militar) {
-    alert("Por favor, clique em 'Buscar Dados' antes de gerar o PDF.");
-    return;
-  }
+  const gerarPDF = () => {
+    if (!dadosServico || !militar) {
+      alert("Por favor, clique em 'Buscar Dados' antes de gerar o PDF.");
+      return;
+    }
 
-  const doc = new jsPDF();
-  let yPos = 15;
+    const doc = new jsPDF();
+    let yPos = 15;
 
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Relatório de Serviço - ${formatarData(dadosServico.data)}`, 14, yPos);
-  yPos += 12;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("Nome de Guerra:", 14, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(militar.nomeDeGuerra, 55, yPos);
-  yPos += 7;
-
-  doc.setFont("helvetica", "bold");
-  doc.text("Matrícula:", 14, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(militar.matricula, 55, yPos);
-  yPos += 7;
-
-  doc.setFont("helvetica", "bold");
-  doc.text("Posto/Graduação:", 14, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(militar.postGrad, 55, yPos);
-  yPos += 10;
-
-  // PASSAGEM DE SERVIÇO
-  doc.setFont("helvetica", "bold");
-  doc.text("Passagem de Serviço:", 14, yPos);
-  yPos += 6;
-  doc.setFont("helvetica", "normal");
-  const textoPassagem = passagemServico.trim()
-    ? doc.splitTextToSize(passagemServico, 180)
-    : ["Sem alteração"];
-  doc.text(textoPassagem, 14, yPos);
-  yPos += textoPassagem.length * 6 + 4;
-
-  // OBSERVAÇÕES
-  doc.setFont("helvetica", "bold");
-  doc.text("Observações do Serviço:", 14, yPos);
-  yPos += 6;
-  doc.setFont("helvetica", "normal");
-  const textoObs = observacao.trim()
-    ? doc.splitTextToSize(observacao, 180)
-    : ["Sem alteração"];
-  doc.text(textoObs, 14, yPos);
-  yPos += textoObs.length * 6 + 4;
-
-  // TABELA DE ATENDIMENTOS
-  if (dadosServico.atendimentos?.length > 0) {
+    doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("Equinos Atendidos", 14, yPos);
-    doc.autoTable({
-      startY: yPos + 5,
-      head: [["Nome", "Raça", "Registro", "Sexo", "Unidade", "Consulta"]],
-      body: dadosServico.atendimentos.map(item => [
-        item.name || "",
-        item.raca || "",
-        item.numeroRegistro || "",
-        item.sexo || "",
-        item.unidade || "",
-        item.textoConsulta || ""
-      ]),
-    });
-    yPos = doc.lastAutoTable.finalY + 10;
-  }
+    doc.text(`Relatório de Serviço - ${formatarData(dadosServico.data)}`, 14, yPos);
+    yPos += 12;
 
-  // TABELA DE ESCALAS
-  if (dadosServico.escalas?.length > 0) {
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text("Escalas dos Equinos", 14, yPos);
-    doc.autoTable({
-      startY: yPos + 5,
-      head: [["Nome", "Raça", "Registro", "Sexo", "Local", "Jornada", "Cavaleiro"]],
-      body: dadosServico.escalas.map(item => [
-        item.name || "",
-        item.raca || "",
-        item.numeroRegistro || "",
-        item.sexo || "",
-        item.localTrabalho || "",
-        item.jornadaTrabalho || "",
-        item.cavaleiro || ""
-      ]),
-    });
-    yPos = doc.lastAutoTable.finalY + 10;
-  }
+    doc.text("Nome de Guerra:", 14, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(militar.nomeDeGuerra, 55, yPos);
+    yPos += 7;
 
-  // TABELA DE BAIXADOS
-  if (dadosServico.baixados?.length > 0) {
     doc.setFont("helvetica", "bold");
-    doc.text("Equinos Baixados", 14, yPos);
-    doc.autoTable({
-      startY: yPos + 5,
-      head: [["Nome", "Data de Baixa"]],
-      body: dadosServico.baixados.map(item => [
-        item.nomeEquino || "",
-        item.dataBaixa ? formatarData(item.dataBaixa) : "-"
-      ]),
-    });
-  }
+    doc.text("Matrícula:", 14, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(militar.matricula, 55, yPos);
+    yPos += 7;
 
-  // Finalizar
-  doc.save(`RelatorioServico_${dadosServico.data}.pdf`);
-};
+    doc.setFont("helvetica", "bold");
+    doc.text("Posto/Graduação:", 14, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(militar.postGrad, 55, yPos);
+    yPos += 10;
 
+    // PASSAGEM DE SERVIÇO
+    doc.setFont("helvetica", "bold");
+    doc.text("Passagem de Serviço:", 14, yPos);
+    yPos += 6;
+    doc.setFont("helvetica", "normal");
+    const textoPassagem = passagemServico.trim()
+      ? doc.splitTextToSize(passagemServico, 180)
+      : ["Sem alteração"];
+    doc.text(textoPassagem, 14, yPos);
+    yPos += textoPassagem.length * 6 + 4;
+
+    // OBSERVAÇÕES
+    doc.setFont("helvetica", "bold");
+    doc.text("Observações do Serviço:", 14, yPos);
+    yPos += 6;
+    doc.setFont("helvetica", "normal");
+    const textoObs = observacao.trim()
+      ? doc.splitTextToSize(observacao, 180)
+      : ["Sem alteração"];
+    doc.text(textoObs, 14, yPos);
+    yPos += textoObs.length * 6 + 4;
+
+    // TABELA DE ATENDIMENTOS
+    if (dadosServico.atendimentos?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Equinos Atendidos", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Raça", "Registro", "Sexo", "Unidade", "Consulta"]],
+        body: dadosServico.atendimentos.map(item => [
+          item.name || "",
+          item.raca || "",
+          item.numeroRegistro || "",
+          item.sexo || "",
+          item.unidade || "",
+          item.textoConsulta || ""
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE ESCALAS
+    if (dadosServico.escalas?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Escalas dos Equinos", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Raça", "Registro", "Sexo", "Local", "Jornada", "Cavaleiro"]],
+        body: dadosServico.escalas.map(item => [
+          item.name || "",
+          item.raca || "",
+          item.numeroRegistro || "",
+          item.sexo || "",
+          item.localTrabalho || "",
+          item.jornadaTrabalho || "",
+          item.cavaleiro || ""
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE VERMIFUGAÇÕES
+    if (dadosServico.vermifugacoes?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Vermifugações", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Vermífugo", "Observação"]],
+        body: dadosServico.vermifugacoes.map(item => [
+          item.nomeEquino || "",
+          item.vermifugo || "",
+          item.observacao || ""
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE FERRAGEAMENTO — REPREGO
+    if (dadosServico.repregos?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Ferrageamento — Reprego", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Patas", "Ferro novo?", "Cravos", "Observações"]],
+        body: dadosServico.repregos.map(item => [
+          item.nomeEquino || "",
+          Array.isArray(item.patas) ? item.patas.join(', ') : (item.patas || ""),
+          item.ferroNovo || "",
+          item.cravosUsados != null ? String(item.cravosUsados) : "",
+          item.observacoes || ""
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // >>> TABELA DE FERRAGEAMENTO — CURATIVO (AGORA COM COLUNA DE DATA)
+    if (dadosServico.curativos?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Ferrageamento — Curativo", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Data", "Nome", "Tipo de Curativo", "Observações"]],
+        body: dadosServico.curativos.map(item => [
+          item.data ? formatarData(item.data) : "-",
+          item.nomeEquino || "",
+          item.tipoCurativo || "",
+          item.observacoes || ""
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE FERRAGEAMENTO — GERAL (usa data ou dataProximoProcedimento)
+    if (dadosServico.ferrageamentos?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Ferrageamento — Geral", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Tipo Ferradura", "Tipo Cravo", "Justura", "Tipo", "Ferros", "Cravos", "Observações", "Próx. Proced."]],
+        body: dadosServico.ferrageamentos.map(item => [
+          item.nomeEquino || "",
+          item.tipoFerradura || "",
+          item.tipoCravo || "",
+          item.tipoJustura || "",
+          item.tipoFerrageamento || "",
+          item.ferros != null ? String(item.ferros) : "",
+          item.cravos != null ? String(item.cravos) : "",
+          item.observacoes || "",
+          item.dataProximoProcedimento ? formatarData(item.dataProximoProcedimento) : "-"
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE BAIXADOS
+    if (dadosServico.baixados?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Equinos Baixados", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Data de Baixa"]],
+        body: dadosServico.baixados.map(item => [
+          item.nomeEquino || "",
+          item.dataBaixa ? formatarData(item.dataBaixa) : "-"
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // TABELA DE RETORNOS
+    if (dadosServico.retornos?.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Equinos Retornados", 14, yPos);
+      doc.autoTable({
+        startY: yPos + 5,
+        head: [["Nome", "Data de Retorno"]],
+        body: dadosServico.retornos.map(item => [
+          item.nomeEquino || "",
+          item.dataRetorno ? formatarData(item.dataRetorno) : "-"
+        ]),
+      });
+      yPos = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Finalizar
+    doc.save(`RelatorioServico_${dadosServico.data}.pdf`);
+  };
 
   return (
     <div className="relatorio-container">
@@ -349,6 +546,116 @@ const gerarPDF = () => {
             </table>
           ) : <p>Nenhuma escala registrada.</p>}
 
+          {/* Vermifugações */}
+          <h5 className="mt-4">Vermifugações</h5>
+          {dadosServico.vermifugacoes.length > 0 ? (
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Vermífugo</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosServico.vermifugacoes.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.nomeEquino}</td>
+                    <td>{item.vermifugo}</td>
+                    <td>{item.observacao || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p>Nenhuma vermifugação registrada.</p>}
+
+          {/* Ferrageamento — Reprego */}
+          <h5 className="mt-4">Ferrageamento — Reprego</h5>
+          {dadosServico.repregos.length > 0 ? (
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Patas</th>
+                  <th>Ferro novo?</th>
+                  <th>Cravos</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosServico.repregos.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.nomeEquino}</td>
+                    <td>{Array.isArray(item.patas) ? item.patas.join(', ') : item.patas}</td>
+                    <td>{item.ferroNovo}</td>
+                    <td>{item.cravosUsados}</td>
+                    <td>{item.observacoes || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p>Nenhum reprego registrado.</p>}
+
+          {/* Ferrageamento — Curativo (AGORA COM DATA) */}
+          <h5 className="mt-4">Ferrageamento — Curativo</h5>
+          {dadosServico.curativos.length > 0 ? (
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Nome</th>
+                  <th>Tipo de Curativo</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosServico.curativos.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.data ? formatarData(item.data) : '-'}</td>
+                    <td>{item.nomeEquino}</td>
+                    <td>{item.tipoCurativo}</td>
+                    <td>{item.observacoes || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p>Nenhum curativo registrado.</p>}
+
+          {/* Ferrageamento — Geral */}
+          <h5 className="mt-4">Ferrageamento — Geral</h5>
+          {dadosServico.ferrageamentos.length > 0 ? (
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Tipo Ferradura</th>
+                  <th>Tipo Cravo</th>
+                  <th>Justura</th>
+                  <th>Tipo</th>
+                  <th>Ferros</th>
+                  <th>Cravos</th>
+                  <th>Observações</th>
+                  <th>Próx. Proced.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dadosServico.ferrageamentos.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.nomeEquino}</td>
+                    <td>{item.tipoFerradura}</td>
+                    <td>{item.tipoCravo}</td>
+                    <td>{item.tipoJustura}</td>
+                    <td>{item.tipoFerrageamento}</td>
+                    <td>{item.ferros}</td>
+                    <td>{item.cravos}</td>
+                    <td>{item.observacoes || '-'}</td>
+                    <td>{item.dataProximoProcedimento ? formatarData(item.dataProximoProcedimento) : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p>Nenhum ferrageamento geral registrado.</p>}
+
           {/* Baixados */}
           <h5 className="mt-4">Equinos Baixados</h5>
           {dadosServico.baixados.length > 0 ? (
@@ -358,6 +665,16 @@ const gerarPDF = () => {
               ))}
             </ul>
           ) : <p>Nenhum equino baixado.</p>}
+
+          {/* Retornos */}
+          <h5 className="mt-4">Equinos Retornados</h5>
+          {dadosServico.retornos.length > 0 ? (
+            <ul>
+              {dadosServico.retornos.map((item, i) => (
+                <li key={i}>{item.nomeEquino} - Retornou em {formatarData(item.dataRetorno)}</li>
+              ))}
+            </ul>
+          ) : <p>Nenhum retorno registrado.</p>}
 
           <div className="mt-4 text-end no-print">
             <button className="btn btn-outline-success" onClick={salvarRelatorio}>Salvar</button>
