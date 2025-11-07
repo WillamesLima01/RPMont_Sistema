@@ -19,6 +19,14 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idFerrageamento, setIdFerrageamento] = useState(null);
 
+  function dateOnlyToISO(dateOnlyStr) {
+    if (!dateOnlyStr) return null;
+    // Converte "YYYY-MM-DD" para meia-noite no fuso de Fortaleza (-03:00)
+    // e retorna em UTC ISO, ex: "2025-09-20T03:00:00.000Z"
+    const dt = new Date(`${dateOnlyStr}T00:00:00-03:00`);
+    return isNaN(dt) ? null : dt.toISOString();
+  } 
+
   const [formData, setFormData] = useState({
     equinoId: id,
     procedimento: '',
@@ -104,7 +112,9 @@ const VeterinariaFerrageamentoEquinoForm = () => {
               ferros: dados.ferros ?? 4,
               cravos: dados.cravos ?? 16,
               // ⬇️ carrega se existir no registro
-              dataProximoProcedimento: (dados.dataProximoProcedimento || '').slice(0, 10) || '',
+              dataProximoProcedimento: dados.dataProximoProcedimento
+              ? new Date(dados.dataProximoProcedimento).toISOString().slice(0, 10)
+              : '',
             };
           } else if (tipo === 'reprego') {
             return {
@@ -153,7 +163,8 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
     try {
       if (formData.procedimento === 'Ferrar') {
-        // ⬇️ SEM "data" — salvamos apenas os campos do procedimento e a data do próximo
+        const proxISO = dateOnlyToISO(formData.dataProximoProcedimento);
+      
         const dados = {
           equinoId: formData.equinoId,
           tipoFerradura: formData.tipoFerradura,
@@ -163,15 +174,18 @@ const VeterinariaFerrageamentoEquinoForm = () => {
           ferros: Number(formData.ferros),
           cravos: Number(formData.cravos),
           observacoes: formData.observacoes,
-          dataProximoProcedimento: formData.dataProximoProcedimento || undefined,
+          // grava ISO completo se houver; se não houver, deixa undefined para não criar campo vazio
+          dataProximoProcedimento: proxISO || undefined,
+          // (opcional, mas recomendado para consistência com Reprego/Curativo)
+          data: new Date().toISOString(),
         };
-
+      
         if (modoEdicao) {
           await axios.put(`/ferrageamentoEquino/${idFerrageamento}`, dados);
         } else {
           await axios.post('/ferrageamentoEquino', dados);
         }
-      }
+      }      
 
       if (formData.procedimento === 'Reprego') {
         // Reprego não usa dataProximoProcedimento — mantém seu fluxo com "data"

@@ -262,4 +262,72 @@
   .card-atendimento { padding: 20px; }
 }
 
+/* ---- Impressão A4 mais limpa e sem cortes ---- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  /* Esconde tudo o que for "no-print" e modais */
+  .no-print,
+  .modal,
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  /* Container principal sem sombras/bordas e sem padding exagerado */
+  .relatorio-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .box-info,
+  .servico-box {
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+  }
+
+  /* Largura fluida para caber no A4 */
+  .servico-box, .militar-box, .titulo {
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Evita quebras feias entre títulos e tabelas */
+  h4, h5 {
+    break-inside: avoid;
+    page-break-after: avoid;
+    margin-top: 8px;
+    margin-bottom: 6px;
+  }
+
+  /* Tabelas bem-comportadas na impressão */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group; /* repete cabeçalho em cada página */
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr, td, th {
+    break-inside: avoid !important;   /* evita quebrar linha ao meio */
+    page-break-inside: avoid !important;
+  }
+
+  /* Se quiser forçar quebra entre grandes seções, use <div class="print-break"></div> no JSX */
+  .print-break {
+    break-before: page;
+    page-break-before: always;
+  }
+}
+
+
 

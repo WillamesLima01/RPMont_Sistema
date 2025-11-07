@@ -1,7 +1,8 @@
+// src/pages/veterinaria/VeterinariaRelatorioServicoForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import axios from '../../api';
 import './Veterinaria.css';
 
@@ -10,9 +11,9 @@ function normalizeToYMD(input) {
   if (!input) return null;
 
   if (typeof input === 'string') {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;          // yyyy-mm-dd
-    if (/^\d{4}-\d{2}-\d{2}T/.test(input)) return input.slice(0, 10); // ISO com T/Z -> yyyy-mm-dd
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {                    // dd/mm/yyyy
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;               // yyyy-mm-dd
+    if (/^\d{4}-\d{2}-\d{2}T/.test(input)) return input.slice(0, 10);  // ISO com T/Z -> yyyy-mm-dd
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {                         // dd/mm/yyyy
       const [dd, mm, yyyy] = input.split('/');
       return `${yyyy}-${mm}-${dd}`;
     }
@@ -135,9 +136,9 @@ const VeterinariaRelatorioServicoForm = () => {
           };
         });
 
-      // EQUINOS BAIXADOS (dataBaixa)
+      // ========= EQUINOS BAIXADOS (APENAS OS ATUALMENTE BAIXADOS) =========
       const baixados = (baixadosRes.data || [])
-        .filter(b => normalizeToYMD(b.dataBaixa) === ymdAlvo)
+        .filter(b => b.dataRetorno == null) // ainda em baixa
         .map(item => {
           const eq = getEq(item.idEquino);
           return {
@@ -147,7 +148,7 @@ const VeterinariaRelatorioServicoForm = () => {
           };
         });
 
-      // EQUINOS RETORNADOS (dataRetorno)
+      // EQUINOS RETORNADOS (somente os que retornaram exatamente na data do serviço)
       const retornos = (baixadosRes.data || [])
         .filter(b => normalizeToYMD(b.dataRetorno) === ymdAlvo)
         .map(item => {
@@ -180,28 +181,28 @@ const VeterinariaRelatorioServicoForm = () => {
             nomeEquino: eq.name || 'Desconhecido',
           };
         });
-      
-      // FERRAGEAMENTO — CURATIVO
+
+      // FERRAGEAMENTO — CURATIVO (data)
       const curativos = (curativoRes.data || [])
-      .filter(c => normalizeToYMD(c.data) === ymdAlvo)   // <<<< sempre usa "data"
-      .map(c => {
-        const eq = getEq(c.equinoId);
-        return {
-          ...c,
-          nomeEquino: eq.name || 'Desconhecido',
-        };
-      });
-            
-      // FERRAGEAMENTO — GERAL (filtra EXCLUSIVAMENTE por "data")
+        .filter(c => normalizeToYMD(c.data) === ymdAlvo)
+        .map(c => {
+          const eq = getEq(c.equinoId);
+          return {
+            ...c,
+            nomeEquino: eq.name || 'Desconhecido',
+          };
+        });
+
+      // FERRAGEAMENTO — GERAL (data)
       const ferrageamentos = (ferrageamentoGeralRes.data || [])
-      .filter(f => normalizeToYMD(f.data) === ymdAlvo)
-      .map(f => {
-        const eq = getEq(f.equinoId);
-        return {
-          ...f,
-          nomeEquino: eq.name || 'Desconhecido',
-        };
-      });
+        .filter(f => normalizeToYMD(f.data) === ymdAlvo)
+        .map(f => {
+          const eq = getEq(f.equinoId);
+          return {
+            ...f,
+            nomeEquino: eq.name || 'Desconhecido',
+          };
+        });
 
       setDadosServico({
         data: ymdAlvo,
@@ -227,13 +228,8 @@ const VeterinariaRelatorioServicoForm = () => {
     alert("Relatório salvo com sucesso (simulado)!");
   };
 
-  const gerarPDF = () => {
-    if (!dadosServico || !militar) {
-      alert("Por favor, clique em 'Buscar Dados' antes de gerar o PDF.");
-      return;
-    }
-
-    const doc = new jsPDF();
+  // --- Monta todo o conteúdo do PDF dentro de 'doc' (para reutilizar em salvar e imprimir) ---
+  const buildPDF = (doc) => {
     let yPos = 15;
 
     doc.setFontSize(16);
@@ -286,7 +282,7 @@ const VeterinariaRelatorioServicoForm = () => {
     if (dadosServico.atendimentos?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Equinos Atendidos", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Raça", "Registro", "Sexo", "Unidade", "Consulta"]],
         body: dadosServico.atendimentos.map(item => [
@@ -298,14 +294,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.textoConsulta || ""
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
     // TABELA DE ESCALAS
     if (dadosServico.escalas?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Escalas dos Equinos", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Raça", "Registro", "Sexo", "Local", "Jornada", "Cavaleiro"]],
         body: dadosServico.escalas.map(item => [
@@ -318,14 +314,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.cavaleiro || ""
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
     // TABELA DE VERMIFUGAÇÕES
     if (dadosServico.vermifugacoes?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Vermifugações", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Vermífugo", "Observação"]],
         body: dadosServico.vermifugacoes.map(item => [
@@ -334,14 +330,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.observacao || ""
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
     // TABELA DE FERRAGEAMENTO — REPREGO
     if (dadosServico.repregos?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Ferrageamento — Reprego", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Patas", "Ferro novo?", "Cravos", "Observações"]],
         body: dadosServico.repregos.map(item => [
@@ -352,14 +348,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.observacoes || ""
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
-    // >>> TABELA DE FERRAGEAMENTO — CURATIVO (AGORA COM COLUNA DE DATA)
+    // >>> TABELA DE FERRAGEAMENTO — CURATIVO (COM COLUNA DE DATA)
     if (dadosServico.curativos?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Ferrageamento — Curativo", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Data", "Nome", "Tipo de Curativo", "Observações"]],
         body: dadosServico.curativos.map(item => [
@@ -369,14 +365,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.observacoes || ""
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
-    // TABELA DE FERRAGEAMENTO — GERAL (usa data ou dataProximoProcedimento)
+    // TABELA DE FERRAGEAMENTO — GERAL
     if (dadosServico.ferrageamentos?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Ferrageamento — Geral", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Tipo Ferradura", "Tipo Cravo", "Justura", "Tipo", "Ferros", "Cravos", "Observações", "Próx. Proced."]],
         body: dadosServico.ferrageamentos.map(item => [
@@ -391,14 +387,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.dataProximoProcedimento ? formatarData(item.dataProximoProcedimento) : "-"
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
     // TABELA DE BAIXADOS
     if (dadosServico.baixados?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Equinos Baixados", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Data de Baixa"]],
         body: dadosServico.baixados.map(item => [
@@ -406,14 +402,14 @@ const VeterinariaRelatorioServicoForm = () => {
           item.dataBaixa ? formatarData(item.dataBaixa) : "-"
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
-    // TABELA DE RETORNOS
+    // TABELA DE RETORNOS (do próprio dia do serviço)
     if (dadosServico.retornos?.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text("Equinos Retornados", 14, yPos);
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos + 5,
         head: [["Nome", "Data de Retorno"]],
         body: dadosServico.retornos.map(item => [
@@ -421,11 +417,66 @@ const VeterinariaRelatorioServicoForm = () => {
           item.dataRetorno ? formatarData(item.dataRetorno) : "-"
         ]),
       });
-      yPos = doc.lastAutoTable.finalY + 10;
+      yPos = (doc.lastAutoTable?.finalY || yPos) + 10;
     }
 
-    // Finalizar
+    // --- Assinaturas ---
+    const pageWidth  = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+
+    // distância vertical a partir do último conteúdo
+    let sigY = (doc.lastAutoTable?.finalY || yPos) + 20;
+
+    // se estiver muito perto do rodapé, vai pra nova página
+    if (sigY + 24 > pageHeight) {
+      doc.addPage();
+      sigY = 30;
+    }
+
+    // duas linhas lado a lado (com um “respiro” entre elas)
+    const gap = 20; // espaço entre as linhas
+    const lineWidth = (pageWidth - margin * 2 - gap) / 2;
+
+    const leftX1  = margin;
+    const leftX2  = margin + lineWidth;
+    const rightX1 = leftX2 + gap;
+    const rightX2 = rightX1 + lineWidth;
+
+    // desenha as linhas
+    doc.setLineWidth(0.5);
+    doc.line(leftX1, sigY, leftX2, sigY);   // linha Auxiliar
+    doc.line(rightX1, sigY, rightX2, sigY); // linha Veterinário
+
+    // rótulos centralizados abaixo das linhas
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Auxiliar Veterinário", (leftX1 + leftX2) / 2, sigY + 6, { align: "center" });
+    doc.text("Veterinário",         (rightX1 + rightX2) / 2, sigY + 6, { align: "center" });
+  };
+
+  // Salva o PDF em arquivo
+  const gerarPDF = () => {
+    if (!dadosServico || !militar) {
+      alert("Por favor, clique em 'Buscar Dados' antes de gerar o PDF.");
+      return;
+    }
+    const doc = new jsPDF();
+    buildPDF(doc);
     doc.save(`RelatorioServico_${dadosServico.data}.pdf`);
+  };
+
+  // Abre o PDF paginado e chama o diálogo de impressão do navegador
+  const imprimirPDF = () => {
+    if (!dadosServico || !militar) {
+      alert("Por favor, clique em 'Buscar Dados' antes de gerar o PDF.");
+      return;
+    }
+    const doc = new jsPDF();
+    buildPDF(doc);
+    doc.autoPrint();
+    const url = doc.output('bloburl');
+    window.open(url, '_blank');
   };
 
   return (
@@ -474,7 +525,9 @@ const VeterinariaRelatorioServicoForm = () => {
         >
           Buscar Dados
         </button>
-        <button className="btn btn-outline-info" onClick={() => window.print()}>Imprimir</button>
+        {/* Imprime a TELA (pode cortar). Mantido se você quiser. */}        
+        {/* Imprime o PDF paginado (recomendado para ficar perfeito) */}
+        <button className="btn btn-outline-dark" onClick={imprimirPDF} disabled={!dadosServico}>Imprimir</button>
         <button className="btn btn-outline-danger" onClick={gerarPDF} disabled={!dadosServico}>Exportar PDF</button>
       </div>
 
@@ -544,7 +597,7 @@ const VeterinariaRelatorioServicoForm = () => {
                 ))}
               </tbody>
             </table>
-          ) : <p>Nenhuma escala registrada.</p>}
+          ) : <p>Nenhuma escala registrado.</p>}
 
           {/* Vermifugações */}
           <h5 className="mt-4">Vermifugações</h5>
@@ -596,7 +649,7 @@ const VeterinariaRelatorioServicoForm = () => {
             </table>
           ) : <p>Nenhum reprego registrado.</p>}
 
-          {/* Ferrageamento — Curativo (AGORA COM DATA) */}
+          {/* Ferrageamento — Curativo (com data) */}
           <h5 className="mt-4">Ferrageamento — Curativo</h5>
           {dadosServico.curativos.length > 0 ? (
             <table className="table table-bordered">
@@ -666,7 +719,7 @@ const VeterinariaRelatorioServicoForm = () => {
             </ul>
           ) : <p>Nenhum equino baixado.</p>}
 
-          {/* Retornos */}
+          {/* Retornos (dia do serviço) */}
           <h5 className="mt-4">Equinos Retornados</h5>
           {dadosServico.retornos.length > 0 ? (
             <ul>

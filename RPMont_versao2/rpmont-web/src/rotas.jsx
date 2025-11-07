@@ -23,6 +23,7 @@ import VeterinariaFerrageamentoRepregoList from './pages/veterinaria/Veterinaria
 import VeterinariaFerrageamentoCurativoList from './pages/veterinaria/VeterinariaFerrageamentoCurativoList.jsx';
 import GraficoCargaHorariaEquinoAnual from './pages/grafico/GraficoCargaHorariaEquinoAnual.jsx';
 import GraficoCargaHorariaEquinoAnualUnico from './pages/grafico/GraficoCargaHorariaEquinoAnualUnico.jsx';
+import VeterinariaRelatorioServicoList from './pages/veterinaria/VeterinariaRelatorioServicoList.jsx';
 
 const rotas = () => {
   return (
@@ -40,6 +41,7 @@ const rotas = () => {
         <Route path="/carga-horaria-equino" element={<GraficoCargaHorariaEquino />} />
         <Route path="/veterinaria-Equinos-Baixados" element={<VeterinariaEquinosBaixadosList />} />
         <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm />} />
+        <Route path="/consultar-relatorios" element={<VeterinariaRelatorioServicoList/>} />
         <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino />} />
         <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
         <Route path="/veterinaria-toalete-equino/:id" element={<VeterinariaToaleteForm />} />     

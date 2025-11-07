@@ -96,7 +96,7 @@ const VeterinariaAtendimento = () => {
         setModalAberto(true);
         setTimeout(() => {
           setModalAberto(false);
-          navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-List');
+          navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-Equinos-Baixados');
         }, 2000);
       })
       .catch(err => {
@@ -104,8 +104,8 @@ const VeterinariaAtendimento = () => {
         alert('Erro ao salvar atendimento. Verifique a rota /atendimentos da sua API.');
       });
   };
-
-  const cancelar = () => navigate('/veterinaria-Equinos-Baixados');
+    
+  const cancelar = () => navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-Equinos-Baixados');
 
   const calcularDosagem = () => {
     const p = parseFloat(peso);

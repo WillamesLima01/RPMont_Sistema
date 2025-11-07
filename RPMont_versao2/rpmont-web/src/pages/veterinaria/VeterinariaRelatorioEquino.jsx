@@ -101,45 +101,55 @@ const VeterinariaRelatorioEquino = () => {
   };
 
   const gerarRelatorio = () => {
-    const inicioDate = filtroInicio ? new Date(filtroInicio) : new Date('0000-01-01');
-    const fimDate = filtroFim ? new Date(filtroFim) : new Date('9999-12-31');
+    const inicioDate = filtroInicio ? new Date(filtroInicio) : new Date('1970-01-01');
+    const fimDate    = filtroFim    ? new Date(filtroFim)    : new Date('9999-12-31');
 
     const equinosSelecionados = filtroEquino
-      ? equinos.filter(e => e.id === filtroEquino)
+      ? equinos.filter(e => String(e.id) === String(filtroEquino))
       : equinos;
 
     const enfFiltro = (enfTexto || '').trim().toLowerCase();
 
     const dados = equinosSelecionados.map(eq => {
+      // === ATENDIMENTOS ===
       const atend = atendimentos.filter(a => {
         const dataAt = new Date(a.data);
         const dentro = dataAt >= inicioDate && dataAt <= fimDate;
-        const doEquino = a.idEquino === eq.id;
+        const doEquino = String(a.idEquino) === String(eq.id);
         const passaEnf = enfFiltro
-          ? (String(a.enfermidade || '').toLowerCase().includes(enfFiltro))
+          ? String(a.enfermidade || '').toLowerCase().includes(enfFiltro)
           : true;
         return dentro && doEquino && passaEnf;
       });
 
+      // === ESCALAS ===
       const esc = escalas.filter(s => {
         const dataEsc = new Date(s.data);
-        return s.idEquino === eq.id && dataEsc >= inicioDate && dataEsc <= fimDate;
+        return String(s.idEquino) === String(eq.id) && dataEsc >= inicioDate && dataEsc <= fimDate;
       });
 
-      const baixasEq = baixas.filter(b => b.idEquino === eq.id);
+      // === BAIXAS (sobreposição de período; conta em andamento também) ===
+      const baixasEq = baixas.filter(b => String(b.idEquino) === String(eq.id));
       let baixasFiltradas = [];
       let totalDiasBaixado = 0;
 
       baixasEq.forEach(b => {
-        const dataBaixa = new Date(b.dataBaixa);
-        const dataRetorno = b.dataRetorno ? new Date(b.dataRetorno) : new Date();
+        const dataBaixa   = new Date(b.dataBaixa);
+        const dataRetorno = b.dataRetorno ? new Date(b.dataRetorno) : null;
 
-        if (dataBaixa >= inicioDate && dataBaixa <= fimDate) {
-          const dias = Math.ceil((dataRetorno - dataBaixa) / (1000 * 60 * 60 * 24));
+        const sobrepoe =
+          dataBaixa <= fimDate &&
+          (dataRetorno ? dataRetorno >= inicioDate : true);
+
+        if (sobrepoe) {
+          const inizio = dataBaixa < inicioDate ? inicioDate : dataBaixa;
+          const fine   = (dataRetorno && dataRetorno < fimDate) ? dataRetorno : fimDate;
+          const dias   = Math.max(1, Math.ceil((fine - inizio) / (1000 * 60 * 60 * 24)));
+
           totalDiasBaixado += dias;
           baixasFiltradas.push({
             dataBaixa: dataBaixa.toLocaleDateString('pt-BR'),
-            dataRetorno: b.dataRetorno ? dataRetorno.toLocaleDateString('pt-BR') : '—',
+            dataRetorno: dataRetorno ? dataRetorno.toLocaleDateString('pt-BR') : '—',
             dias
           });
         }
@@ -149,9 +159,9 @@ const VeterinariaRelatorioEquino = () => {
 
       return {
         equino: eq.name,
-        atendimentos: tipoRelatorio !== 'baixas' && tipoRelatorio !== 'escalas' ? atend : [],
-        escalas: tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'baixas' ? esc : [],
-        baixas: tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'escalas' ? baixasFiltradas : [],
+        atendimentos: (tipoRelatorio !== 'baixas' && tipoRelatorio !== 'escalas') ? atend : [],
+        escalas:      (tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'baixas') ? esc : [],
+        baixas:       (tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'escalas') ? baixasFiltradas : [],
         cargaTotal,
         totalAtendimentos: atend.length,
         totalBaixas: baixasFiltradas.length,
@@ -160,10 +170,25 @@ const VeterinariaRelatorioEquino = () => {
       };
     });
 
-    // Remove equinos sem atendimentos após os filtros
-    const dadosFiltrados = dados.filter(d => d.totalAtendimentos > 0);
+    // === FILTRO FINAL POR TIPO DE RELATÓRIO ===
+    let dadosFiltrados;
+    switch (tipoRelatorio) {
+      case 'baixas':
+        dadosFiltrados = dados.filter(d => d.totalBaixas > 0);
+        break;
+      case 'escalas':
+        dadosFiltrados = dados.filter(d => d.totalEscalas > 0);
+        break;
+      case 'atendimentos':
+        dadosFiltrados = dados.filter(d => d.totalAtendimentos > 0);
+        break;
+      default: // completo
+        dadosFiltrados = dados.filter(d =>
+          d.totalAtendimentos > 0 || d.totalBaixas > 0 || d.totalEscalas > 0
+        );
+    }
 
-    // Contador total de ocorrências da enfermidade selecionada
+    // Contador total de ocorrências da enfermidade selecionada (faz sentido só quando há filtro de enfermidade)
     const totalOcorr = enfFiltro
       ? dadosFiltrados.reduce((acc, d) => acc + d.totalAtendimentos, 0)
       : null;
@@ -193,7 +218,7 @@ const VeterinariaRelatorioEquino = () => {
 
     const periodoTexto = `Período: ${filtroInicio || 'S/D'} até ${filtroFim || 'S/D'}`;
     const equinoNome = filtroEquino
-      ? (equinos.find(eq => eq.id === filtroEquino)?.name || 'Desconhecido')
+      ? (equinos.find(eq => String(eq.id) === String(filtroEquino))?.name || 'Desconhecido')
       : 'Todos';
     const tipoTexto = tipoRelatorio.charAt(0).toUpperCase() + tipoRelatorio.slice(1);
     const enfHeader = enfTexto || 'Todas';
@@ -217,6 +242,14 @@ const VeterinariaRelatorioEquino = () => {
 
     html2pdf().set(opt).from(clone).save();
   };
+
+  // mensagem de vazio dinâmica conforme tipo
+  const emptyMsg = {
+    atendimentos: 'Nenhum atendimento encontrado com os filtros informados.',
+    baixas:       'Nenhuma baixa encontrada com os filtros informados.',
+    escalas:      'Nenhuma escala encontrada com os filtros informados.',
+    completo:     'Nenhum resultado encontrado com os filtros informados.',
+  }[tipoRelatorio] || 'Nenhum resultado encontrado com os filtros informados.';
 
   return (
     <div className='container-fluid mt-page'>
@@ -429,7 +462,7 @@ const VeterinariaRelatorioEquino = () => {
         {/* Se não houver resultados */}
         {resultado && resultado.length === 0 && (
           <div className='alert alert-warning mt-3'>
-            Nenhum atendimento encontrado com os filtros informados.
+            {emptyMsg}
           </div>
         )}
       </div>

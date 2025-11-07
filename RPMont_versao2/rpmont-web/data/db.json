@@ -62,7 +62,7 @@
       "pelagem": "Castanho",
       "numeroRegistro": "PMPB2025006",
       "dataNascimento": "2005-09-18",
-      "status": "Baixado",
+      "status": "Ativo",
       "sexo": "Macho",
       "unidade": "RPMont"
     },
@@ -217,31 +217,19 @@
       "id": "05ef",
       "idEquino": "6",
       "dataBaixa": "2025-05-16",
-      "dataRetorno": null
+      "dataRetorno": "2025-10-20"
     },
     {
       "id": "c0dbd3f7-f5d9-412f-aee7-3ae013225e9f",
       "idEquino": "3",
       "dataBaixa": "2025-07-17",
       "dataRetorno": "2025-08-24"
-    },
-    {
-      "id": "a2b229bb-2166-485e-afb1-132c1297d714",
-      "idEquino": "2",
-      "dataBaixa": "2025-07-17",
-      "dataRetorno": null
-    },
+    },    
     {
       "id": "15e99582-3a5c-4781-a393-bc671589fe73",
       "idEquino": "fc22",
       "dataBaixa": "2025-07-17",
       "dataRetorno": "2025-08-24"
-    },
-    {
-      "id": "1c4b3576-1764-43be-9a0a-22b7db13955a",
-      "idEquino": "2",
-      "dataBaixa": "2025-07-17",
-      "dataRetorno": null
     },
     {
       "id": "f76ff25b-ab15-45c0-b6db-3672128e46ef",
@@ -272,13 +260,8 @@
       "idEquino": "7",
       "dataBaixa": "2025-08-30",
       "dataRetorno": null
-    },
-    {
-      "id": "e393ee3b-5e9e-4715-a3cd-173adbcaf573",
-      "idEquino": "7",
-      "dataBaixa": "2025-08-30",
-      "dataRetorno": null
     }
+    
   ],
   "atendimentos": [
     {
@@ -303,11 +286,11 @@
       "id": "2fcd"
     },
     {
-      "id": "7c7f",
       "idEquino": "1",
       "textoConsulta": "Foi realizado serviço de casqueamento e aplicação de medicamento na posterior esquerda com cascozan e antibiótico para frieira e rachadura.",
       "enfermidade": "Frieira",
-      "data": "2025-05-01"
+      "data": "2025-10-20",
+      "id": "7c7f"
     },
     {
       "id": "8edc",
@@ -331,11 +314,11 @@
       "data": "2025-05-01"
     },
     {
-      "id": "0712",
       "idEquino": "11",
       "textoConsulta": "Realização de vermefugo",
       "enfermidade": "Verme",
-      "data": "2025-03-01"
+      "data": "2025-10-20",
+      "id": "0712"
     },
     {
       "id": "b32b",
@@ -359,11 +342,11 @@
       "data": "2025-03-01"
     },
     {
-      "id": "1b70",
       "idEquino": "1",
       "textoConsulta": "Realizado exame de sangue",
       "enfermidade": "Coceira",
-      "data": "2025-04-01"
+      "data": "2025-10-20",
+      "id": "1b70"
     },
     {
       "id": "0003",
@@ -420,6 +403,41 @@
       "textoConsulta": "Foi aplicado soro com medicação no equino para aliviar as dores da cólica",
       "enfermidade": "cólica",
       "data": "2025-08-30"
+    },
+    {
+      "id": "89f2",
+      "idEquino": "2",
+      "textoConsulta": "foi passada a sonda para lavagem do estômago",
+      "enfermidade": "cólica",
+      "data": "2025-10-20"
+    },
+    {
+      "id": "7cfd",
+      "idEquino": "7",
+      "textoConsulta": "foi realizado vermefugação",
+      "enfermidade": "Verme",
+      "data": "2025-10-20"
+    },
+    {
+      "id": "bdfa",
+      "idEquino": "f167",
+      "textoConsulta": "foi aplicado medicação para frieira",
+      "enfermidade": "Frieira",
+      "data": "2025-10-20"
+    },
+    {
+      "id": "2024",
+      "idEquino": "8",
+      "textoConsulta": "foi usado sonda",
+      "enfermidade": "cólica",
+      "data": "2025-10-20"
+    },
+    {
+      "id": "b81a",
+      "idEquino": "7",
+      "textoConsulta": "corte na posterior esquerda",
+      "enfermidade": "Corte",
+      "data": "2025-10-20"
     }
   ],
   "escala": [
@@ -575,6 +593,33 @@
       "cavaleiro": "SGT Giuliano",
       "cargaHoraria": 6,
       "data": "2025-08-30"
+    },
+    {
+      "id": "3bd8",
+      "idEquino": "10",
+      "localTrabalho": "Busto de Tamadaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "CB Douglas Costa",
+      "cargaHoraria": 6,
+      "data": "2025-10-20"
+    },
+    {
+      "id": "142a",
+      "idEquino": "6",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "SGT André Luiz",
+      "cargaHoraria": 6,
+      "data": "2025-10-20"
+    },
+    {
+      "id": "a106",
+      "idEquino": "5",
+      "localTrabalho": "Busto de Tamandaré",
+      "jornadaTrabalho": "18:00h às 00:00h",
+      "cavaleiro": "SD Edielson",
+      "cargaHoraria": 6,
+      "data": "2025-10-20"
     }
   ],
   "users": [
@@ -667,6 +712,51 @@
       "observacoes": "",
       "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
       "data": "2025-08-20T11:54:24.014Z"
+    },
+    {
+      "id": "6706",
+      "equinoId": "fc22",
+      "tosa": true,
+      "banho": false,
+      "limpezaOuvidos": false,
+      "limpezaGenital": true,
+      "limpezaCascos": true,
+      "ripagemCrina": true,
+      "ripagemCola": true,
+      "escovacao": false,
+      "rasqueamento": false,
+      "observacoes": "",
+      "data": "2025-10-20T14:08:20.758Z"
+    },
+    {
+      "id": "2a63",
+      "equinoId": "11",
+      "tosa": true,
+      "banho": true,
+      "limpezaOuvidos": true,
+      "limpezaGenital": false,
+      "limpezaCascos": false,
+      "ripagemCrina": true,
+      "ripagemCola": true,
+      "escovacao": true,
+      "rasqueamento": false,
+      "observacoes": "",
+      "data": "2025-10-20T14:08:35.172Z"
+    },
+    {
+      "id": "5db8",
+      "equinoId": "3",
+      "tosa": true,
+      "banho": false,
+      "limpezaOuvidos": false,
+      "limpezaGenital": true,
+      "limpezaCascos": true,
+      "ripagemCrina": false,
+      "ripagemCola": true,
+      "escovacao": true,
+      "rasqueamento": true,
+      "observacoes": "",
+      "data": "2025-10-20T14:08:52.963Z"
     }
   ],
   "ferrageamentoEquino": [
@@ -721,6 +811,32 @@
       "observacoes": "",
       "dataProximoProcedimento": "2025-09-20T03:00:00.000Z",
       "data": "2025-08-30T11:54:24.014Z"
+    },
+    {
+      "id": "b9a5",
+      "equinoId": "4aa6",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 18,
+      "observacoes": "",
+      "dataProximoProcedimento": "2025-10-20T03:00:00.000Z",
+      "data": "2025-10-20T14:33:20.937Z"
+    },
+    {
+      "id": "6ee3",
+      "equinoId": "10",
+      "tipoFerradura": "Geral",
+      "tipoCravo": "Comum",
+      "tipoJustura": "Francesa",
+      "tipoFerrageamento": "A Frio",
+      "ferros": 4,
+      "cravos": 18,
+      "observacoes": "",
+      "dataProximoProcedimento": "2025-10-20T03:00:00.000Z",
+      "data": "2025-10-20T14:34:43.609Z"
     }
   ],
   "ferrageamentoRepregoEquino": [
@@ -837,6 +953,22 @@
       "observacao": "sem alteração",
       "data": "2025-08-30T23:05:04.682Z",
       "dataProximoProcedimento": "2025-09-09T03:00:00.000Z"
+    },
+    {
+      "id": "7be6",
+      "equinoId": "9",
+      "vermifugo": "Albendazol",
+      "observacao": "",
+      "data": "2025-10-20T14:11:26.728Z",
+      "dataProximoProcedimento": "2025-10-20T03:00:00.000Z"
+    },
+    {
+      "id": "4a1e",
+      "equinoId": "f167",
+      "vermifugo": "Albendazol",
+      "observacao": "",
+      "data": "2025-10-20T14:11:40.167Z",
+      "dataProximoProcedimento": "2025-10-20T03:00:00.000Z"
     }
   ],
   "resenhas": [
@@ -898,6 +1030,22 @@
       "observacao": "Sem alteração",
       "data": "2025-08-30T23:04:00.699Z",
       "dataProximoProcedimento": "2025-11-30T00:00:00.000Z"
+    },
+    {
+      "id": "6274",
+      "id_Eq": "9",
+      "nomeVacina": "Raiva animal",
+      "observacao": "",
+      "data": "2025-10-20T14:11:55.789Z",
+      "dataProximoProcedimento": "2025-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "647d",
+      "id_Eq": "1",
+      "nomeVacina": "Raiva animal",
+      "observacao": "",
+      "data": "2025-10-20T14:12:07.197Z",
+      "dataProximoProcedimento": "2025-10-20T00:00:00.000Z"
     }
   ]
 }
