@@ -1,0 +1,56 @@
+/* Estilo geral para o container do modal */
+.modal-vermifugacao {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  padding: 32px;
+}
+
+/* Padding interno aplicado via classe do MUI */
+.modal-vermifugacao .MuiBox-root {
+  padding: 16px;
+}
+
+/* Título e textos do modal */
+.modal-vermifugacao .MuiTypography-root {
+  margin-bottom: 12px;
+}
+
+/* Estilo principal do título */
+.text-primary {
+  color: #0d6efd;
+  margin-bottom: 1rem;
+}
+
+/* Espaçamento inferior nos blocos de dados do equino */
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+/* Margem superior para o campo de observações */
+.mt-3 {
+  margin-top: 1rem;
+}
+
+/* Espaçamento e alinhamento dos botões */
+.d-flex {
+  display: flex;
+}
+
+.justify-content-end {
+  justify-content: flex-end;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+/* Espaço superior nos botões */
+.mt-4 {
+  margin-top: 1.5rem;
+}

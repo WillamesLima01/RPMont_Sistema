@@ -1,0 +1,88 @@
+.navbar-logo {
+  height: 30px;
+}
+
+/* Quando o link é da página ativa */
+.active {
+  color: yellow;
+}
+
+/* Estilo do dropdown geral */
+.dropdown-menu {
+  background-color: #0d6efd; /* azul Bootstrap */
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  min-width: 200px;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+/* Itens do dropdown */
+.dropdown-menu .dropdown-item {
+  color: #ffffff;
+  padding: 10px 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+  background-color: #084298;
+  color: #ffffff;
+}
+
+/* Cabeçalhos dentro do dropdown */
+.navbar .dropdown-header {
+  background-color: #0b5ed7;
+  color: #ffffff;
+  font-weight: bold;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* LINKS principais da navbar */
+.navbar .nav-link {
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+  color: #00d4ff 
+}
+
+.navbar .nav-link.active {
+  color: yellow;
+  font-weight: bold;
+}
+
+/* Torna o menu rolável em telas pequenas */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .dropdown-submenu ul {
+    position: static;
+    display: block;
+    padding-left: 1rem;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .dropdown-submenu .dropdown-item {
+    padding-left: 2rem;
+  }
+}
+
+/* Garante que a lista interna de Ferrageamento apareça corretamente */
+.dropdown-submenu ul {
+  max-height: 60vh;       /* pode aumentar para 70vh se quiser mais espaço */
+  overflow-y: auto;
+  padding-left: 1rem;
+}
+
+.dropdown-submenu ul .dropdown-item {
+  white-space: normal;
+}
