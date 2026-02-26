@@ -13,7 +13,7 @@ public interface EquinoService {
 
     EquinoResponse criarEquino(EquinoRequest equinoRequest);
 
-    List<Equino> buscarEquinoId(Long id);
+    Equino buscarEquinoId(Long id);
 
     List<Equino> buscarTodosEquinos();
 

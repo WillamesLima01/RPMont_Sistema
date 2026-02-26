@@ -1,24 +1,34 @@
 package br.com.rpmont.gerenciadorequinos.service;
 
-
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class EquinoServiceImpl implements EquinoService{
 
-    @Autowired
-    EquinoRepository equinoRepository;
+    private final EquinoRepository equinoRepository;
 
     @Override
     public EquinoResponse criarEquino(EquinoRequest equinoRequest) {
+
+        if(equinoRepository.existsByNomeAndDataNascimento(
+                equinoRequest.nome(),
+                equinoRequest.dataNascimento())){
+
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Equino já cadastrado no banco de dados!");
+
+        }
 
         Equino cadastrarEquino = new Equino();
 
@@ -35,29 +45,64 @@ public class EquinoServiceImpl implements EquinoService{
 
         Equino equinoCadastrado = equinoRepository.save(cadastrarEquino);
 
-        return new EquinoResponse(
-                "Equino cadastrado com sucesso!",
-                equinoCadastrado.getId()
-        );
+        return toResponse(equinoCadastrado);
     }
 
     @Override
-    public List<Equino> buscarEquinoId(Long id) {
-        return List.of();
+    public Equino buscarEquinoId(Long id) {
+
+        return equinoRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Equino não encontrado!"));
     }
 
     @Override
     public List<Equino> buscarTodosEquinos() {
-        return List.of();
+
+        return equinoRepository.findAll();
     }
 
     @Override
     public EquinoResponse atualizarEquino(Long id, EquinoRequest equinoRequest) {
-        return null;
+
+        Equino equinoExistente = equinoRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Equino não encontrado!"));
+
+        equinoExistente.setNome(equinoRequest.nome());
+        equinoExistente.setAltura(equinoRequest.altura());
+        equinoExistente.setRaca(equinoRequest.raca());
+        equinoExistente.setDataNascimento(equinoRequest.dataNascimento());
+        equinoExistente.setInclusao(equinoRequest.inclusao());
+        equinoExistente.setPelagem(equinoRequest.pelagem());
+        equinoExistente.setPeso(equinoRequest.peso());
+        equinoExistente.setLocal(equinoRequest.local());
+        equinoExistente.setSexo(equinoRequest.sexo());
+        equinoExistente.setSituacao(equinoRequest.situacao());
+
+        Equino equinoAtualizado = equinoRepository.save(equinoExistente);
+
+        return toResponse(equinoAtualizado);
     }
 
     @Override
     public void deletarEquinoId(Long id) {
+        Equino deletarExistente = equinoRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Equino não encontrado!"));
 
+        equinoRepository.delete(deletarExistente);
+    }
+
+    private EquinoResponse toResponse(Equino equino) {
+        return new EquinoResponse(
+                equino.getId(),
+                equino.getNome(),
+                equino.getAltura(),
+                equino.getRaca(),
+                equino.getSituacao(),
+                equino.getDataCadastro(),
+                equino.getAtualizadoEm()
+        );
     }
 }
