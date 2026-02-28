@@ -36,7 +36,11 @@ public class EquinoServiceImpl implements EquinoService{
         cadastrarEquino.setAltura(equinoRequest.altura());
         cadastrarEquino.setRaca(equinoRequest.raca());
         cadastrarEquino.setDataNascimento(equinoRequest.dataNascimento());
+<<<<<<< HEAD
         cadastrarEquino.setInclusao(equinoRequest.inclusao());
+=======
+        cadastrarEquino.setRegistro(equinoRequest.registro());
+>>>>>>> ea6d8fd (atualizado)
         cadastrarEquino.setPelagem(equinoRequest.pelagem());
         cadastrarEquino.setPeso(equinoRequest.peso());
         cadastrarEquino.setLocal(equinoRequest.local());
@@ -73,7 +77,11 @@ public class EquinoServiceImpl implements EquinoService{
         equinoExistente.setAltura(equinoRequest.altura());
         equinoExistente.setRaca(equinoRequest.raca());
         equinoExistente.setDataNascimento(equinoRequest.dataNascimento());
+<<<<<<< HEAD
         equinoExistente.setInclusao(equinoRequest.inclusao());
+=======
+        equinoExistente.setRegistro(equinoRequest.registro());
+>>>>>>> ea6d8fd (atualizado)
         equinoExistente.setPelagem(equinoRequest.pelagem());
         equinoExistente.setPeso(equinoRequest.peso());
         equinoExistente.setLocal(equinoRequest.local());

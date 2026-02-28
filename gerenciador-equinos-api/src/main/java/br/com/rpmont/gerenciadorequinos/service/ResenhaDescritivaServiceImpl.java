@@ -1,5 +1,9 @@
 package br.com.rpmont.gerenciadorequinos.service;
 
+<<<<<<< HEAD
+=======
+import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaDetalheResponse;
+>>>>>>> ea6d8fd (atualizado)
 import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
@@ -9,8 +13,15 @@ import br.com.rpmont.gerenciadorequinos.repository.ResenhaDescritivaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+<<<<<<< HEAD
 import org.springframework.web.server.ResponseStatusException;
 
+=======
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+
+>>>>>>> ea6d8fd (atualizado)
 @Service
 @RequiredArgsConstructor
 public class ResenhaDescritivaServiceImpl implements ResenhaDescritivaService{
@@ -78,4 +89,25 @@ public class ResenhaDescritivaServiceImpl implements ResenhaDescritivaService{
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Resenha não encontrada no banco de dados!"));
     }
+<<<<<<< HEAD
+=======
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResenhaDescritivaDetalheResponse buscarEquinoId(Long equinoId) {
+
+        ResenhaDescritiva resenhaDescritiva = resenhaDescritivaRepository.findByEquinoId(equinoId)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Resenha não encontrada"));
+
+        return new ResenhaDescritivaDetalheResponse(
+                resenhaDescritiva.getId(),
+                resenhaDescritiva.getEquino().getId(),
+                resenhaDescritiva.getDescricao(),
+                resenhaDescritiva.getImgChanfro(),
+                resenhaDescritiva.getImg_lado_direito(),
+                resenhaDescritiva.getImg_lado_esquerdo()
+        );
+    }
+>>>>>>> ea6d8fd (atualizado)
 }

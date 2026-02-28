@@ -22,8 +22,13 @@ public record EquinoRequest(
         @PastOrPresent(message = "A data de nascimento não pode ser futura")
         LocalDate dataNascimento,
 
+<<<<<<< HEAD
         @NotBlank(message = "Informe a inclusão")
         String inclusao,
+=======
+        @NotBlank(message = "Informe o registro")
+        String registro,
+>>>>>>> ea6d8fd (atualizado)
 
         @NotNull(message = "A pelagem deve ser informada")
         PelagemEquinoEnum pelagem,

@@ -36,8 +36,13 @@ public class Equino implements Serializable {
     @Column(name = "data_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
+<<<<<<< HEAD
     @Column(name = "inclusao", nullable = false, length = 50)
     private String inclusao;
+=======
+    @Column(name = "registro", nullable = false, length = 50)
+    private String registro;
+>>>>>>> ea6d8fd (atualizado)
 
     @Column(name = "pelagem", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
