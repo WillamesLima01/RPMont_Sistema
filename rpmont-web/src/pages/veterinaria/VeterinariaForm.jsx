@@ -11,16 +11,16 @@ Modal.setAppElement('#root');
 
 const VeterinariaForm = () => {
   const [equino, setEquino] = useState({
-    name: '',
+    nome: '',
     raca: '',
     pelagem: '',
-    numeroRegistro: '',
+    registro: '',
     dataNascimento: '',
     situacao: '',
-    sexo: '',
     altura: '',
     peso: '',
-    unidade:''
+    sexo: '',        
+    local:''
   });
 
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
@@ -38,16 +38,16 @@ const VeterinariaForm = () => {
         .then(response => {
           const dados = response.data;
           setEquino({
-            name: dados.name || '',
-            raca: dados.raca || '',
-            pelagem: dados.pelagem || '',
-            numeroRegistro: dados.numeroRegistro || '',
+            nome: dados.nome ?? '',
+            raca: dados.raca ?? '',
+            pelagem: dados.pelagem ?? '',
+            registro: dados.registro ?? '',
             dataNascimento: formatarDataParaInput(dados.dataNascimento),
-            situacao: dados.situacao || '',
-            altura: dados.altura || '',
-            peso: dados.peso || '',
-            sexo: dados.sexo || '',
-            unidade: dados.unidade || ''
+            situacao: dados.situacao ?? '',
+            altura: dados.altura ?? '',
+            peso: dados.peso ?? '',
+            sexo: dados.sexo ?? '',
+            local: dados.local ?? ''
           });
         })
         .catch(error => console.error('Erro ao buscar equino:', error));
@@ -69,6 +69,10 @@ const VeterinariaForm = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     setMensagensErro([]);
+
+    console.log("JSON ENVIADO PARA API:");
+    console.log(equino);
+    console.log(JSON.stringify(equino, null, 2));
 
     const request = id
       ? axios.put(`/equino/${id}`, equino)
@@ -99,16 +103,16 @@ const VeterinariaForm = () => {
 
   const resetForm = () => {
     setEquino({
-      name: '',
+      nome: '',
       raca: '',
       pelagem: '',
-      numeroRegistro: '',
+      registro: '',
       dataNascimento: '',
       situacao: '',
       altura: '',
       peso: '',
       sexo: '',
-      unidade:''
+      local: ''
     });
   };
 
@@ -165,24 +169,46 @@ const VeterinariaForm = () => {
             <form onSubmit={handleSubmit} className="row g-3">
               {/* campos */}
               <div className="col-md-6">
-                <label htmlFor="name" className="form-label">Nome</label>
-                <input type="text" id="name" name="name" className="form-control" value={equino.name} onChange={handleChange} required />
+                <label htmlFor="nome" className="form-label">Nome</label>
+                <input type="text" id="nome" name="nome" className="form-control" value={equino.nome} onChange={handleChange} required />
               </div>
               <div className="col-md-6">
                 <label htmlFor="sexo" className="form-label">Sexo</label>
                 <select id="sexo" name="sexo" className="form-select" value={equino.sexo} onChange={handleChange} required>
                   <option value="">Selecione</option>
-                  <option value="Macho">Macho</option>
-                  <option value="Fêmea">Fêmea</option>
+                  <option value="MACHO">Macho</option>
+                  <option value="FEMEA">Fêmea</option>
+                </select>
+              </div>              
+              <div className="col-md-6">
+                <label htmlFor="pelagem" className="form-label">Pelagem</label>
+
+                <select
+                  id="pelagem"
+                  name="pelagem"
+                  className="form-select"
+                  value={equino.pelagem}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Selecione</option>
+
+                  <option value="CASTANHO">Castanho</option>
+                  <option value="ALAZAO">Alazão</option>
+                  <option value="TORDILHO">Tordilho</option>
+                  <option value="PRETO">Preto</option>
+                  <option value="BAIO">Baio</option>
+                  <option value="ROSILHO">Rosilho</option>
+                  <option value="ZAINO">Zaino</option>
+                  <option value="LOBUNO">Lobuno</option>
+                  <option value="PAMPA">Pampa</option>
+                  <option value="PALOMINO">Palomino</option>
+
                 </select>
               </div>
               <div className="col-md-6">
-                <label htmlFor="pelagem" className="form-label">Pelagem</label>
-                <input type="text" id="pelagem" name="pelagem" className="form-control" value={equino.pelagem} onChange={handleChange} required />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="numeroRegistro" className="form-label">Registro</label>
-                <input type="text" id="numeroRegistro" name="numeroRegistro" className="form-control" value={equino.numeroRegistro} onChange={handleChange} required />
+                <label htmlFor="registro" className="form-label">Registro</label>
+                <input type="text" id="registro" name="registro" className="form-control" value={equino.registro} onChange={handleChange} required />
               </div>
               <div className="col-md-6">
                 <label htmlFor="dataNascimento" className="form-label">Data de Nascimento</label>
@@ -195,25 +221,25 @@ const VeterinariaForm = () => {
 
               <div className="col-md-6">
                 <label htmlFor="altura" className="form-label">Altura</label>
-                <input type="text" id="altura" name="altura" className="form-control" value={equino.altura} onChange={handleChange} required />
+                <input type="number" step={"0.01"} id="altura" name="altura" className="form-control" value={equino.altura || ''} onChange={handleChange} required />
               </div>
 
               <div className="col-md-6">
                 <label htmlFor="peso" className="form-label">Peso</label>
-                <input type="text" id="peso" name="peso" className="form-control" value={equino.peso} onChange={handleChange} required />
+                <input type="number" step={"0.01"} id="peso" name="peso" className="form-control" value={equino.peso || ''} onChange={handleChange} required />
               </div>
 
               <div className="col-md-6">
                 <label htmlFor="situacao" className="form-label">Situação</label>
                 <select id="situacao" name="situacao" className="form-select" value={equino.situacao} onChange={handleChange} required>
                   <option value="">Selecione</option>
-                  <option value="Ativo">Ativo</option>
-                  <option value="Baixado">Baixado</option>
+                  <option value="ATIVO">Ativo</option>
+                  <option value="BAIXADO">Baixado</option>
                 </select>
               </div>
               <div className="col-md-6">
-                <label htmlFor="unidade" className="form-label">Unidade</label>
-                <select id="unidade" name="unidade" className="form-select" value={equino.unidade} onChange={handleChange} required>
+                <label htmlFor="local" className="form-label">Unidade</label>
+                <select id="local" name="local" className="form-select" value={equino.local} onChange={handleChange} required>
                   <option value="">Selecione</option>
                   <option value="RPMont">RPMont</option>
                   <option value="3ºEPMont">3º EPMont</option>

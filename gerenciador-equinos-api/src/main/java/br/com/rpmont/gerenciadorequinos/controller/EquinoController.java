@@ -23,6 +23,9 @@ public class EquinoController {
     @ResponseStatus(HttpStatus.CREATED)
     public EquinoResponse criarEquino(@Valid @RequestBody EquinoRequest e) {
 
+        System.out.println("JSON RECEBIDO:");
+        System.out.println(e);
+
         return equinoService.criarEquino(e);
 
     }
