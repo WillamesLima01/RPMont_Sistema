@@ -104,6 +104,8 @@ const VeterinariaResenhaEquinoForm = () => {
           <div className="info-box bg1 mb-2"><strong>Registro:</strong> <p>{equino.numeroRegistro}</p></div>
           <div className="info-box bg1 mb-2"><strong>Pelagem:</strong> <p>{equino.pelagem}</p></div>
           <div className="info-box bg1 mb-2"><strong>Sexo:</strong> <p>{equino.sexo}</p></div>
+          <div className="info-box bg1 mb-2"><strong>Altura:</strong> <p>{equino.altura}</p></div>
+          <div className="info-box bg1 mb-2"><strong>Peso:</strong> <p>{equino.peso}</p></div>
           <div className="info-box bg1 mb-2"><strong>Unidade:</strong> <p>{equino.unidade}</p></div>
         </div>
 

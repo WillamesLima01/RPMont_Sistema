@@ -1,9 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.service;
 
-<<<<<<< HEAD
-=======
 import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaDetalheResponse;
->>>>>>> ea6d8fd (atualizado)
 import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.ResenhaDescritivaResponse;
 import br.com.rpmont.gerenciadorequinos.model.ResenhaDescritiva;
@@ -17,10 +14,7 @@ public interface ResenhaDescritivaService {
     ResenhaDescritivaResponse atualizarResenhaDescritiva(Long id, ResenhaDescritivaRequest resenhaDescritivaRequest);
 
     ResenhaDescritiva buscarResenhaDescritivaId(Long equinoId);
-<<<<<<< HEAD
-=======
 
     ResenhaDescritivaDetalheResponse buscarEquinoId(Long equinoId);
 
->>>>>>> ea6d8fd (atualizado)
 }

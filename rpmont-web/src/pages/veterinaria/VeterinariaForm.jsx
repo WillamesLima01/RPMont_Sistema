@@ -16,8 +16,10 @@ const VeterinariaForm = () => {
     pelagem: '',
     numeroRegistro: '',
     dataNascimento: '',
-    status: '',
+    situacao: '',
     sexo: '',
+    altura: '',
+    peso: '',
     unidade:''
   });
 
@@ -32,7 +34,7 @@ const VeterinariaForm = () => {
 
   useEffect(() => {
     if (id) {
-      axios.get(`/equinos/${id}`)
+      axios.get(`/equino/${id}`)
         .then(response => {
           const dados = response.data;
           setEquino({
@@ -41,7 +43,9 @@ const VeterinariaForm = () => {
             pelagem: dados.pelagem || '',
             numeroRegistro: dados.numeroRegistro || '',
             dataNascimento: formatarDataParaInput(dados.dataNascimento),
-            status: dados.status || '',
+            situacao: dados.situacao || '',
+            altura: dados.altura || '',
+            peso: dados.peso || '',
             sexo: dados.sexo || '',
             unidade: dados.unidade || ''
           });
@@ -67,8 +71,8 @@ const VeterinariaForm = () => {
     setMensagensErro([]);
 
     const request = id
-      ? axios.put(`/equinos/${id}`, equino)
-      : axios.post('/equinos', equino);
+      ? axios.put(`/equino/${id}`, equino)
+      : axios.post('/equino', equino);
 
     request.then(() => {
       document.activeElement.blur();
@@ -100,7 +104,9 @@ const VeterinariaForm = () => {
       pelagem: '',
       numeroRegistro: '',
       dataNascimento: '',
-      status: '',
+      situacao: '',
+      altura: '',
+      peso: '',
       sexo: '',
       unidade:''
     });
@@ -186,9 +192,20 @@ const VeterinariaForm = () => {
                 <label htmlFor="raca" className="form-label">Raça</label>
                 <input type="text" id="raca" name="raca" className="form-control" value={equino.raca} onChange={handleChange} required />
               </div>
+
+              <div className="col-md-6">
+                <label htmlFor="altura" className="form-label">Altura</label>
+                <input type="text" id="altura" name="altura" className="form-control" value={equino.altura} onChange={handleChange} required />
+              </div>
+
+              <div className="col-md-6">
+                <label htmlFor="peso" className="form-label">Peso</label>
+                <input type="text" id="peso" name="peso" className="form-control" value={equino.peso} onChange={handleChange} required />
+              </div>
+
               <div className="col-md-6">
                 <label htmlFor="situacao" className="form-label">Situação</label>
-                <select id="status" name="status" className="form-select" value={equino.status} onChange={handleChange} required>
+                <select id="situacao" name="situacao" className="form-select" value={equino.situacao} onChange={handleChange} required>
                   <option value="">Selecione</option>
                   <option value="Ativo">Ativo</option>
                   <option value="Baixado">Baixado</option>

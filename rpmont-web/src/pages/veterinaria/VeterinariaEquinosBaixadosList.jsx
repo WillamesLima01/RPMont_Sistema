@@ -227,6 +227,8 @@ const VeterinariaEquinosBaixadosList = () => {
             <th>Nome</th>
             <th>Raça</th>
             <th>Pelagem</th>
+            <th>Altura</th>
+            <th>Peso</th>
             <th>Registro</th>
             <th>Data da Baixa</th>
             <th>Status</th>
@@ -244,6 +246,8 @@ const VeterinariaEquinosBaixadosList = () => {
                 <td>{eq.name}</td>
                 <td>{eq.raca}</td>
                 <td>{eq.pelagem}</td>
+                <td>{eq.altura}</td>
+                <td>{eq.peso}</td>
                 <td>{eq.numeroRegistro}</td>
                 <td>{dataBaixaFormatada}</td>
                 <td>{eq.status}</td>

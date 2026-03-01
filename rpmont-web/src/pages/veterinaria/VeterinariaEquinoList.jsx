@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
-// ⬇️ trocado: agora importa o cabeçalho com o botão PDF embutido
 import CabecalhoEquinoLista from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 import ModalVermifugacao from '../../components/modal/ModalVermifugacao.jsx';
@@ -114,6 +113,8 @@ const buildIndex = (e) => {
     e?.raca,
     e?.pelagem,
     e?.unidade,
+    e?.altura,
+    e?.peso,
     e?.status,
     e?.sexo,
   ]
@@ -333,6 +334,8 @@ const VeterinariaEquinoList = () => {
       'Número Registro',
       'Nascimento',
       'Status',
+      'Altura',
+      'Peso',
       'Sexo',
       'Unidade',
     ]];
@@ -344,6 +347,8 @@ const VeterinariaEquinoList = () => {
       e.numeroRegistro || '',
       e.dataNascimento ? dayjs(e.dataNascimento).format('DD/MM/YYYY') : '',
       e.status || '',
+      e.altura || '',
+      e.peso || '',
       e.sexo || '',
       e.unidade || '',
     ]));
@@ -490,6 +495,8 @@ const VeterinariaEquinoList = () => {
               <th>Número Registro</th>
               <th>Data Nascimento</th>
               <th>Status</th>
+              <th>Altura</th>
+              <th>Peso</th>
               <th>Sexo</th>
               <th>Unidade</th>
               <th className="text-end">Ações</th>
@@ -511,6 +518,8 @@ const VeterinariaEquinoList = () => {
                     <td>{equino.numeroRegistro}</td>
                     <td>{equino.dataNascimento}</td>
                     <td>{equino.status}</td>
+                    <td>{equino.altura}</td>
+                    <td>{equino.peso}</td>
                     <td>{equino.sexo}</td>
                     <td>{equino.unidade}</td>
                     <td className="text-end">

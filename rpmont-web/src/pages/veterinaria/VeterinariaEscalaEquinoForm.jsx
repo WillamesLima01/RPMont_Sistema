@@ -118,6 +118,8 @@ const VeterinariaEscalaEquino = () => {
               <div className="col"><div className="info-box bg1"><strong>Registro:</strong><p>{equino.numeroRegistro}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Nascimento:</strong><p>{equino.dataNascimento}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Sexo:</strong><p>{equino.sexo}</p></div></div>
+              <div className="col"><div className="info-box bg1"><strong>Altura:</strong><p>{equino.altura}</p></div></div>
+              <div className="col"><div className="info-box bg1"><strong>Peso:</strong><p>{equino.peso}</p></div></div>
             </div>
           </div>
 
