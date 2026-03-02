@@ -335,7 +335,7 @@ const VeterinariaEquinoList = () => {
     ]];
 
     const body = equinosFiltrados.map((e) => ([
-      e.name || '',
+      e.nome || '',
       e.raca || '',
       e.pelagem || '',
       e.registro || '',
@@ -484,7 +484,7 @@ const VeterinariaEquinoList = () => {
               <th>Nome</th>
               <th>Raça</th>
               <th>Pelagem</th>
-              <th>Número Registro</th>
+              <th>Registro</th>
               <th>Data Nascimento</th>
               <th>Status</th>
               <th>Altura</th>
@@ -504,7 +504,7 @@ const VeterinariaEquinoList = () => {
 
                 return (
                   <tr key={equino.id}>
-                    <td>{equino.name}</td>
+                    <td>{equino.nome}</td>
                     <td>{equino.raca}</td>
                     <td>{equino.pelagem}</td>
                     <td>{equino.registro}</td>

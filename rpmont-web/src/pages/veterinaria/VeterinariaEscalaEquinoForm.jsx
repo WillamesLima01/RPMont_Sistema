@@ -22,7 +22,7 @@ const VeterinariaEscalaEquino = () => {
   const [idEscala, setIdEscala] = useState(null);
 
   useEffect(() => {
-    axios.get(`/equinos/${id}`)
+    axios.get(`/equino/${id}`)
       .then(res => setEquino(res.data))
       .catch(err => console.error("Erro ao carregar equino:", err));
   }, [id]);
@@ -112,10 +112,10 @@ const VeterinariaEscalaEquino = () => {
           <div className="bloco-flutuante">
             <h4 className="mb-3">Dados do Equino</h4>
             <div className="row row-cols-1 row-cols-md-2 g-3">
-              <div className="col"><div className="info-box bg1"><strong>Nome:</strong><p>{equino.name}</p></div></div>
+              <div className="col"><div className="info-box bg1"><strong>Nome:</strong><p>{equino.nome}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Raça:</strong><p>{equino.raca}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Pelagem:</strong><p>{equino.pelagem}</p></div></div>
-              <div className="col"><div className="info-box bg1"><strong>Registro:</strong><p>{equino.numeroRegistro}</p></div></div>
+              <div className="col"><div className="info-box bg1"><strong>Registro:</strong><p>{equino.registro}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Nascimento:</strong><p>{equino.dataNascimento}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Sexo:</strong><p>{equino.sexo}</p></div></div>
               <div className="col"><div className="info-box bg1"><strong>Altura:</strong><p>{equino.altura}</p></div></div>

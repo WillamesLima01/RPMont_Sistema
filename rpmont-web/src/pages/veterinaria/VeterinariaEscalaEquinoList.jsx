@@ -30,7 +30,7 @@ const VeterinariaEscalaEquinoList = () => {
 
   useEffect(() => {
     buscarEscala();
-    axios.get('/equinos')
+    axios.get('/equino')
       .then(response => setEquinos(response.data))
       .catch(error => console.error("Erro ao buscar equinos:", error));
   }, []);
@@ -96,7 +96,7 @@ const VeterinariaEscalaEquinoList = () => {
 
   const getNomeEquino = (idEquino) => {
     const equino = equinos.find(eq => eq.id === idEquino);
-    return equino ? equino.name : 'Desconhecido';
+    return equino ? equino.nome : 'Desconhecido';
   };
 
   const indexUltimoItem = paginaAtual * itensPorPagina;
