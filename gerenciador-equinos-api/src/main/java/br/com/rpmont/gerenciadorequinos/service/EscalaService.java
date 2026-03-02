@@ -17,4 +17,6 @@ public interface EscalaService {
     Escala buscarEscalaId(Long id);
 
     EscalaResponse atualizarEscalaId(Long id, EscalaRequest escalaRequest);
+
+    void deletarEscalaId(Long id);
 }

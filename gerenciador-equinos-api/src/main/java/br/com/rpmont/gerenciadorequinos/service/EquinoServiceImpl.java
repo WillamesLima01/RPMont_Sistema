@@ -36,11 +36,8 @@ public class EquinoServiceImpl implements EquinoService{
         cadastrarEquino.setAltura(equinoRequest.altura());
         cadastrarEquino.setRaca(equinoRequest.raca());
         cadastrarEquino.setDataNascimento(equinoRequest.dataNascimento());
-
         cadastrarEquino.setRegistro(equinoRequest.registro());
-
         cadastrarEquino.setRegistro(equinoRequest.registro());
-
         cadastrarEquino.setPelagem(equinoRequest.pelagem());
         cadastrarEquino.setPeso(equinoRequest.peso());
         cadastrarEquino.setLocal(equinoRequest.local());

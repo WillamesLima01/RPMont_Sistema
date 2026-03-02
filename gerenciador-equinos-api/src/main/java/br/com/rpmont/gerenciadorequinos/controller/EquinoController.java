@@ -23,11 +23,7 @@ public class EquinoController {
     @ResponseStatus(HttpStatus.CREATED)
     public EquinoResponse criarEquino(@Valid @RequestBody EquinoRequest e) {
 
-        System.out.println("JSON RECEBIDO:");
-        System.out.println(e);
-
         return equinoService.criarEquino(e);
-
     }
 
     @GetMapping("/{id}")
@@ -41,6 +37,7 @@ public class EquinoController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Equino> buscarTodosEquinos(){
+
         return equinoService.buscarTodosEquinos();
     }
 
