@@ -30,11 +30,11 @@ const VeterinariaEquinosBaixadosList = () => {
   const carregarEquinos = async () => {
     try {
       const [resEquinos, resBaixados] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/equinosBaixados'),
       ]);
 
-      const baixadosAtivos = resEquinos.data.filter(eq => eq.status === 'Baixado');
+      const baixadosAtivos = resEquinos.data.filter(eq => eq.situacao === 'Baixado');
       setEquinos(baixadosAtivos);
       setEquinosBaixados(resBaixados.data);
 
@@ -66,7 +66,7 @@ const VeterinariaEquinosBaixadosList = () => {
 
     // base: equinos Baixados que têm baixa ativa
     let lista = (equinos || [])
-      .filter(eq => eq.status === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
+      .filter(eq => eq.situacao === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
       .map(eq => ({ ...eq, dataBaixa: baixasAtivasMap.get(String(eq.id)) })); // YYYY-MM-DD
 
     // filtro por equino (id)
@@ -98,7 +98,7 @@ const VeterinariaEquinosBaixadosList = () => {
     );
 
     const inicial = (equinos || [])
-      .filter(eq => eq.status === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
+      .filter(eq => eq.situacao === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
       .map(eq => ({ ...eq, dataBaixa: baixasAtivasMap.get(String(eq.id)) }));
 
     setResultado(inicial);
@@ -107,7 +107,7 @@ const VeterinariaEquinosBaixadosList = () => {
   const exportarCSV = () => {
     const linhas = ['Nome,Raça,Pelagem,Registro,Status'];
     resultado.forEach(eq => {
-      linhas.push(`${eq.name},${eq.raca},${eq.pelagem},${eq.numeroRegistro},${eq.status}`);
+      linhas.push(`${eq.name},${eq.raca},${eq.pelagem},${eq.numeroRegistro},${eq.situacao}`);
     });
 
     const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -143,11 +143,11 @@ const VeterinariaEquinosBaixadosList = () => {
       const dataBaixaFmt = eq.dataBaixa
         ? new Date(eq.dataBaixa + 'T00:00:00').toLocaleDateString('pt-BR')
         : '—';
-      return [eq.name, eq.raca, eq.pelagem, eq.numeroRegistro, dataBaixaFmt, eq.status];
+      return [eq.nome, eq.raca, eq.pelagem, eq.numeroRegistro, dataBaixaFmt, eq.situacao];
     });
 
     autoTable(doc, {
-      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'Status']],
+      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'situacao']],
       body: dadosTabela,
       startY: y + 8,
       styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
@@ -182,7 +182,7 @@ const VeterinariaEquinosBaixadosList = () => {
 
     try {
       setRetornandoId(equino.id);
-      await axios.patch(`/equinos/${equino.id}`, { status: 'Ativo' });
+      await axios.patch(`/equinos/${equino.id}`, { situacao: 'Ativo' });
       await axios.patch(`/equinosBaixados/${registroBaixa.id}`, {
         dataRetorno: new Date().toISOString().slice(0, 10),
       });
@@ -243,14 +243,14 @@ const VeterinariaEquinosBaixadosList = () => {
 
             return (
               <tr key={eq.id}>
-                <td>{eq.name}</td>
+                <td>{eq.nome}</td>
                 <td>{eq.raca}</td>
                 <td>{eq.pelagem}</td>
                 <td>{eq.altura}</td>
                 <td>{eq.peso}</td>
-                <td>{eq.numeroRegistro}</td>
+                <td>{eq.registro}</td>
                 <td>{dataBaixaFormatada}</td>
-                <td>{eq.status}</td>
+                <td>{eq.situacao}</td>
                 <td className="text-end">
                   {botoes.includes('atendimento') && (
                     <BotaoAcao

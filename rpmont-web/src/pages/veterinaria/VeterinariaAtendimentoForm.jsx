@@ -37,11 +37,11 @@ const VeterinariaAtendimento = () => {
         setEnfTexto(a.enfermidade || ''); // pré-preenche se edição
         setIdEquino(a.idEquino);
         setModoEdicao(true);
-        return axios.get(`/equinos/${a.idEquino}`);
+        return axios.get(`/equino/${a.idEquino}`);
       })
       .then(res => setEquino(res.data))
       .catch(() => {
-        axios.get(`/equinos/${id}`)
+        axios.get(`/equino/${id}`)
           .then(res => {
             setEquino(res.data);
             setIdEquino(id);
@@ -132,13 +132,13 @@ const VeterinariaAtendimento = () => {
           </div>
 
           <div className="row row-cols-1 row-cols-md-3 g-3 mb-1">
-            <div className="col"><div className="info-box bg1"><strong>Nome:</strong><p>{equino.name}</p></div></div>
+            <div className="col"><div className="info-box bg1"><strong>Nome:</strong><p>{equino.nome}</p></div></div>
             <div className="col"><div className="info-box bg1"><strong>Raça:</strong><p>{equino.raca}</p></div></div>
             <div className="col"><div className="info-box bg1"><strong>Pelagem:</strong><p>{equino.pelagem}</p></div></div>
-            <div className="col"><div className="info-box bg1"><strong>Registro:</strong><p>{equino.numeroRegistro}</p></div></div>
+            <div className="col"><div className="info-box bg1"><strong>Registro:</strong><p>{equino.registro}</p></div></div>
             <div className="col"><div className="info-box bg1"><strong>Nascimento:</strong><p>{equino.dataNascimento}</p></div></div>
             <div className="col"><div className="info-box bg1"><strong>Sexo:</strong><p>{equino.sexo}</p></div></div>
-            <div className="col"><div className="info-box bg1"><strong>Situação:</strong><p>{equino.status}</p></div></div>
+            <div className="col"><div className="info-box bg1"><strong>Status:</strong><p>{equino.situacao}</p></div></div>
           </div>
 
           {/* Calculadora de Dosagem */}

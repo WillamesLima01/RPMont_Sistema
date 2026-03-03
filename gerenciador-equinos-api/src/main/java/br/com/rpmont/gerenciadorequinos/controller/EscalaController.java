@@ -2,7 +2,6 @@ package br.com.rpmont.gerenciadorequinos.controller;
 
 import br.com.rpmont.gerenciadorequinos.dtos.EscalaRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EscalaResponse;
-import br.com.rpmont.gerenciadorequinos.model.Escala;
 import br.com.rpmont.gerenciadorequinos.service.EscalaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +26,14 @@ public class EscalaController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Escala> buscarTodasEscalas(){
+    public List<EscalaResponse> buscarTodasEscalas(){
 
         return escalaService.buscarTodasEscalas();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Escala buscarEscalaId(@PathVariable Long id){
+    public EscalaResponse buscarEscalaId(@PathVariable Long id){
 
         return escalaService.buscarEscalaId(id);
     }
@@ -51,6 +50,5 @@ public class EscalaController {
     public void deletarEscalaId(@PathVariable Long id){
 
         escalaService.deletarEscalaId(id);
-
     }
 }

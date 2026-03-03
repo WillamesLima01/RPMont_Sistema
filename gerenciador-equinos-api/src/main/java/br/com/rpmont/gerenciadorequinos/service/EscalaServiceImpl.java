@@ -1,11 +1,13 @@
 package br.com.rpmont.gerenciadorequinos.service;
 
+import br.com.rpmont.gerenciadorequinos.dtos.EquinoResumoResponse;
 import br.com.rpmont.gerenciadorequinos.dtos.EscalaRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EscalaResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.model.Escala;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.EscalaRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,82 +20,96 @@ import java.util.List;
 public class EscalaServiceImpl implements EscalaService {
 
     private final EscalaRepository escalaRepository;
-
     private final EquinoRepository equinoRepository;
 
+    @Transactional
     @Override
     public EscalaResponse criarEscala(EscalaRequest escalaRequest) {
 
         Equino equinoExistente = equinoRepository.findById(escalaRequest.equinoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Equino não encontrado no banco de dados!"));
 
         Escala cadastrarEscala = new Escala();
-
         cadastrarEscala.setLocalTrabalho(escalaRequest.localTrabalho());
         cadastrarEscala.setJornadaTrabalho(escalaRequest.jornadaTrabalho());
         cadastrarEscala.setCavaleiro(escalaRequest.cavaleiro());
         cadastrarEscala.setCargaHoraria(escalaRequest.cargaHoraria());
+        cadastrarEscala.setObservacao(escalaRequest.observacao());
         cadastrarEscala.setEquino(equinoExistente);
 
         Escala escalaSalva = escalaRepository.save(cadastrarEscala);
 
-        return new EscalaResponse(
-                escalaSalva.getId(),
-                equinoExistente.getId(),
-                equinoExistente.getNome(),
-                escalaSalva.getLocalTrabalho(),
-                escalaSalva.getJornadaTrabalho(),
-                escalaSalva.getCavaleiro(),
-                escalaSalva.getCargaHoraria()
-        );
+        return toResponse(escalaSalva);
     }
 
     @Override
-    public List<Escala> buscarTodasEscalas() {
-        return escalaRepository.findAll();
+    public List<EscalaResponse> buscarTodasEscalas() {
+        return escalaRepository.findAllWithEquino()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
-    public Escala buscarEscalaId(Long id) {
-
-        return escalaRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+    public EscalaResponse buscarEscalaId(Long id) {
+        Escala escala = escalaRepository.findByIdWithEquino(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Escala não encontrada no banco de dados!"));
 
+        return toResponse(escala);
     }
 
+    @Transactional
     @Override
     public EscalaResponse atualizarEscalaId(Long id, EscalaRequest escalaRequest) {
 
-        Escala escalaExistente = escalaRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+        // IMPORTANTE: buscar COM equino junto
+        Escala escalaExistente = escalaRepository.findByIdWithEquino(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Escala não encontrada no banco de dados!"));
 
         escalaExistente.setLocalTrabalho(escalaRequest.localTrabalho());
         escalaExistente.setJornadaTrabalho(escalaRequest.jornadaTrabalho());
         escalaExistente.setCavaleiro(escalaRequest.cavaleiro());
         escalaExistente.setCargaHoraria(escalaRequest.cargaHoraria());
+        escalaExistente.setObservacao(escalaRequest.observacao()); // se já existe no request
 
-        Escala escalaAtualizada = escalaRepository.save(escalaExistente);
+        // nem precisa guardar retorno. o "escalaExistente" já é managed dentro da transação
+        escalaRepository.save(escalaExistente);
 
-        Equino equino = escalaAtualizada.getEquino();
-
-        return new EscalaResponse(
-
-                escalaAtualizada.getId(),
-                equino.getId(),
-                equino.getNome(),
-                escalaAtualizada.getLocalTrabalho(),
-                escalaAtualizada.getJornadaTrabalho(),
-                escalaAtualizada.getCavaleiro(),
-                escalaAtualizada.getCargaHoraria()
-        );
+        return toResponse(escalaExistente);
     }
 
     @Override
     public void deletarEscalaId(Long id) {
-
+        if (!escalaRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Escala não encontrada no banco de dados!");
+        }
         escalaRepository.deleteById(id);
+    }
+
+    private EscalaResponse toResponse(Escala escala) {
+
+        Equino eq = escala.getEquino();
+
+        EquinoResumoResponse equinoResumo = new EquinoResumoResponse(
+                eq.getId(),
+                eq.getNome(),
+                eq.getRegistro(),
+                eq.getSituacao()
+        );
+
+        return new EscalaResponse(
+                escala.getId(),
+                equinoResumo,
+                escala.getLocalTrabalho(),
+                escala.getJornadaTrabalho(),
+                escala.getCavaleiro(),
+                escala.getObservacao(),
+                escala.getCargaHoraria(),
+                escala.getDataCadastro(),
+                escala.getAtualizadoEm()
+        );
     }
 }

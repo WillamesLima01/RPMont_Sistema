@@ -17,6 +17,7 @@ const VeterinariaEscalaEquino = () => {
   const [jornadaInicio, setJornadaInicio] = useState('');
   const [jornadaFim, setJornadaFim] = useState('');
   const [cavaleiro, setCavaleiro] = useState('');
+  const [observacao, setObservacao] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idEscala, setIdEscala] = useState(null);
@@ -40,6 +41,7 @@ const VeterinariaEscalaEquino = () => {
         setJornadaInicio(inicio);
         setJornadaFim(fim);
         setCavaleiro(escala.cavaleiro);
+        setObservacao(escala.observacao || '');
       }).catch(err => console.error("Erro ao carregar escala:", err));
     }
   }, [location.state]);
@@ -65,6 +67,7 @@ const VeterinariaEscalaEquino = () => {
       jornadaTrabalho: `${jornadaInicio} às ${jornadaFim}`,
       cavaleiro,
       cargaHoraria,
+      observacao,
       data: new Date().toISOString().split('T')[0]
     };
 
@@ -187,6 +190,21 @@ const VeterinariaEscalaEquino = () => {
                   onChange={e => setCavaleiro(e.target.value)}
                   required
                 />
+              </div>
+
+              <div className="form-floating mb-3">
+                <textarea
+                  className="form-control"
+                  placeholder="Observações do serviço"
+                  id="floatingTextarea"
+                  style={{ height: '120px' }}
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  maxLength={500}
+                />
+                <label htmlFor="floatingTextarea" className="form-label fw-bold">
+                  Observação
+                </label>
               </div>
 
               <div className="d-flex justify-content-end gap-2 mt-4">

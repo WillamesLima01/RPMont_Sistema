@@ -22,5 +22,8 @@ public record EscalaRequest(
         @NotNull(message = "Carga horária deve ser informada")
         @Min(value = 1, message = "Carga horária mínima é 1 hora")
         @Max(value = 24, message = "Carga horária máxima é 24 horas")
-        Integer cargaHoraria
+        Integer cargaHoraria,
+
+        @Size(max = 500, message = "Observação tem que ter no máximo 500 caracteres")
+        String observacao
 ) {}

@@ -34,6 +34,9 @@ public class Escala implements Serializable {
     @Column(name = "cargaHoraria", nullable = false)
     private Integer cargaHoraria;
 
+    @Column(name = "observacao", length = 500)
+    private String observacao;
+
     @CreationTimestamp
     @Column(name = "dataCadastro", nullable = false)
     private LocalDateTime dataCadastro;

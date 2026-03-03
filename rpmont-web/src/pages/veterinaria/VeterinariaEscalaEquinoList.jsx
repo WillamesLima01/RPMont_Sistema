@@ -135,12 +135,13 @@ const VeterinariaEscalaEquinoList = () => {
     info.forEach(t => { doc.text(t, margem, y); y += 16; });
 
     // Tabela com base em "resultado" (lista filtrada)
-    const head = [['Nome do Equino', 'Local de Trabalho', 'Jornada', 'Cavaleiro', 'Data']];
+    const head = [['Nome do Equino', 'Local de Trabalho', 'Jornada', 'Cavaleiro', 'observacao', 'Data']];
     const body = (resultado || []).map(item => ([
       getNomeEquino(item.idEquino),
       item.localTrabalho || '-',
       item.jornadaTrabalho || '-',
       item.cavaleiro || '-',
+      item.observacao || '-',
       item.data || '-',
     ]));
 
@@ -200,8 +201,9 @@ const VeterinariaEscalaEquinoList = () => {
             <th>Local de Trabalho</th>
             <th>Jornada</th>
             <th>Cavaleiro</th>
-            <th>Data</th>
-            <th></th>
+            <th>Data</th>            
+            <th>Observação</th>
+            <th>ações</th>
           </tr>
         </thead>
         <tbody>
@@ -212,6 +214,7 @@ const VeterinariaEscalaEquinoList = () => {
               <td>{item.jornadaTrabalho}</td>
               <td>{item.cavaleiro}</td>
               <td>{item.data}</td>
+              <td>{item.observacao}</td>
               <td className='text-end'>
                 <div className="d-flex justify-content-end">
                   {botoes.includes('editar') && (
