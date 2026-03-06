@@ -120,6 +120,46 @@ const Navbar = () => {
 
             <li className="nav-item dropdown">
               <button
+                className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${
+                  isActive('/medicamentoForm') ||
+                  isActive('/medicamentoList') ||
+                  isActive('/medicamento-relatorio')
+                    ? 'active'
+                    : ''
+                }`}
+                id="navbarDropdownMedicamentos"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Medicamentos
+              </button>
+
+              <ul className="dropdown-menu">
+                <li>
+                  <Link to="/medicamentoForm" className="dropdown-item">
+                    Cadastrar Medicamentos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/medicamentoList" className="dropdown-item">
+                    Listar todos Medicamentos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/entradaMedicamentoList" className="dropdown-item">
+                    Listar todos as entrada
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/medicamento-relatorio" className="dropdown-item">
+                    Relatório de medicamento
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            <li className="nav-item dropdown">
+              <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
                   '/manejo-sanitario-list',
                   '/ferrageamento-equino',

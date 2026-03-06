@@ -246,6 +246,19 @@
       "peso": 480,
       "sexo": "Macho",
       "local": "RPMont"
+    },
+    {
+      "id": "12c4",
+      "nome": "zulo",
+      "raca": "SRD",
+      "pelagem": "PRETO",
+      "registro": "PMPB202600134",
+      "dataNascimento": "2001-02-02",
+      "situacao": "ATIVO",
+      "altura": "1.45",
+      "peso": "500",
+      "sexo": "MACHO",
+      "local": "RPMont"
     }
   ],
   "equinosBaixados": [
@@ -1131,5 +1144,93 @@
       "data": "2025-10-20T14:12:07.197Z",
       "dataProximoProcedimento": "2025-10-20T00:00:00.000Z"
     }
-  ]
+  ],
+  "medicamentos": [
+    {
+      "id": "f680",
+      "nome": "Dipirona",
+      "nomeComercial": "Dipirona cura dor de cabeça",
+      "fabricante": "lab Mais",
+      "categoria": "ANALGESICO",
+      "forma": "COMPRIMIDO",
+      "observacao": "",
+      "tipoUnidade": "UNIDADE",
+      "unidadePadrao": "UN",
+      "unidadeBase": "UN",
+      "concentracaoAtiva": false,
+      "mgPorMl": null,
+      "mgPorUn": null,
+      "ativo": true
+    },
+    {
+      "id": "8ab5",
+      "nome": "Soro fisiológico",
+      "nomeComercial": "soro",
+      "fabricante": "soromais limpo",
+      "categoria": "OUTROS",
+      "forma": "SOLUCAO",
+      "observacao": "",
+      "tipoUnidade": "VOLUME",
+      "unidadePadrao": "ML",
+      "unidadeBase": "ML",
+      "concentracaoAtiva": false,
+      "mgPorMl": null,
+      "mgPorUn": null,
+      "ativo": true
+    }
+  ],
+  "entradasMedicamento": [
+    {
+      "id": "8a12",
+      "medicamentoId": "f680",
+      "lote": "L447854369-45",
+      "validade": "2029-10-02",
+      "quantidadeInformada": 200,
+      "unidadeInformada": "UN",
+      "quantidadeBase": 200,
+      "dataEntrada": "2026-03-06",
+      "fornecedor": "Mente saudável",
+      "valorUnitario": null,
+      "observacao": "",
+      "medicamentoNome": "Dipirona",
+      "fabricante": "lab Mais",
+      "tipoUnidade": "UNIDADE",
+      "unidadeBase": "UN"
+    },
+    {
+      "id": "893a",
+      "medicamentoId": "8ab5",
+      "lote": "L00124578-568",
+      "validade": "2028-06-01",
+      "quantidadeInformada": 3000,
+      "unidadeInformada": "ML",
+      "quantidadeBase": 3000,
+      "dataEntrada": "2026-03-06",
+      "fornecedor": "Lab Mais",
+      "valorUnitario": null,
+      "observacao": "",
+      "medicamentoNome": "Soro fisiológico",
+      "fabricante": "soromais limpo",
+      "tipoUnidade": "VOLUME",
+      "unidadeBase": "ML"
+    },
+    {
+      "id": "8f0d",
+      "medicamentoId": "f680",
+      "lote": "L447854369-45",
+      "validade": "2009-02-20",
+      "quantidadeInformada": 100,
+      "unidadeInformada": "UN",
+      "quantidadeBase": 100,
+      "dataEntrada": "2026-03-06",
+      "fornecedor": "Lab Mais",
+      "valorUnitario": null,
+      "observacao": "",
+      "medicamentoNome": "Dipirona",
+      "fabricante": "lab Mais",
+      "tipoUnidade": "UNIDADE",
+      "unidadeBase": "UN"
+    }
+  ],
+  "saidasMedicamento": []
 }
