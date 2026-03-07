@@ -54,6 +54,7 @@ const VeterinariaMedicamentoList = () => {
       setEntradasMedicamento(Array.isArray(entradasResponse.data) ? entradasResponse.data : []);
       setSaidasMedicamento(Array.isArray(saidasResponse.data) ? saidasResponse.data : []);
     } catch (error) {
+      console.error('Erro ao carregar dados dos medicamentos:', error);
       setMensagensErro(['Erro ao carregar dados dos medicamentos.']);
       setModalErroAberto(true);
     }
@@ -184,8 +185,8 @@ const VeterinariaMedicamentoList = () => {
     navigate(`/medicamentoForm/${id}`);
   };
 
-  const lancarEntrada = (id) => {
-    navigate(`/medicamentoEntradaForm/${id}`);
+  const lancarEntrada = (medicamentoId) => {
+    navigate(`/medicamentoEntradaForm/${medicamentoId}`);
   };
 
   const formatarCategoria = (categoria) => {
@@ -238,7 +239,6 @@ const VeterinariaMedicamentoList = () => {
               </button>
             </div>
 
-            {/* Filtros */}
             <div className="card shadow-sm border-0 rounded-4 mb-4">
               <div className="card-body">
                 <div className="row g-3 align-items-end">
@@ -296,7 +296,6 @@ const VeterinariaMedicamentoList = () => {
               </div>
             </div>
 
-            {/* Tabela */}
             <div className="card shadow-sm border-0 rounded-4">
               <div className="card-body p-0">
                 <div className="table-responsive">
@@ -390,7 +389,6 @@ const VeterinariaMedicamentoList = () => {
               </div>
             </div>
 
-            {/* Paginação */}
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 mb-5">
               <div className="text-muted">
                 Página {paginaAtual} de {totalPaginas}
@@ -417,7 +415,6 @@ const VeterinariaMedicamentoList = () => {
               </div>
             </div>
 
-            {/* Modal excluir */}
             <Modal
               isOpen={modalExcluirAberto}
               onRequestClose={fecharModalExcluir}
@@ -449,7 +446,6 @@ const VeterinariaMedicamentoList = () => {
               </div>
             </Modal>
 
-            {/* Modal sucesso */}
             <Modal
               isOpen={modalSucessoAberto}
               className="modal"
@@ -461,7 +457,6 @@ const VeterinariaMedicamentoList = () => {
               </div>
             </Modal>
 
-            {/* Modal erro */}
             <Modal
               isOpen={modalErroAberto}
               onRequestClose={fecharModalErro}

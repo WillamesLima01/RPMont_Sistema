@@ -23,7 +23,7 @@ const BASE_POR_TIPO = {
 
 const VeterinariaMedicamentoForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { medicamentoId } = useParams();
 
   const [medicamento, setMedicamento] = useState({
     nome: '',
@@ -47,9 +47,9 @@ const VeterinariaMedicamentoForm = () => {
   const [mensagensErro, setMensagensErro] = useState([]);
   const [tooltipAberto, setTooltipAberto] = useState(null);
 
-  useEffect(() => {
-    if (id) {
-      axios.get(`/medicamentos/${id}`)
+    useEffect(() => {
+    if (medicamentoId) {
+      axios.get(`/medicamentos/${medicamentoId}`)
         .then((response) => {
           const d = response.data;
           setMedicamento({
@@ -75,7 +75,7 @@ const VeterinariaMedicamentoForm = () => {
     } else {
       resetForm();
     }
-  }, [id]);
+  }, [medicamentoId]);
 
   const resetForm = () => {
     setMedicamento({
@@ -176,15 +176,15 @@ const VeterinariaMedicamentoForm = () => {
     };
 
     try {
-      const request = id
-        ? axios.put(`/medicamentos/${id}`, payload)
-        : axios.post('/medicamentos', payload);
+      const request = medicamentoId
+      ? axios.put(`/medicamentos/${medicamentoId}`, payload)
+      : axios.post('/medicamentos', payload);
 
       await request;
 
       document.activeElement?.blur?.();
 
-      if (id) {
+      if (medicamentoId) {
         setModalSucesso(true);
         setTimeout(() => {
           setModalSucesso(false);
@@ -248,7 +248,7 @@ const VeterinariaMedicamentoForm = () => {
 
             <div className="text-center position-relative mt-5">
               <h2 className="titulo-principal justify-content-center mt-5">
-                {id ? 'Editar Medicamento' : 'Cadastrar Medicamento'}
+                {medicamentoId ? 'Editar Medicamento' : 'Cadastrar Medicamento'}
                 <div className="tooltip-wrapper">
                   <FaQuestionCircle
                     className="tooltip-icon ms-2"
@@ -256,7 +256,7 @@ const VeterinariaMedicamentoForm = () => {
                   />
                   {tooltipAberto === 'titulo' && (
                     <div className="tooltip-mensagem">
-                      {id
+                      {medicamentoId
                         ? 'Aqui você pode editar os dados cadastrais do medicamento.'
                         : 'Aqui você cadastra apenas o medicamento. A quantidade em estoque será lançada na tela de entrada.'}
                     </div>
@@ -523,7 +523,7 @@ const VeterinariaMedicamentoForm = () => {
               <div className="col-12 text-end mt-4">
                 <Link to="/medicamentoList" className="btn btn-outline-danger me-2">Cancelar</Link>
                 <button type="submit" className="btn btn-primary">
-                  {id ? 'Salvar' : 'Cadastrar'}
+                  {medicamentoId ? 'Salvar' : 'Cadastrar'}
                 </button>
               </div>
             </form>
@@ -548,7 +548,7 @@ const VeterinariaMedicamentoForm = () => {
               <div className="modalContent text-center">
                 <FaCheckCircle className="icone-sucesso" />
                 <h2 className="mensagem-azul">
-                  {id ? 'Medicamento editado com sucesso!' : 'Medicamento cadastrado com sucesso!'}
+                  {medicamentoId ? 'Medicamento editado com sucesso!' : 'Medicamento cadastrado com sucesso!'}
                 </h2>
               </div>
             </Modal>

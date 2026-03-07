@@ -29,6 +29,7 @@ import VeterinariaMedicamentoForm from './pages/veterinaria/VeterinariaMedicamen
 import VeterinariaMedicamentoList from './pages/veterinaria/VeterinariaMedicamentoList.jsx';
 import VeterinariaEntradaMedicamentoForm from './pages/veterinaria/VeterinariaEntradaMedicamentoForm.jsx';
 import VeterinariaEntradaMedicamentoList from './pages/veterinaria/VeterinariaEntradaMedicamentoList.jsx';
+import VeterinariaRelatorioMedicamento from './pages/veterinaria/VeterinariaRelatorioMedicamento.jsx';
 
 const rotas = () => {
 
@@ -64,10 +65,12 @@ const rotas = () => {
         <Route path="/grafico-carga-horaria-equino-anual" element={<GraficoCargaHorariaEquinoAnual />} /> 
         <Route path="/grafico-carga-horaria-equino-anual-unico" element={<GraficoCargaHorariaEquinoAnualUnico />} />                               
         <Route path="/medicamentoForm" element={<VeterinariaMedicamentoForm />} />
-        <Route path="/medicamentoForm/:id" element={<VeterinariaMedicamentoForm />} />  
-        <Route path="/medicamentoEntradaForm/:id" element={<VeterinariaEntradaMedicamentoForm />} />    
-        <Route path="/medicamentoList" element={<VeterinariaMedicamentoList />} />   
+        <Route path="/medicamentoForm/:medicamentoId" element={<VeterinariaMedicamentoForm />} />
+        <Route path="/medicamentoEntradaForm/:medicamentoId" element={<VeterinariaEntradaMedicamentoForm />} />
+        <Route path="/medicamentoEditarEntradaForm/:entradaId" element={<VeterinariaEntradaMedicamentoForm />} />
+        <Route path="/medicamentoList" element={<VeterinariaMedicamentoList />} />
         <Route path="/entradaMedicamentoList" element={<VeterinariaEntradaMedicamentoList />} />
+        <Route path="/medicamento-relatorio" element={<VeterinariaRelatorioMedicamento />} />
         <Route path="/inicio" element={<Grafico />} />
       </Routes>
     </BrowserRouter>

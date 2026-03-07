@@ -45,7 +45,7 @@ const converterParaBase = ({ tipoUnidade, quantidade, unidade }) => {
 
 const VeterinariaEntradaMedicamentoForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // id do medicamento vindo da lista
+  const { medicamentoId, entradaId } = useParams();
 
   const [entrada, setEntrada] = useState({
     medicamentoId: '',
@@ -81,10 +81,10 @@ const VeterinariaEntradaMedicamentoForm = () => {
       });
   }, []);
 
-  // carrega o medicamento selecionado a partir do id da rota
+  // NOVA ENTRADA: busca medicamento pelo medicamentoId
   useEffect(() => {
-    if (id) {
-      axios.get(`/medicamentos/${id}`)
+    if (medicamentoId) {
+      axios.get(`/medicamentos/${medicamentoId}`)
         .then((response) => {
           const med = response.data;
 
@@ -102,9 +102,43 @@ const VeterinariaEntradaMedicamentoForm = () => {
           setModalErroAberto(true);
         });
     }
-  }, [id]);
+  }, [medicamentoId]);
 
-  // caso o usuário troque o medicamento manualmente (quando a tela não vier da lista)
+  // EDITAR ENTRADA: busca entrada pelo entradaId e depois busca o medicamento dela
+  useEffect(() => {
+    if (entradaId) {
+      axios.get(`/entradasMedicamento/${entradaId}`)
+        .then((response) => {
+          const d = response.data;
+
+          setEntrada({
+            medicamentoId: d.medicamentoId ?? '',
+            lote: d.lote ?? '',
+            validade: (d.validade ?? '').slice(0, 10),
+            quantidadeInformada: d.quantidadeInformada ?? '',
+            unidadeInformada: d.unidadeInformada ?? '',
+            quantidadeBase: d.quantidadeBase ?? '',
+            dataEntrada: (d.dataEntrada ?? '').slice(0, 10),
+            fornecedor: d.fornecedor ?? '',
+            valorUnitario: d.valorUnitario ?? '',
+            observacao: d.observacao ?? ''
+          });
+
+          return axios.get(`/medicamentos/${d.medicamentoId}`);
+        })
+        .then((medResponse) => {
+          if (medResponse) {
+            setMedicamentoSelecionado(medResponse.data);
+          }
+        })
+        .catch(() => {
+          setMensagensErro(['Erro ao buscar entrada de medicamento.']);
+          setModalErroAberto(true);
+        });
+    }
+  }, [entradaId]);
+
+  // caso o usuário troque o medicamento manualmente
   useEffect(() => {
     const selecionado = medicamentos.find(
       (m) => String(m.id) === String(entrada.medicamentoId)
@@ -174,7 +208,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
 
   const resetForm = () => {
     setEntrada({
-      medicamentoId: id || '',
+      medicamentoId: medicamentoId || '',
       lote: '',
       validade: '',
       quantidadeInformada: '',
@@ -215,10 +249,23 @@ const VeterinariaEntradaMedicamentoForm = () => {
     };
 
     try {
-      await axios.post('/entradasMedicamento', payload);
+      if (entradaId) {
+        await axios.put(`/entradasMedicamento/${entradaId}`, payload);
+      } else {
+        await axios.post('/entradasMedicamento', payload);
+      }
 
       document.activeElement?.blur?.();
-      setModalConfirmacao(true);
+
+      if (entradaId) {
+        setModalSucesso(true);
+        setTimeout(() => {
+          setModalSucesso(false);
+          navigate('/entradaMedicamentoList');
+        }, 2500);
+      } else {
+        setModalConfirmacao(true);
+      }
     } catch (error) {
       const data = error.response?.data;
 
@@ -271,14 +318,16 @@ const VeterinariaEntradaMedicamentoForm = () => {
 
             <div className="text-center position-relative mt-5">
               <h2 className="titulo-principal justify-content-center mt-5">
-                {medicamentoSelecionado
-                  ? `Lançar Entrada - ${medicamentoSelecionado.nome}`
-                  : 'Lançar Entrada de Medicamento'}
+                {entradaId
+                  ? 'Editar Entrada de Medicamento'
+                  : medicamentoSelecionado
+                    ? `Lançar Entrada - ${medicamentoSelecionado.nome}`
+                    : 'Lançar Entrada de Medicamento'}
                 <div className="tooltip-wrapper">
                   <FaQuestionCircle className="tooltip-icon ms-2" onClick={toggleTooltip} />
                   {tooltipAberto && (
                     <div className="tooltip-mensagem">
-                      Aqui você registra a entrada de estoque de um medicamento já cadastrado, com lote, validade e quantidade.
+                      Aqui você registra ou edita a entrada de estoque de um medicamento, informando lote, validade e quantidade.
                     </div>
                   )}
                 </div>
@@ -326,7 +375,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
                           value={entrada.medicamentoId}
                           onChange={handleChange}
                           required
-                          disabled={!!id}
+                          disabled={!!medicamentoId || !!entradaId}
                         >
                           <option value="">Selecione</option>
                           {medicamentos.map((med) => (
@@ -482,11 +531,11 @@ const VeterinariaEntradaMedicamentoForm = () => {
               )}
 
               <div className="col-12 text-end mt-4">
-                <Link to="/medicamentoList" className="btn btn-outline-danger me-2">
+                <Link to={entradaId ? "/entradaMedicamentoList" : "/medicamentoList"} className="btn btn-outline-danger me-2">
                   Cancelar
                 </Link>
                 <button type="submit" className="btn btn-primary">
-                  Lançar Entrada
+                  {entradaId ? 'Salvar Alterações' : 'Lançar Entrada'}
                 </button>
               </div>
 
@@ -519,7 +568,9 @@ const VeterinariaEntradaMedicamentoForm = () => {
             >
               <div className="modalContent text-center">
                 <FaCheckCircle className="icone-sucesso" />
-                <h2 className="mensagem-azul">Entrada lançada com sucesso!</h2>
+                <h2 className="mensagem-azul">
+                  {entradaId ? 'Entrada editada com sucesso!' : 'Entrada lançada com sucesso!'}
+                </h2>
               </div>
             </Modal>
 
