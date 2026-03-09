@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar';
 import axios from '../../api';
 import { FaPrint, FaFilter, FaFileAlt, FaSearch, FaUndo } from 'react-icons/fa';
+import { imprimirRelatorioMedicamento } from './utils/imprimirRelatorioMedicamento';
 import "../../../index.css";
 import './Veterinaria.css';
 
@@ -10,7 +11,11 @@ const VeterinariaRelatorioMedicamento = () => {
   const [entradas, setEntradas] = useState([]);
   const [saidas, setSaidas] = useState([]);
 
-  const [tipoRelatorio, setTipoRelatorio] = useState('ESTOQUE');
+  const [tiposRelatorio, setTiposRelatorio] = useState({
+    estoque: true,
+    entradas: false,
+    saidas: false
+  });
 
   const [filtros, setFiltros] = useState({
     medicamentoId: '',
@@ -26,6 +31,51 @@ const VeterinariaRelatorioMedicamento = () => {
 
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+
+  const estiloBoxTipos = {
+    width: '100%',
+    padding: '18px',
+    borderRadius: '16px',
+    background: '#eef4ff',
+    border: '1px solid #cdddfc',
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35)'
+  };
+
+  const estiloTituloTipos = {
+    fontWeight: 700,
+    fontSize: '1.05rem',
+    color: '#0d6efd',
+    marginBottom: '16px'
+  };
+
+  const montarEstiloCardTipo = (ativo) => ({
+    width: '100%',
+    minHeight: '64px',
+    margin: 0,
+    padding: '16px 18px',
+    borderRadius: '12px',
+    border: ativo ? '1px solid #0d6efd' : '1px solid #d8e2f0',
+    background: ativo ? '#dbeafe' : '#ffffff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    transition: 'all 0.2s ease'
+  });
+
+  const estiloCheckboxTipo = {
+    margin: 0,
+    transform: 'scale(1.15)',
+    accentColor: '#0d6efd',
+    cursor: 'pointer'
+  };
+
+  const montarEstiloTextoTipo = (ativo) => ({
+    lineHeight: 1,
+    color: ativo ? '#0b4fcf' : '#1f2937'
+  });
 
   useEffect(() => {
     carregarDados();
@@ -61,6 +111,15 @@ const VeterinariaRelatorioMedicamento = () => {
     }));
   };
 
+  const handleTipoRelatorioChange = (e) => {
+    const { name, checked } = e.target;
+
+    setTiposRelatorio((prev) => ({
+      ...prev,
+      [name]: checked
+    }));
+  };
+
   const limparFiltros = () => {
     setFiltros({
       medicamentoId: '',
@@ -72,6 +131,12 @@ const VeterinariaRelatorioMedicamento = () => {
       somenteComEstoque: false,
       somenteVencendo: false,
       diasVencimento: 30
+    });
+
+    setTiposRelatorio({
+      estoque: true,
+      entradas: false,
+      saidas: false
     });
   };
 
@@ -234,8 +299,18 @@ const VeterinariaRelatorioMedicamento = () => {
     };
   }, [medicamentos, entradasFiltradas, saidasFiltradas]);
 
-  const imprimirRelatorio = () => {
-    window.print();
+  const handleImprimir = () => {
+    imprimirRelatorioMedicamento({
+      tiposRelatorio,
+      estoqueFiltrado,
+      entradasFiltradas,
+      saidasFiltradas,
+      entradas,
+      resumo,
+      calcularEstoqueAtual,
+      formatarData,
+      nomeMedicamentoPorId
+    });
   };
 
   const nomeMedicamentoPorId = (id) => {
@@ -246,6 +321,9 @@ const VeterinariaRelatorioMedicamento = () => {
   const renderTabelaEstoque = () => (
     <div className="card shadow-sm border-0 rounded-4 mt-4">
       <div className="card-body p-0">
+        <div className="card-header bg-white border-0 pt-4 px-4">
+          <h5 className="mb-0">Relatório de Estoque Atual</h5>
+        </div>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
@@ -319,6 +397,9 @@ const VeterinariaRelatorioMedicamento = () => {
   const renderTabelaEntradas = () => (
     <div className="card shadow-sm border-0 rounded-4 mt-4">
       <div className="card-body p-0">
+        <div className="card-header bg-white border-0 pt-4 px-4">
+          <h5 className="mb-0">Relatório de Entradas</h5>
+        </div>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
@@ -337,7 +418,9 @@ const VeterinariaRelatorioMedicamento = () => {
               {entradasFiltradas.length > 0 ? (
                 entradasFiltradas.map((entrada) => (
                   <tr key={entrada.id}>
-                    <td className="ps-3">{entrada.medicamentoNome || nomeMedicamentoPorId(entrada.medicamentoId)}</td>
+                    <td className="ps-3">
+                      {entrada.medicamentoNome || nomeMedicamentoPorId(entrada.medicamentoId)}
+                    </td>
                     <td>{entrada.fabricante || '-'}</td>
                     <td>{entrada.lote || '-'}</td>
                     <td>{formatarData(entrada.validade)}</td>
@@ -364,6 +447,9 @@ const VeterinariaRelatorioMedicamento = () => {
   const renderTabelaSaidas = () => (
     <div className="card shadow-sm border-0 rounded-4 mt-4">
       <div className="card-body p-0">
+        <div className="card-header bg-white border-0 pt-4 px-4">
+          <h5 className="mb-0">Relatório de Saídas</h5>
+        </div>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
@@ -381,7 +467,9 @@ const VeterinariaRelatorioMedicamento = () => {
               {saidasFiltradas.length > 0 ? (
                 saidasFiltradas.map((saida) => (
                   <tr key={saida.id}>
-                    <td className="ps-3">{saida.medicamentoNome || nomeMedicamentoPorId(saida.medicamentoId)}</td>
+                    <td className="ps-3">
+                      {saida.medicamentoNome || nomeMedicamentoPorId(saida.medicamentoId)}
+                    </td>
                     <td>{saida.fabricante || '-'}</td>
                     <td>{saida.tipoSaida || '-'}</td>
                     <td>{saida.quantidadeInformada || '-'} {saida.unidadeInformada || ''}</td>
@@ -404,6 +492,11 @@ const VeterinariaRelatorioMedicamento = () => {
     </div>
   );
 
+  const nenhumTipoSelecionado =
+    !tiposRelatorio.estoque &&
+    !tiposRelatorio.entradas &&
+    !tiposRelatorio.saidas;
+
   return (
     <>
       <Navbar />
@@ -411,7 +504,6 @@ const VeterinariaRelatorioMedicamento = () => {
       <div className="container mt-5 relatorio-medicamento-page">
         <div className="row justify-content-center">
           <div className="col-lg-12 mt-5">
-
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-5 mb-4">
               <div>
                 <h2 className="titulo-principal mb-1 d-flex align-items-center gap-2">
@@ -426,20 +518,15 @@ const VeterinariaRelatorioMedicamento = () => {
               <button
                 type="button"
                 className="btn btn-outline-primary"
-                onClick={imprimirRelatorio}
+                onClick={handleImprimir}
               >
                 <FaPrint className="me-2" />
                 Imprimir
               </button>
             </div>
 
-            {erro && (
-              <div className="alert alert-danger">
-                {erro}
-              </div>
-            )}
+            {erro && <div className="alert alert-danger">{erro}</div>}
 
-            {/* filtros */}
             <div className="card shadow-sm border-0 rounded-4">
               <div className="card-body">
                 <div className="d-flex align-items-center gap-2 mb-3">
@@ -448,18 +535,71 @@ const VeterinariaRelatorioMedicamento = () => {
                 </div>
 
                 <div className="row g-3">
+                  <div className="col-md-12">
+                    <div style={estiloBoxTipos}>
+                      <div style={estiloTituloTipos}>
+                        Tipos de Relatório
+                      </div>
 
-                  <div className="col-md-3">
-                    <label className="form-label">Tipo de Relatório</label>
-                    <select
-                      className="form-select"
-                      value={tipoRelatorio}
-                      onChange={(e) => setTipoRelatorio(e.target.value)}
-                    >
-                      <option value="ESTOQUE">Estoque Atual</option>
-                      <option value="ENTRADAS">Entradas</option>
-                      <option value="SAIDAS">Saídas</option>
-                    </select>
+                      <div className="row g-3">
+                        <div className="col-md-4">
+                          <label
+                            htmlFor="tipoEstoque"
+                            style={montarEstiloCardTipo(tiposRelatorio.estoque)}
+                          >
+                            <input
+                              type="checkbox"
+                              id="tipoEstoque"
+                              name="estoque"
+                              checked={tiposRelatorio.estoque}
+                              onChange={handleTipoRelatorioChange}
+                              style={estiloCheckboxTipo}
+                            />
+                            <span style={montarEstiloTextoTipo(tiposRelatorio.estoque)}>
+                              Estoque Atual
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className="col-md-4">
+                          <label
+                            htmlFor="tipoEntradas"
+                            style={montarEstiloCardTipo(tiposRelatorio.entradas)}
+                          >
+                            <input
+                              type="checkbox"
+                              id="tipoEntradas"
+                              name="entradas"
+                              checked={tiposRelatorio.entradas}
+                              onChange={handleTipoRelatorioChange}
+                              style={estiloCheckboxTipo}
+                            />
+                            <span style={montarEstiloTextoTipo(tiposRelatorio.entradas)}>
+                              Entradas
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className="col-md-4">
+                          <label
+                            htmlFor="tipoSaidas"
+                            style={montarEstiloCardTipo(tiposRelatorio.saidas)}
+                          >
+                            <input
+                              type="checkbox"
+                              id="tipoSaidas"
+                              name="saidas"
+                              checked={tiposRelatorio.saidas}
+                              onChange={handleTipoRelatorioChange}
+                              style={estiloCheckboxTipo}
+                            />
+                            <span style={montarEstiloTextoTipo(tiposRelatorio.saidas)}>
+                              Saídas
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="col-md-4">
@@ -593,12 +733,10 @@ const VeterinariaRelatorioMedicamento = () => {
                       Limpar Filtros
                     </button>
                   </div>
-
                 </div>
               </div>
             </div>
 
-            {/* resumo */}
             <div className="row g-3 mt-2">
               <div className="col-md-3">
                 <div className="card shadow-sm border-0 rounded-4">
@@ -637,14 +775,17 @@ const VeterinariaRelatorioMedicamento = () => {
               </div>
             </div>
 
-            {/* tabela */}
             {carregando ? (
               <div className="alert alert-info mt-4">Carregando relatório...</div>
+            ) : nenhumTipoSelecionado ? (
+              <div className="alert alert-warning mt-4">
+                Selecione pelo menos um tipo de relatório para visualizar os dados.
+              </div>
             ) : (
               <>
-                {tipoRelatorio === 'ESTOQUE' && renderTabelaEstoque()}
-                {tipoRelatorio === 'ENTRADAS' && renderTabelaEntradas()}
-                {tipoRelatorio === 'SAIDAS' && renderTabelaSaidas()}
+                {tiposRelatorio.estoque && renderTabelaEstoque()}
+                {tiposRelatorio.entradas && renderTabelaEntradas()}
+                {tiposRelatorio.saidas && renderTabelaSaidas()}
               </>
             )}
           </div>

@@ -320,13 +320,8 @@
   tr, td, th {
     break-inside: avoid !important;   /* evita quebrar linha ao meio */
     page-break-inside: avoid !important;
-  }
-
-  /* Se quiser forçar quebra entre grandes seções, use <div class="print-break"></div> no JSX */
-  .print-break {
-    break-before: page;
-    page-break-before: always;
   }  
+  
 }
 
 
