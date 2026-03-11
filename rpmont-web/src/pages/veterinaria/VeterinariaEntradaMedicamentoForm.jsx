@@ -9,38 +9,9 @@ import './Veterinaria.css';
 
 Modal.setAppElement('#root');
 
-const UNIDADES_POR_TIPO = {
-  MASSA: ['MG', 'G', 'KG'],
-  VOLUME: ['ML', 'L'],
-  UNIDADE: ['UN'],
-};
-
-const BASE_POR_TIPO = {
-  MASSA: 'MG',
-  VOLUME: 'ML',
-  UNIDADE: 'UN',
-};
-
-const converterParaBase = ({ tipoUnidade, quantidade, unidade }) => {
-  const q = Number(quantidade);
-  if (Number.isNaN(q) || q <= 0) return null;
-
-  if (tipoUnidade === 'MASSA') {
-    if (unidade === 'MG') return q;
-    if (unidade === 'G') return q * 1000;
-    if (unidade === 'KG') return q * 1000000;
-  }
-
-  if (tipoUnidade === 'VOLUME') {
-    if (unidade === 'ML') return q;
-    if (unidade === 'L') return q * 1000;
-  }
-
-  if (tipoUnidade === 'UNIDADE') {
-    if (unidade === 'UN') return q;
-  }
-
-  return null;
+const formatarDataInput = (data) => {
+  if (!data) return '';
+  return String(data).slice(0, 10);
 };
 
 const VeterinariaEntradaMedicamentoForm = () => {
@@ -51,8 +22,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
     medicamentoId: '',
     lote: '',
     validade: '',
-    quantidadeInformada: '',
-    unidadeInformada: '',
+    quantidadeApresentacoes: '',
     quantidadeBase: '',
     dataEntrada: '',
     fornecedor: '',
@@ -69,11 +39,10 @@ const VeterinariaEntradaMedicamentoForm = () => {
   const [mensagensErro, setMensagensErro] = useState([]);
   const [tooltipAberto, setTooltipAberto] = useState(false);
 
-  // carrega lista de medicamentos
   useEffect(() => {
     axios.get('/medicamentos')
       .then((response) => {
-        setMedicamentos(response.data || []);
+        setMedicamentos(Array.isArray(response.data) ? response.data : []);
       })
       .catch(() => {
         setMensagensErro(['Erro ao carregar os medicamentos.']);
@@ -81,9 +50,8 @@ const VeterinariaEntradaMedicamentoForm = () => {
       });
   }, []);
 
-  // NOVA ENTRADA: busca medicamento pelo medicamentoId
   useEffect(() => {
-    if (medicamentoId) {
+    if (medicamentoId && !entradaId) {
       axios.get(`/medicamentos/${medicamentoId}`)
         .then((response) => {
           const med = response.data;
@@ -93,7 +61,6 @@ const VeterinariaEntradaMedicamentoForm = () => {
           setEntrada((prev) => ({
             ...prev,
             medicamentoId: med.id ?? '',
-            unidadeInformada: med.unidadePadrao ?? '',
             dataEntrada: prev.dataEntrada || new Date().toISOString().slice(0, 10)
           }));
         })
@@ -102,9 +69,8 @@ const VeterinariaEntradaMedicamentoForm = () => {
           setModalErroAberto(true);
         });
     }
-  }, [medicamentoId]);
+  }, [medicamentoId, entradaId]);
 
-  // EDITAR ENTRADA: busca entrada pelo entradaId e depois busca o medicamento dela
   useEffect(() => {
     if (entradaId) {
       axios.get(`/entradasMedicamento/${entradaId}`)
@@ -114,11 +80,10 @@ const VeterinariaEntradaMedicamentoForm = () => {
           setEntrada({
             medicamentoId: d.medicamentoId ?? '',
             lote: d.lote ?? '',
-            validade: (d.validade ?? '').slice(0, 10),
-            quantidadeInformada: d.quantidadeInformada ?? '',
-            unidadeInformada: d.unidadeInformada ?? '',
+            validade: formatarDataInput(d.validade),
+            quantidadeApresentacoes: d.quantidadeApresentacoes ?? '',
             quantidadeBase: d.quantidadeBase ?? '',
-            dataEntrada: (d.dataEntrada ?? '').slice(0, 10),
+            dataEntrada: formatarDataInput(d.dataEntrada),
             fornecedor: d.fornecedor ?? '',
             valorUnitario: d.valorUnitario ?? '',
             observacao: d.observacao ?? ''
@@ -127,7 +92,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
           return axios.get(`/medicamentos/${d.medicamentoId}`);
         })
         .then((medResponse) => {
-          if (medResponse) {
+          if (medResponse?.data) {
             setMedicamentoSelecionado(medResponse.data);
           }
         })
@@ -138,42 +103,49 @@ const VeterinariaEntradaMedicamentoForm = () => {
     }
   }, [entradaId]);
 
-  // caso o usuário troque o medicamento manualmente
   useEffect(() => {
+    if (!entrada.medicamentoId || medicamentos.length === 0) return;
+
     const selecionado = medicamentos.find(
       (m) => String(m.id) === String(entrada.medicamentoId)
     );
 
     if (selecionado) {
       setMedicamentoSelecionado(selecionado);
-
-      setEntrada((prev) => ({
-        ...prev,
-        unidadeInformada: prev.unidadeInformada || selecionado.unidadePadrao || ''
-      }));
     }
   }, [entrada.medicamentoId, medicamentos]);
 
-  const unidadesDisponiveis = useMemo(() => {
-    if (!medicamentoSelecionado?.tipoUnidade) return [];
-    return UNIDADES_POR_TIPO[medicamentoSelecionado.tipoUnidade] ?? [];
-  }, [medicamentoSelecionado]);
-
   const quantidadeBaseCalculada = useMemo(() => {
+    const quantidadeApresentacoes = Number(entrada.quantidadeApresentacoes);
+    const quantidadePorApresentacao = Number(medicamentoSelecionado?.quantidadePorApresentacao);
+
     if (
-      !medicamentoSelecionado?.tipoUnidade ||
-      !entrada.quantidadeInformada ||
-      !entrada.unidadeInformada
+      Number.isNaN(quantidadeApresentacoes) ||
+      quantidadeApresentacoes <= 0 ||
+      Number.isNaN(quantidadePorApresentacao) ||
+      quantidadePorApresentacao <= 0
     ) {
       return null;
     }
 
-    return converterParaBase({
-      tipoUnidade: medicamentoSelecionado.tipoUnidade,
-      quantidade: entrada.quantidadeInformada,
-      unidade: entrada.unidadeInformada
-    });
-  }, [medicamentoSelecionado, entrada.quantidadeInformada, entrada.unidadeInformada]);
+    return quantidadeApresentacoes * quantidadePorApresentacao;
+  }, [entrada.quantidadeApresentacoes, medicamentoSelecionado]);
+
+  const valorTotalCalculado = useMemo(() => {
+    const quantidadeApresentacoes = Number(entrada.quantidadeApresentacoes);
+    const valorUnitario = Number(entrada.valorUnitario);
+
+    if (
+      Number.isNaN(quantidadeApresentacoes) ||
+      quantidadeApresentacoes <= 0 ||
+      Number.isNaN(valorUnitario) ||
+      valorUnitario <= 0
+    ) {
+      return null;
+    }
+
+    return quantidadeApresentacoes * valorUnitario;
+  }, [entrada.quantidadeApresentacoes, entrada.valorUnitario]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -190,17 +162,25 @@ const VeterinariaEntradaMedicamentoForm = () => {
     if (!entrada.medicamentoId) erros.push('Selecione um medicamento.');
     if (!entrada.lote.trim()) erros.push('O lote é obrigatório.');
     if (!entrada.validade) erros.push('A validade é obrigatória.');
-    if (!entrada.quantidadeInformada) erros.push('A quantidade é obrigatória.');
-    if (!entrada.unidadeInformada) erros.push('A unidade informada é obrigatória.');
+    if (!entrada.quantidadeApresentacoes) erros.push('A quantidade de apresentações é obrigatória.');
     if (!entrada.dataEntrada) erros.push('A data de entrada é obrigatória.');
 
-    const quantidade = Number(entrada.quantidadeInformada);
+    const quantidade = Number(entrada.quantidadeApresentacoes);
     if (Number.isNaN(quantidade) || quantidade <= 0) {
-      erros.push('A quantidade deve ser maior que zero.');
+      erros.push('A quantidade de apresentações deve ser maior que zero.');
+    }
+
+    if (!medicamentoSelecionado) {
+      erros.push('Não foi possível carregar os dados do medicamento.');
     }
 
     if (quantidadeBaseCalculada === null) {
-      erros.push('Não foi possível converter a quantidade para a unidade base.');
+      erros.push('Não foi possível calcular a quantidade base da entrada.');
+    }
+
+    const valorUnitario = entrada.valorUnitario ? Number(entrada.valorUnitario) : null;
+    if (entrada.valorUnitario && (Number.isNaN(valorUnitario) || valorUnitario < 0)) {
+      erros.push('O valor unitário deve ser um número válido.');
     }
 
     return erros;
@@ -211,8 +191,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
       medicamentoId: medicamentoId || '',
       lote: '',
       validade: '',
-      quantidadeInformada: '',
-      unidadeInformada: medicamentoSelecionado?.unidadePadrao || '',
+      quantidadeApresentacoes: '',
       quantidadeBase: '',
       dataEntrada: new Date().toISOString().slice(0, 10),
       fornecedor: '',
@@ -234,18 +213,24 @@ const VeterinariaEntradaMedicamentoForm = () => {
     }
 
     const payload = {
-      ...entrada,
       medicamentoId: entrada.medicamentoId,
-      quantidadeInformada: Number(entrada.quantidadeInformada),
-      quantidadeBase: quantidadeBaseCalculada,
-      valorUnitario: entrada.valorUnitario ? Number(entrada.valorUnitario) : null,
       medicamentoNome: medicamentoSelecionado?.nome ?? '',
       fabricante: medicamentoSelecionado?.fabricante ?? '',
+      forma: medicamentoSelecionado?.forma ?? '',
+      tipoApresentacao: medicamentoSelecionado?.tipoApresentacao ?? '',
+      quantidadePorApresentacao: Number(medicamentoSelecionado?.quantidadePorApresentacao ?? 0),
+      unidadeConteudo: medicamentoSelecionado?.unidadeConteudo ?? '',
+      unidadeBase: medicamentoSelecionado?.unidadeBase ?? '',
       tipoUnidade: medicamentoSelecionado?.tipoUnidade ?? '',
-      unidadeBase:
-        medicamentoSelecionado?.unidadeBase ??
-        BASE_POR_TIPO[medicamentoSelecionado?.tipoUnidade] ??
-        ''
+      lote: entrada.lote.trim(),
+      validade: entrada.validade,
+      quantidadeApresentacoes: Number(entrada.quantidadeApresentacoes),
+      quantidadeBase: quantidadeBaseCalculada,
+      dataEntrada: entrada.dataEntrada,
+      fornecedor: entrada.fornecedor.trim(),
+      valorUnitario: entrada.valorUnitario ? Number(entrada.valorUnitario) : null,
+      valorTotal: valorTotalCalculado,
+      observacao: entrada.observacao.trim()
     };
 
     try {
@@ -327,7 +312,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
                   <FaQuestionCircle className="tooltip-icon ms-2" onClick={toggleTooltip} />
                   {tooltipAberto && (
                     <div className="tooltip-mensagem">
-                      Aqui você registra ou edita a entrada de estoque de um medicamento, informando lote, validade e quantidade.
+                      Aqui você registra a entrada de estoque com base na apresentação do medicamento. O sistema calcula automaticamente a quantidade total em unidade base.
                     </div>
                   )}
                 </div>
@@ -352,7 +337,21 @@ const VeterinariaEntradaMedicamentoForm = () => {
                           <p><strong>Forma:</strong> {medicamentoSelecionado.forma || '-'}</p>
                         </div>
                         <div className="col-md-3">
+                          <p><strong>Tipo de Apresentação:</strong> {medicamentoSelecionado.tipoApresentacao || '-'}</p>
+                        </div>
+                        <div className="col-md-4">
+                          <p>
+                            <strong>Conteúdo por Apresentação:</strong>{' '}
+                            {medicamentoSelecionado.quantidadePorApresentacao
+                              ? `${medicamentoSelecionado.quantidadePorApresentacao} ${medicamentoSelecionado.unidadeConteudo || ''}`
+                              : '-'}
+                          </p>
+                        </div>
+                        <div className="col-md-4">
                           <p><strong>Unidade Base:</strong> {medicamentoSelecionado.unidadeBase || '-'}</p>
+                        </div>
+                        <div className="col-md-4">
+                          <p><strong>Tipo de Unidade:</strong> {medicamentoSelecionado.tipoUnidade || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -413,37 +412,61 @@ const VeterinariaEntradaMedicamentoForm = () => {
                       </div>
 
                       <div className="col-md-4">
-                        <label htmlFor="quantidadeInformada" className="form-label">Quantidade</label>
+                        <label htmlFor="quantidadeApresentacoes" className="form-label">
+                          Quantidade de Apresentações
+                        </label>
                         <input
                           type="number"
                           step="0.01"
-                          id="quantidadeInformada"
-                          name="quantidadeInformada"
+                          id="quantidadeApresentacoes"
+                          name="quantidadeApresentacoes"
                           className="form-control"
-                          value={entrada.quantidadeInformada}
+                          value={entrada.quantidadeApresentacoes}
                           onChange={handleChange}
                           required
+                          placeholder="Ex.: 6"
                         />
                       </div>
 
                       <div className="col-md-4">
-                        <label htmlFor="unidadeInformada" className="form-label">Unidade Informada</label>
-                        <select
-                          id="unidadeInformada"
-                          name="unidadeInformada"
-                          className="form-select"
-                          value={entrada.unidadeInformada}
-                          onChange={handleChange}
-                          required
-                          disabled={!medicamentoSelecionado}
-                        >
-                          <option value="">Selecione</option>
-                          {unidadesDisponiveis.map((unidade) => (
-                            <option key={unidade} value={unidade}>
-                              {unidade}
-                            </option>
-                          ))}
-                        </select>
+                        <label className="form-label">Apresentação</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={medicamentoSelecionado?.tipoApresentacao || ''}
+                          disabled
+                          placeholder="Selecionado automaticamente"
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label">Conteúdo por Apresentação</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={
+                            medicamentoSelecionado?.quantidadePorApresentacao
+                              ? `${medicamentoSelecionado.quantidadePorApresentacao} ${medicamentoSelecionado?.unidadeConteudo || ''}`
+                              : ''
+                          }
+                          disabled
+                          placeholder="Calculado pelo cadastro"
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label">Quantidade Base Total</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={
+                            quantidadeBaseCalculada !== null
+                              ? `${quantidadeBaseCalculada} ${medicamentoSelecionado?.unidadeBase || ''}`
+                              : ''
+                          }
+                          disabled
+                          placeholder="Calculada automaticamente"
+                        />
                       </div>
 
                       <div className="col-md-4">
@@ -459,7 +482,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
                         />
                       </div>
 
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <label htmlFor="fornecedor" className="form-label">Fornecedor</label>
                         <input
                           type="text"
@@ -472,7 +495,9 @@ const VeterinariaEntradaMedicamentoForm = () => {
                       </div>
 
                       <div className="col-md-6">
-                        <label htmlFor="valorUnitario" className="form-label">Valor Unitário</label>
+                        <label htmlFor="valorUnitario" className="form-label">
+                          Valor Unitário por Apresentação
+                        </label>
                         <input
                           type="number"
                           step="0.01"
@@ -481,6 +506,22 @@ const VeterinariaEntradaMedicamentoForm = () => {
                           className="form-control"
                           value={entrada.valorUnitario}
                           onChange={handleChange}
+                          placeholder="Ex.: 25.90"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Valor Total</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={
+                            valorTotalCalculado !== null
+                              ? `R$ ${valorTotalCalculado.toFixed(2)}`
+                              : ''
+                          }
+                          disabled
+                          placeholder="Calculado automaticamente"
                         />
                       </div>
 
@@ -505,23 +546,23 @@ const VeterinariaEntradaMedicamentoForm = () => {
                 <div className="col-12">
                   <div className="card shadow-sm border-0 rounded-4">
                     <div className="card-body">
-                      <h5 className="mb-3">Resumo da Conversão</h5>
+                      <h5 className="mb-3">Resumo da Entrada</h5>
                       <div className="row">
                         <div className="col-md-4">
                           <p><strong>Medicamento:</strong> {medicamentoSelecionado.nome}</p>
                         </div>
                         <div className="col-md-4">
-                          <p><strong>Fabricante:</strong> {medicamentoSelecionado.fabricante}</p>
+                          <p><strong>Fabricante:</strong> {medicamentoSelecionado.fabricante || '-'}</p>
                         </div>
                         <div className="col-md-4">
-                          <p><strong>Unidade Base:</strong> {medicamentoSelecionado.unidadeBase}</p>
+                          <p><strong>Apresentação:</strong> {medicamentoSelecionado.tipoApresentacao || '-'}</p>
                         </div>
                         <div className="col-md-12">
                           <p className="mb-0">
-                            <strong>Quantidade convertida para base:</strong>{' '}
+                            <strong>Resumo:</strong>{' '}
                             {quantidadeBaseCalculada !== null
-                              ? `${quantidadeBaseCalculada} ${medicamentoSelecionado.unidadeBase}`
-                              : '—'}
+                              ? `${entrada.quantidadeApresentacoes || 0} ${medicamentoSelecionado.tipoApresentacao || 'APRESENTAÇÃO'}(S) equivalem a ${quantidadeBaseCalculada} ${medicamentoSelecionado.unidadeBase || ''}.`
+                              : 'Informe a quantidade de apresentações para calcular a entrada em unidade base.'}
                           </p>
                         </div>
                       </div>

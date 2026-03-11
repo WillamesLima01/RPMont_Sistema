@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Navbar from '../../components/navbar/Navbar';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from '../../api';
@@ -9,16 +9,82 @@ import './Veterinaria.css';
 
 Modal.setAppElement('#root');
 
-const UNIDADES_POR_TIPO = {
-  MASSA: ['MG', 'G', 'KG'],
-  VOLUME: ['ML', 'L'],
-  UNIDADE: ['UN'],
+const TIPOS_APRESENTACAO = [
+  'FRASCO',
+  'AMPOLA',
+  'BISNAGA',
+  'CAIXA',
+  'SACHÊ',
+  'COMPRIMIDO',
+  'CARTELA',
+  'BOLSA',
+  'ENVELOPE',
+  'TUBO',
+  'POTE',
+  'SERINGA'
+];
+
+const FORMAS_FARMACEUTICAS = [
+  { value: 'SOLUCAO', label: 'Solução' },
+  { value: 'LIQUIDO', label: 'Líquido' },
+  { value: 'INJETAVEL', label: 'Injetável' },
+  { value: 'COMPRIMIDO', label: 'Comprimido' },
+  { value: 'CAPSULA', label: 'Cápsula' },
+  { value: 'PO', label: 'Pó' },
+  { value: 'PASTA', label: 'Pasta' },
+  { value: 'POMADA', label: 'Pomada' },
+  { value: 'SPRAY', label: 'Spray' },
+  { value: 'CREME', label: 'Creme' },
+  { value: 'GEL', label: 'Gel' },
+  { value: 'OUTROS', label: 'Outros' }
+];
+
+const CATEGORIAS = [
+  { value: 'ANTIBIOTICO', label: 'Antibiótico' },
+  { value: 'ANTIINFLAMATORIO', label: 'Anti-inflamatório' },
+  { value: 'ANALGESICO', label: 'Analgésico' },
+  { value: 'ANTIPARASITARIO', label: 'Antiparasitário' },
+  { value: 'SEDATIVO', label: 'Sedativo' },
+  { value: 'VITAMINA', label: 'Vitamina' },
+  { value: 'ANESTESICO', label: 'Anestésico' },
+  { value: 'CICATRIZANTE', label: 'Cicatrizante' },
+  { value: 'SORO', label: 'Soro' },
+  { value: 'OUTROS', label: 'Outros' }
+];
+
+const UNIDADES_POR_FORMA = {
+  SOLUCAO: ['ML', 'L'],
+  LIQUIDO: ['ML', 'L'],
+  INJETAVEL: ['ML', 'L'],
+  COMPRIMIDO: ['UN'],
+  CAPSULA: ['UN'],
+  PO: ['MG', 'G', 'KG'],
+  PASTA: ['MG', 'G', 'KG'],
+  POMADA: ['MG', 'G', 'KG'],
+  SPRAY: ['ML', 'L'],
+  CREME: ['MG', 'G', 'KG'],
+  GEL: ['MG', 'G', 'KG'],
+  OUTROS: ['MG', 'G', 'KG', 'ML', 'L', 'UN']
 };
 
-const BASE_POR_TIPO = {
-  MASSA: 'MG',
-  VOLUME: 'ML',
-  UNIDADE: 'UN',
+const BASE_COMPATIVEL = {
+  MG: ['MG'],
+  G: ['MG', 'G'],
+  KG: ['MG', 'G', 'KG'],
+  ML: ['ML'],
+  L: ['ML', 'L'],
+  UN: ['UN']
+};
+
+const derivarTipoUnidade = (unidade) => {
+  if (['MG', 'G', 'KG'].includes(unidade)) return 'MASSA';
+  if (['ML', 'L'].includes(unidade)) return 'VOLUME';
+  if (['UN'].includes(unidade)) return 'UNIDADE';
+  return '';
+};
+
+const obterLabelPorValor = (lista, valor) => {
+  return lista.find((item) => item.value === valor)?.label || valor || '-';
 };
 
 const VeterinariaMedicamentoForm = () => {
@@ -32,12 +98,10 @@ const VeterinariaMedicamentoForm = () => {
     categoria: '',
     forma: '',
     observacao: '',
-    tipoUnidade: '',
-    unidadePadrao: '',
+    tipoApresentacao: '',
+    quantidadePorApresentacao: '',
+    unidadeConteudo: '',
     unidadeBase: '',
-    concentracaoAtiva: false,
-    mgPorMl: '',
-    mgPorUn: '',
     ativo: true
   });
 
@@ -47,7 +111,7 @@ const VeterinariaMedicamentoForm = () => {
   const [mensagensErro, setMensagensErro] = useState([]);
   const [tooltipAberto, setTooltipAberto] = useState(null);
 
-    useEffect(() => {
+  useEffect(() => {
     if (medicamentoId) {
       axios.get(`/medicamentos/${medicamentoId}`)
         .then((response) => {
@@ -59,12 +123,10 @@ const VeterinariaMedicamentoForm = () => {
             categoria: d.categoria ?? '',
             forma: d.forma ?? '',
             observacao: d.observacao ?? '',
-            tipoUnidade: d.tipoUnidade ?? '',
-            unidadePadrao: d.unidadePadrao ?? '',
+            tipoApresentacao: d.tipoApresentacao ?? '',
+            quantidadePorApresentacao: d.quantidadePorApresentacao ?? '',
+            unidadeConteudo: d.unidadeConteudo ?? '',
             unidadeBase: d.unidadeBase ?? '',
-            concentracaoAtiva: d.concentracaoAtiva ?? false,
-            mgPorMl: d.mgPorMl ?? '',
-            mgPorUn: d.mgPorUn ?? '',
             ativo: d.ativo ?? true
           });
         })
@@ -85,15 +147,47 @@ const VeterinariaMedicamentoForm = () => {
       categoria: '',
       forma: '',
       observacao: '',
-      tipoUnidade: '',
-      unidadePadrao: '',
+      tipoApresentacao: '',
+      quantidadePorApresentacao: '',
+      unidadeConteudo: '',
       unidadeBase: '',
-      concentracaoAtiva: false,
-      mgPorMl: '',
-      mgPorUn: '',
       ativo: true
     });
   };
+
+  const unidadesConteudoDisponiveis = useMemo(() => {
+    if (!medicamento.forma) return [];
+    return UNIDADES_POR_FORMA[medicamento.forma] ?? [];
+  }, [medicamento.forma]);
+
+  const unidadesBaseDisponiveis = useMemo(() => {
+    if (!medicamento.unidadeConteudo) return [];
+    return BASE_COMPATIVEL[medicamento.unidadeConteudo] ?? [];
+  }, [medicamento.unidadeConteudo]);
+
+  const tipoUnidadeCalculado = useMemo(() => {
+    return derivarTipoUnidade(medicamento.unidadeBase || medicamento.unidadeConteudo);
+  }, [medicamento.unidadeBase, medicamento.unidadeConteudo]);
+
+  const resumoCadastro = useMemo(() => {
+    if (
+      !medicamento.nome &&
+      !medicamento.tipoApresentacao &&
+      !medicamento.quantidadePorApresentacao &&
+      !medicamento.unidadeConteudo &&
+      !medicamento.unidadeBase
+    ) {
+      return 'Preencha os campos para visualizar como o medicamento será controlado no sistema.';
+    }
+
+    const nome = medicamento.nome || 'Medicamento';
+    const apresentacao = medicamento.tipoApresentacao || 'APRESENTAÇÃO';
+    const quantidade = medicamento.quantidadePorApresentacao || '0';
+    const unidadeConteudo = medicamento.unidadeConteudo || 'UN';
+    const unidadeBase = medicamento.unidadeBase || 'UN';
+
+    return `${nome} será cadastrado como ${apresentacao} com ${quantidade} ${unidadeConteudo}, e o controle de estoque/consumo será feito em ${unidadeBase}.`;
+  }, [medicamento]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -104,22 +198,13 @@ const VeterinariaMedicamentoForm = () => {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      if (name === 'tipoUnidade') {
-        atualizado.unidadePadrao = '';
-        atualizado.unidadeBase = BASE_POR_TIPO[value] ?? '';
-        atualizado.concentracaoAtiva = false;
-        atualizado.mgPorMl = '';
-        atualizado.mgPorUn = '';
+      if (name === 'forma') {
+        atualizado.unidadeConteudo = '';
+        atualizado.unidadeBase = '';
       }
 
-      if (name === 'unidadePadrao' && !prev.unidadeBase) {
-        atualizado.unidadeBase = BASE_POR_TIPO[prev.tipoUnidade] ?? '';
-      }
-
-      if (name === 'tipoUnidade' && value === 'MASSA') {
-        atualizado.concentracaoAtiva = false;
-        atualizado.mgPorMl = '';
-        atualizado.mgPorUn = '';
+      if (name === 'unidadeConteudo') {
+        atualizado.unidadeBase = '';
       }
 
       return atualizado;
@@ -133,21 +218,22 @@ const VeterinariaMedicamentoForm = () => {
     if (!medicamento.fabricante.trim()) erros.push('O fabricante é obrigatório.');
     if (!medicamento.categoria) erros.push('A categoria é obrigatória.');
     if (!medicamento.forma) erros.push('A forma farmacêutica é obrigatória.');
-    if (!medicamento.tipoUnidade) erros.push('O tipo de unidade é obrigatório.');
-    if (!medicamento.unidadePadrao) erros.push('A unidade padrão é obrigatória.');
+    if (!medicamento.tipoApresentacao) erros.push('O tipo de apresentação é obrigatório.');
+    if (!medicamento.quantidadePorApresentacao) erros.push('A quantidade por apresentação é obrigatória.');
+    if (!medicamento.unidadeConteudo) erros.push('A unidade do conteúdo é obrigatória.');
+    if (!medicamento.unidadeBase) erros.push('A unidade base é obrigatória.');
 
-    if (medicamento.tipoUnidade === 'VOLUME' && medicamento.concentracaoAtiva) {
-      const valor = Number(medicamento.mgPorMl);
-      if (Number.isNaN(valor) || valor <= 0) {
-        erros.push('Informe uma concentração válida em mg/mL.');
-      }
+    const quantidade = Number(medicamento.quantidadePorApresentacao);
+    if (Number.isNaN(quantidade) || quantidade <= 0) {
+      erros.push('A quantidade por apresentação deve ser maior que zero.');
     }
 
-    if (medicamento.tipoUnidade === 'UNIDADE' && medicamento.concentracaoAtiva) {
-      const valor = Number(medicamento.mgPorUn);
-      if (Number.isNaN(valor) || valor <= 0) {
-        erros.push('Informe uma concentração válida em mg/UN.');
-      }
+    if (
+      medicamento.unidadeConteudo &&
+      medicamento.unidadeBase &&
+      !(BASE_COMPATIVEL[medicamento.unidadeConteudo] || []).includes(medicamento.unidadeBase)
+    ) {
+      erros.push('A unidade base não é compatível com a unidade do conteúdo.');
     }
 
     return erros;
@@ -166,19 +252,24 @@ const VeterinariaMedicamentoForm = () => {
     }
 
     const payload = {
-      ...medicamento,
-      mgPorMl: medicamento.concentracaoAtiva && medicamento.tipoUnidade === 'VOLUME'
-        ? Number(medicamento.mgPorMl)
-        : null,
-      mgPorUn: medicamento.concentracaoAtiva && medicamento.tipoUnidade === 'UNIDADE'
-        ? Number(medicamento.mgPorUn)
-        : null
+      nome: medicamento.nome.trim(),
+      nomeComercial: medicamento.nomeComercial.trim(),
+      fabricante: medicamento.fabricante.trim(),
+      categoria: medicamento.categoria,
+      forma: medicamento.forma,
+      observacao: medicamento.observacao.trim(),
+      tipoApresentacao: medicamento.tipoApresentacao,
+      quantidadePorApresentacao: Number(medicamento.quantidadePorApresentacao),
+      unidadeConteudo: medicamento.unidadeConteudo,
+      unidadeBase: medicamento.unidadeBase,
+      tipoUnidade: tipoUnidadeCalculado,
+      ativo: medicamento.ativo
     };
 
     try {
       const request = medicamentoId
-      ? axios.put(`/medicamentos/${medicamentoId}`, payload)
-      : axios.post('/medicamentos', payload);
+        ? axios.put(`/medicamentos/${medicamentoId}`, payload)
+        : axios.post('/medicamentos', payload);
 
       await request;
 
@@ -234,10 +325,6 @@ const VeterinariaMedicamentoForm = () => {
     }, 2500);
   };
 
-  const unidadesDisponiveis = medicamento.tipoUnidade
-    ? UNIDADES_POR_TIPO[medicamento.tipoUnidade]
-    : [];
-
   return (
     <>
       <Navbar />
@@ -257,8 +344,8 @@ const VeterinariaMedicamentoForm = () => {
                   {tooltipAberto === 'titulo' && (
                     <div className="tooltip-mensagem">
                       {medicamentoId
-                        ? 'Aqui você pode editar os dados cadastrais do medicamento.'
-                        : 'Aqui você cadastra apenas o medicamento. A quantidade em estoque será lançada na tela de entrada.'}
+                        ? 'Aqui você pode editar os dados do medicamento e sua apresentação comercial.'
+                        : 'Aqui você cadastra o medicamento definindo como ele é comprado e como será controlado no estoque.'}
                     </div>
                   )}
                 </div>
@@ -298,7 +385,7 @@ const VeterinariaMedicamentoForm = () => {
                         />
                       </div>
 
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <label htmlFor="fabricante" className="form-label">Fabricante</label>
                         <input
                           type="text"
@@ -311,7 +398,7 @@ const VeterinariaMedicamentoForm = () => {
                         />
                       </div>
 
-                      <div className="col-md-3">
+                      <div className="col-md-4">
                         <label htmlFor="categoria" className="form-label">Categoria</label>
                         <select
                           id="categoria"
@@ -322,16 +409,15 @@ const VeterinariaMedicamentoForm = () => {
                           required
                         >
                           <option value="">Selecione</option>
-                          <option value="ANTIBIOTICO">Antibiótico</option>
-                          <option value="ANTIINFLAMATORIO">Anti-inflamatório</option>
-                          <option value="ANALGESICO">Analgésico</option>
-                          <option value="ANTIPARASITARIO">Antiparasitário</option>
-                          <option value="SEDATIVO">Sedativo</option>
-                          <option value="OUTROS">Outros</option>
+                          {CATEGORIAS.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
-                      <div className="col-md-3">
+                      <div className="col-md-4">
                         <label htmlFor="forma" className="form-label">Forma Farmacêutica</label>
                         <select
                           id="forma"
@@ -342,152 +428,15 @@ const VeterinariaMedicamentoForm = () => {
                           required
                         >
                           <option value="">Selecione</option>
-                          <option value="SOLUCAO">Solução</option>
-                          <option value="COMPRIMIDO">Comprimido</option>
-                          <option value="PO">Pó</option>
-                          <option value="PASTA">Pasta</option>
-                          <option value="POMADA">Pomada</option>
-                          <option value="SPRAY">Spray</option>
-                          <option value="OUTROS">Outros</option>
-                        </select>
-                      </div>
-
-                      <div className="col-md-4">
-                        <label className="form-label d-flex align-items-center">
-                          Tipo de Unidade
-                          <div className="tooltip-wrapper">
-                            <FaQuestionCircle
-                              className="tooltip-icon ms-2"
-                              onClick={() => toggleTooltip('tipoUnidade')}
-                            />
-                            {tooltipAberto === 'tipoUnidade' && (
-                              <div className="tooltip-mensagem">
-                                Define a natureza da medida do medicamento: massa, volume ou unidade.
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                        <select
-                          id="tipoUnidade"
-                          name="tipoUnidade"
-                          className="form-select"
-                          value={medicamento.tipoUnidade}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Selecione</option>
-                          <option value="MASSA">Massa</option>
-                          <option value="VOLUME">Volume</option>
-                          <option value="UNIDADE">Unidade</option>
-                        </select>
-                      </div>
-
-                      <div className="col-md-4">
-                        <label className="form-label d-flex align-items-center">
-                          Unidade Padrão
-                          <div className="tooltip-wrapper">
-                            <FaQuestionCircle
-                              className="tooltip-icon ms-2"
-                              onClick={() => toggleTooltip('unidadePadrao')}
-                            />
-                            {tooltipAberto === 'unidadePadrao' && (
-                              <div className="tooltip-mensagem">
-                                Unidade principal em que o medicamento é cadastrado no sistema. Exemplo: UN, ML, G.
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                        <select
-                          id="unidadePadrao"
-                          name="unidadePadrao"
-                          className="form-select"
-                          value={medicamento.unidadePadrao}
-                          onChange={handleChange}
-                          required
-                          disabled={!medicamento.tipoUnidade}
-                        >
-                          <option value="">Selecione</option>
-                          {unidadesDisponiveis.map((unidade) => (
-                            <option key={unidade} value={unidade}>
-                              {unidade}
+                          {FORMAS_FARMACEUTICAS.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
                             </option>
                           ))}
                         </select>
                       </div>
 
-                      <div className="col-md-4">
-                        <label className="form-label d-flex align-items-center">
-                          Unidade Base
-                          <div className="tooltip-wrapper">
-                            <FaQuestionCircle
-                              className="tooltip-icon ms-2"
-                              onClick={() => toggleTooltip('unidadeBase')}
-                            />
-                            {tooltipAberto === 'unidadeBase' && (
-                              <div className="tooltip-mensagem">
-                                Unidade usada pelo sistema para calcular estoque e consumo. Exemplo: ML para líquidos, MG para massa, UN para comprimidos.
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                        <input
-                          type="text"
-                          id="unidadeBase"
-                          name="unidadeBase"
-                          className="form-control"
-                          value={medicamento.unidadeBase}
-                          readOnly
-                        />
-                      </div>
-
-                      <div className="col-md-12">
-                        <div className="form-check mt-2">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="concentracaoAtiva"
-                            name="concentracaoAtiva"
-                            checked={medicamento.concentracaoAtiva}
-                            onChange={handleChange}
-                            disabled={!medicamento.tipoUnidade || medicamento.tipoUnidade === 'MASSA'}
-                          />
-                          <label className="form-check-label" htmlFor="concentracaoAtiva">
-                            Informar concentração
-                          </label>
-                        </div>
-                      </div>
-
-                      {medicamento.concentracaoAtiva && medicamento.tipoUnidade === 'VOLUME' && (
-                        <div className="col-md-6">
-                          <label htmlFor="mgPorMl" className="form-label">Concentração (mg/mL)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            id="mgPorMl"
-                            name="mgPorMl"
-                            className="form-control"
-                            value={medicamento.mgPorMl}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      )}
-
-                      {medicamento.concentracaoAtiva && medicamento.tipoUnidade === 'UNIDADE' && (
-                        <div className="col-md-6">
-                          <label htmlFor="mgPorUn" className="form-label">Concentração (mg/UN)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            id="mgPorUn"
-                            name="mgPorUn"
-                            className="form-control"
-                            value={medicamento.mgPorUn}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      )}
-
-                      <div className="col-md-12">
+                      <div className="col-md-9">
                         <label htmlFor="observacao" className="form-label">Observações</label>
                         <textarea
                           id="observacao"
@@ -515,6 +464,211 @@ const VeterinariaMedicamentoForm = () => {
                         </div>
                       </div>
 
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-12">
+                <div className="card shadow-sm border-0 rounded-4">
+                  <div className="card-body">
+                    <h5 className="mb-3">Apresentação Comercial</h5>
+                    <div className="row g-3">
+
+                      <div className="col-md-4">
+                        <label className="form-label d-flex align-items-center">
+                          Tipo de Apresentação
+                          <div className="tooltip-wrapper">
+                            <FaQuestionCircle
+                              className="tooltip-icon ms-2"
+                              onClick={() => toggleTooltip('tipoApresentacao')}
+                            />
+                            {tooltipAberto === 'tipoApresentacao' && (
+                              <div className="tooltip-mensagem">
+                                Forma em que o produto é comprado, como frasco, ampola, bisnaga ou cartela.
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                        <select
+                          id="tipoApresentacao"
+                          name="tipoApresentacao"
+                          className="form-select"
+                          value={medicamento.tipoApresentacao}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">Selecione</option>
+                          {TIPOS_APRESENTACAO.map((tipo) => (
+                            <option key={tipo} value={tipo}>
+                              {tipo}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label d-flex align-items-center">
+                          Quantidade por Apresentação
+                          <div className="tooltip-wrapper">
+                            <FaQuestionCircle
+                              className="tooltip-icon ms-2"
+                              onClick={() => toggleTooltip('quantidadePorApresentacao')}
+                            />
+                            {tooltipAberto === 'quantidadePorApresentacao' && (
+                              <div className="tooltip-mensagem">
+                                Quantidade de conteúdo que existe em cada apresentação. Exemplo: 50 em um frasco de 50 mL.
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          id="quantidadePorApresentacao"
+                          name="quantidadePorApresentacao"
+                          className="form-control"
+                          value={medicamento.quantidadePorApresentacao}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label d-flex align-items-center">
+                          Unidade do Conteúdo
+                          <div className="tooltip-wrapper">
+                            <FaQuestionCircle
+                              className="tooltip-icon ms-2"
+                              onClick={() => toggleTooltip('unidadeConteudo')}
+                            />
+                            {tooltipAberto === 'unidadeConteudo' && (
+                              <div className="tooltip-mensagem">
+                                Unidade do conteúdo que vem dentro da apresentação. Exemplo: mL, g ou UN.
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                        <select
+                          id="unidadeConteudo"
+                          name="unidadeConteudo"
+                          className="form-select"
+                          value={medicamento.unidadeConteudo}
+                          onChange={handleChange}
+                          required
+                          disabled={!medicamento.forma}
+                        >
+                          <option value="">Selecione</option>
+                          {unidadesConteudoDisponiveis.map((unidade) => (
+                            <option key={unidade} value={unidade}>
+                              {unidade}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-12">
+                <div className="card shadow-sm border-0 rounded-4">
+                  <div className="card-body">
+                    <h5 className="mb-3">Controle de Estoque</h5>
+                    <div className="row g-3">
+
+                      <div className="col-md-4">
+                        <label className="form-label d-flex align-items-center">
+                          Unidade Base
+                          <div className="tooltip-wrapper">
+                            <FaQuestionCircle
+                              className="tooltip-icon ms-2"
+                              onClick={() => toggleTooltip('unidadeBase')}
+                            />
+                            {tooltipAberto === 'unidadeBase' && (
+                              <div className="tooltip-mensagem">
+                                Unidade em que o sistema vai controlar o estoque e o consumo do medicamento nos atendimentos.
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                        <select
+                          id="unidadeBase"
+                          name="unidadeBase"
+                          className="form-select"
+                          value={medicamento.unidadeBase}
+                          onChange={handleChange}
+                          required
+                          disabled={!medicamento.unidadeConteudo}
+                        >
+                          <option value="">Selecione</option>
+                          {unidadesBaseDisponiveis.map((unidade) => (
+                            <option key={unidade} value={unidade}>
+                              {unidade}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label">Tipo de Unidade</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={tipoUnidadeCalculado}
+                          readOnly
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label">Compatibilidade</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={
+                            medicamento.unidadeConteudo && medicamento.unidadeBase
+                              ? 'Compatível'
+                              : 'Aguardando seleção'
+                          }
+                          readOnly
+                        />
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-12">
+                <div className="card shadow-sm border-0 rounded-4">
+                  <div className="card-body">
+                    <h5 className="mb-3">Resumo do Cadastro</h5>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <p className="mb-2"><strong>Medicamento:</strong> {medicamento.nome || '-'}</p>
+                        <p className="mb-2"><strong>Fabricante:</strong> {medicamento.fabricante || '-'}</p>
+                        <p className="mb-2"><strong>Categoria:</strong> {obterLabelPorValor(CATEGORIAS, medicamento.categoria)}</p>
+                        <p className="mb-0"><strong>Forma:</strong> {obterLabelPorValor(FORMAS_FARMACEUTICAS, medicamento.forma)}</p>
+                      </div>
+
+                      <div className="col-md-6">
+                        <p className="mb-2"><strong>Apresentação:</strong> {medicamento.tipoApresentacao || '-'}</p>
+                        <p className="mb-2">
+                          <strong>Conteúdo por apresentação:</strong>{' '}
+                          {medicamento.quantidadePorApresentacao
+                            ? `${medicamento.quantidadePorApresentacao} ${medicamento.unidadeConteudo || ''}`
+                            : '-'}
+                        </p>
+                        <p className="mb-2"><strong>Unidade base:</strong> {medicamento.unidadeBase || '-'}</p>
+                        <p className="mb-0"><strong>Status:</strong> {medicamento.ativo ? 'Ativo' : 'Inativo'}</p>
+                      </div>
+
+                      <div className="col-12">
+                        <div className="alert alert-primary mb-0">
+                          <strong>Resumo:</strong> {resumoCadastro}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

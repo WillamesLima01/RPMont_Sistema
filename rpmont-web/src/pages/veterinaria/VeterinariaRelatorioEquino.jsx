@@ -8,14 +8,14 @@ import './Veterinaria.css';
 import { useNavigate } from 'react-router-dom';
 
 const VeterinariaRelatorioEquino = () => {
-  const [equinos, setEquinos] = useState([]);
+  const [equino, setEquino] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
   const [escalas, setEscalas] = useState([]);
   const [baixas, setBaixas] = useState([]);
 
   // === Enfermidades (autocomplete para filtro) ===
-  const [enfermidades, setEnfermidades] = useState([]);  // [{id, nome}]
-  const [enfTexto, setEnfTexto] = useState('');          // texto no input (filtro)
+  const [enfermidades, setEnfermidades] = useState([]); // [{id, nome}]
+  const [enfTexto, setEnfTexto] = useState('');
   const [abrirSugestoes, setAbrirSugestoes] = useState(false);
   const [carregandoEnf, setCarregandoEnf] = useState(false);
   const caixaEnfRef = useRef(null);
@@ -27,44 +27,52 @@ const VeterinariaRelatorioEquino = () => {
   const [tipoRelatorio, setTipoRelatorio] = useState('completo');
 
   const [resultado, setResultado] = useState(null);
-  const [totalOcorrenciasEnf, setTotalOcorrenciasEnf] = useState(null); // total da enfermidade selecionada
+  const [totalOcorrenciasEnf, setTotalOcorrenciasEnf] = useState(null);
   const divRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
     const carregar = async () => {
       try {
+        setCarregandoEnf(true);
+
         const [eq, at, es, bx] = await Promise.all([
-          axios.get('/equinos'),
+          axios.get('/equino'),
           axios.get('/atendimentos'),
           axios.get('/escala'),
           axios.get('/equinosBaixados'),
         ]);
 
-        const equinosData = eq.data || [];
+        const equinoData = eq.data || [];
         const atendData = at.data || [];
         const escalasData = es.data || [];
         const baixasData = bx.data || [];
 
-        setEquinos(equinosData);
+        setEquino(equinoData);
         setAtendimentos(atendData);
         setEscalas(escalasData);
         setBaixas(baixasData);
 
-        // Monta enfermidades únicas a partir dos atendimentos (campo a.enfermidade)
-        setCarregandoEnf(true);
         const nomesUnicos = Array.from(
           new Set(
             atendData
-              .map(a => (a && a.enfermidade ? String(a.enfermidade).trim() : ''))
+              .map((a) => (a && a.enfermidade ? String(a.enfermidade).trim() : ''))
               .filter(Boolean)
           )
         );
-        const lista = nomesUnicos.map((nome, i) => ({ id: i + 1, nome }));
+
+        const lista = nomesUnicos.map((nome, i) => ({
+          id: i + 1,
+          nome,
+        }));
+
         setEnfermidades(lista);
       } catch (e) {
         console.error('Erro ao carregar dados do relatório:', e);
-        setEquinos([]); setAtendimentos([]); setEscalas([]); setBaixas([]);
+        setEquino([]);
+        setAtendimentos([]);
+        setEscalas([]);
+        setBaixas([]);
         setEnfermidades([]);
       } finally {
         setCarregandoEnf(false);
@@ -74,20 +82,21 @@ const VeterinariaRelatorioEquino = () => {
     carregar();
   }, []);
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     const handleClickFora = (e) => {
       if (caixaEnfRef.current && !caixaEnfRef.current.contains(e.target)) {
         setAbrirSugestoes(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickFora);
     return () => document.removeEventListener('mousedown', handleClickFora);
   }, []);
 
-  // Sugestões filtradas
   const sugestoesEnf = enfTexto.trim()
-    ? enfermidades.filter(e => (e.nome || '').toLowerCase().includes(enfTexto.trim().toLowerCase()))
+    ? enfermidades.filter((e) =>
+        (e.nome || '').toLowerCase().includes(enfTexto.trim().toLowerCase())
+      )
     : enfermidades;
 
   const selecionarEnf = (item) => {
@@ -101,40 +110,42 @@ const VeterinariaRelatorioEquino = () => {
   };
 
   const gerarRelatorio = () => {
-    const inicioDate = filtroInicio ? new Date(filtroInicio) : new Date('1970-01-01');
-    const fimDate    = filtroFim    ? new Date(filtroFim)    : new Date('9999-12-31');
+    const inicioDate = filtroInicio ? new Date(`${filtroInicio}T00:00:00`) : new Date('1970-01-01T00:00:00');
+    const fimDate = filtroFim ? new Date(`${filtroFim}T23:59:59`) : new Date('9999-12-31T23:59:59');
 
     const equinosSelecionados = filtroEquino
-      ? equinos.filter(e => String(e.id) === String(filtroEquino))
-      : equinos;
+      ? equino.filter((e) => String(e.id) === String(filtroEquino))
+      : equino;
 
     const enfFiltro = (enfTexto || '').trim().toLowerCase();
 
-    const dados = equinosSelecionados.map(eq => {
-      // === ATENDIMENTOS ===
-      const atend = atendimentos.filter(a => {
+    const dados = equinosSelecionados.map((eq) => {
+      const atend = atendimentos.filter((a) => {
         const dataAt = new Date(a.data);
         const dentro = dataAt >= inicioDate && dataAt <= fimDate;
         const doEquino = String(a.idEquino) === String(eq.id);
         const passaEnf = enfFiltro
           ? String(a.enfermidade || '').toLowerCase().includes(enfFiltro)
           : true;
+
         return dentro && doEquino && passaEnf;
       });
 
-      // === ESCALAS ===
-      const esc = escalas.filter(s => {
+      const esc = escalas.filter((s) => {
         const dataEsc = new Date(s.data);
-        return String(s.idEquino) === String(eq.id) && dataEsc >= inicioDate && dataEsc <= fimDate;
+        return (
+          String(s.idEquino) === String(eq.id) &&
+          dataEsc >= inicioDate &&
+          dataEsc <= fimDate
+        );
       });
 
-      // === BAIXAS (sobreposição de período; conta em andamento também) ===
-      const baixasEq = baixas.filter(b => String(b.idEquino) === String(eq.id));
+      const baixasEq = baixas.filter((b) => String(b.idEquino) === String(eq.id));
       let baixasFiltradas = [];
       let totalDiasBaixado = 0;
 
-      baixasEq.forEach(b => {
-        const dataBaixa   = new Date(b.dataBaixa);
+      baixasEq.forEach((b) => {
+        const dataBaixa = new Date(b.dataBaixa);
         const dataRetorno = b.dataRetorno ? new Date(b.dataRetorno) : null;
 
         const sobrepoe =
@@ -142,53 +153,72 @@ const VeterinariaRelatorioEquino = () => {
           (dataRetorno ? dataRetorno >= inicioDate : true);
 
         if (sobrepoe) {
-          const inizio = dataBaixa < inicioDate ? inicioDate : dataBaixa;
-          const fine   = (dataRetorno && dataRetorno < fimDate) ? dataRetorno : fimDate;
-          const dias   = Math.max(1, Math.ceil((fine - inizio) / (1000 * 60 * 60 * 24)));
+          const inicioPeriodo = dataBaixa < inicioDate ? inicioDate : dataBaixa;
+          const fimPeriodo =
+            dataRetorno && dataRetorno < fimDate ? dataRetorno : fimDate;
+
+          const dias = Math.max(
+            1,
+            Math.ceil((fimPeriodo - inicioPeriodo) / (1000 * 60 * 60 * 24))
+          );
 
           totalDiasBaixado += dias;
+
           baixasFiltradas.push({
             dataBaixa: dataBaixa.toLocaleDateString('pt-BR'),
-            dataRetorno: dataRetorno ? dataRetorno.toLocaleDateString('pt-BR') : '—',
-            dias
+            dataRetorno: dataRetorno
+              ? dataRetorno.toLocaleDateString('pt-BR')
+              : '—',
+            dias,
           });
         }
       });
 
-      const cargaTotal = esc.reduce((acc, e) => acc + (Number(e.cargaHoraria) || 0), 0);
+      const cargaTotal = esc.reduce(
+        (acc, item) => acc + (Number(item.cargaHoraria) || 0),
+        0
+      );
 
       return {
-        equino: eq.name,
-        atendimentos: (tipoRelatorio !== 'baixas' && tipoRelatorio !== 'escalas') ? atend : [],
-        escalas:      (tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'baixas') ? esc : [],
-        baixas:       (tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'escalas') ? baixasFiltradas : [],
+        equino: eq.nome,
+        atendimentos:
+          tipoRelatorio !== 'baixas' && tipoRelatorio !== 'escalas' ? atend : [],
+        escalas:
+          tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'baixas'
+            ? esc
+            : [],
+        baixas:
+          tipoRelatorio !== 'atendimentos' && tipoRelatorio !== 'escalas'
+            ? baixasFiltradas
+            : [],
         cargaTotal,
         totalAtendimentos: atend.length,
         totalBaixas: baixasFiltradas.length,
         totalDiasBaixado,
-        totalEscalas: esc.length
+        totalEscalas: esc.length,
       };
     });
 
-    // === FILTRO FINAL POR TIPO DE RELATÓRIO ===
     let dadosFiltrados;
     switch (tipoRelatorio) {
       case 'baixas':
-        dadosFiltrados = dados.filter(d => d.totalBaixas > 0);
+        dadosFiltrados = dados.filter((d) => d.totalBaixas > 0);
         break;
       case 'escalas':
-        dadosFiltrados = dados.filter(d => d.totalEscalas > 0);
+        dadosFiltrados = dados.filter((d) => d.totalEscalas > 0);
         break;
       case 'atendimentos':
-        dadosFiltrados = dados.filter(d => d.totalAtendimentos > 0);
+        dadosFiltrados = dados.filter((d) => d.totalAtendimentos > 0);
         break;
-      default: // completo
-        dadosFiltrados = dados.filter(d =>
-          d.totalAtendimentos > 0 || d.totalBaixas > 0 || d.totalEscalas > 0
+      default:
+        dadosFiltrados = dados.filter(
+          (d) =>
+            d.totalAtendimentos > 0 ||
+            d.totalBaixas > 0 ||
+            d.totalEscalas > 0
         );
     }
 
-    // Contador total de ocorrências da enfermidade selecionada (faz sentido só quando há filtro de enfermidade)
     const totalOcorr = enfFiltro
       ? dadosFiltrados.reduce((acc, d) => acc + d.totalAtendimentos, 0)
       : null;
@@ -201,6 +231,7 @@ const VeterinariaRelatorioEquino = () => {
 
   const gerarPDF = () => {
     if (!divRef.current) return;
+
     const clone = divRef.current.cloneNode(true);
 
     const cabecalho = document.createElement('div');
@@ -218,14 +249,15 @@ const VeterinariaRelatorioEquino = () => {
 
     const periodoTexto = `Período: ${filtroInicio || 'S/D'} até ${filtroFim || 'S/D'}`;
     const equinoNome = filtroEquino
-      ? (equinos.find(eq => String(eq.id) === String(filtroEquino))?.name || 'Desconhecido')
+      ? equino.find((eq) => String(eq.id) === String(filtroEquino))?.nome || 'Desconhecido'
       : 'Todos';
     const tipoTexto = tipoRelatorio.charAt(0).toUpperCase() + tipoRelatorio.slice(1);
     const enfHeader = enfTexto || 'Todas';
 
-    const ocorrHeader = totalOcorrenciasEnf != null
-      ? ` | Ocorrências de "${enfHeader}": ${totalOcorrenciasEnf}`
-      : '';
+    const ocorrHeader =
+      totalOcorrenciasEnf != null
+        ? ` | Ocorrências de "${enfHeader}": ${totalOcorrenciasEnf}`
+        : '';
 
     filtros.innerText = `${periodoTexto} | Equino: ${equinoNome} | Tipo: ${tipoTexto} | Enfermidade: ${enfHeader}${ocorrHeader}`;
     cabecalho.appendChild(filtros);
@@ -237,27 +269,26 @@ const VeterinariaRelatorioEquino = () => {
       filename: 'relatorio_equinos.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
     };
 
     html2pdf().set(opt).from(clone).save();
   };
 
-  // mensagem de vazio dinâmica conforme tipo
-  const emptyMsg = {
-    atendimentos: 'Nenhum atendimento encontrado com os filtros informados.',
-    baixas:       'Nenhuma baixa encontrada com os filtros informados.',
-    escalas:      'Nenhuma escala encontrada com os filtros informados.',
-    completo:     'Nenhum resultado encontrado com os filtros informados.',
-  }[tipoRelatorio] || 'Nenhum resultado encontrado com os filtros informados.';
+  const emptyMsg =
+    {
+      atendimentos: 'Nenhum atendimento encontrado com os filtros informados.',
+      baixas: 'Nenhuma baixa encontrada com os filtros informados.',
+      escalas: 'Nenhuma escala encontrada com os filtros informados.',
+      completo: 'Nenhum resultado encontrado com os filtros informados.',
+    }[tipoRelatorio] || 'Nenhum resultado encontrado com os filtros informados.';
 
   return (
-    <div className='container-fluid mt-page'>
+    <div className="container-fluid mt-page">
       <Navbar />
-      <div className='relatorio-card shadow p-4 rounded-4 bg-white'>
-        <h2 className='mb-4 text-primary'>Relatório de Equinos</h2>
+      <div className="relatorio-card shadow p-4 rounded-4 bg-white">
+        <h2 className="mb-4 text-primary">Relatório de Equinos</h2>
 
-        {/* Filtros em uma única linha */}
         <div className="row g-2 align-items-end mb-3">
           <div className="col-6 col-md-2">
             <label className="form-label fw-bold">Período Inicial:</label>
@@ -265,7 +296,7 @@ const VeterinariaRelatorioEquino = () => {
               type="date"
               className="form-control"
               value={filtroInicio}
-              onChange={e => setFiltroInicio(e.target.value)}
+              onChange={(e) => setFiltroInicio(e.target.value)}
             />
           </div>
 
@@ -275,7 +306,7 @@ const VeterinariaRelatorioEquino = () => {
               type="date"
               className="form-control"
               value={filtroFim}
-              onChange={e => setFiltroFim(e.target.value)}
+              onChange={(e) => setFiltroFim(e.target.value)}
             />
           </div>
 
@@ -284,11 +315,13 @@ const VeterinariaRelatorioEquino = () => {
             <select
               className="form-select"
               value={filtroEquino}
-              onChange={e => setFiltroEquino(e.target.value)}
+              onChange={(e) => setFiltroEquino(e.target.value)}
             >
               <option value="">Todos</option>
-              {equinos.map(eq => (
-                <option key={eq.id} value={eq.id}>{eq.name}</option>
+              {equino.map((eq) => (
+                <option key={eq.id} value={eq.id}>
+                  {eq.nome}
+                </option>
               ))}
             </select>
           </div>
@@ -298,7 +331,7 @@ const VeterinariaRelatorioEquino = () => {
             <select
               className="form-select"
               value={tipoRelatorio}
-              onChange={e => setTipoRelatorio(e.target.value)}
+              onChange={(e) => setTipoRelatorio(e.target.value)}
             >
               <option value="completo">Completo</option>
               <option value="atendimentos">Somente Atendimentos</option>
@@ -307,7 +340,6 @@ const VeterinariaRelatorioEquino = () => {
             </select>
           </div>
 
-          {/* Enfermidade (autocomplete) */}
           <div className="col-12 col-md-4" ref={caixaEnfRef}>
             <label className="form-label fw-bold">Enfermidade</label>
             <div className="position-relative">
@@ -347,9 +379,9 @@ const VeterinariaRelatorioEquino = () => {
                     width: '100%',
                     maxHeight: 220,
                     overflowY: 'auto',
-                    marginTop: 4
+                    marginTop: 4,
                   }}
-                  onMouseDown={(e) => e.preventDefault()} // permite clicar sem perder foco
+                  onMouseDown={(e) => e.preventDefault()}
                 >
                   {sugestoesEnf.map((s) => (
                     <li
@@ -364,33 +396,42 @@ const VeterinariaRelatorioEquino = () => {
                   ))}
                 </ul>
               )}
-            </div>            
+            </div>
           </div>
         </div>
 
-        <div className='d-flex justify-content-end gap-3 mb-3 '>
-          <button className='btn btn-outline-danger' onClick={() => navigate(-1)}>Voltar</button>
-          <button className='btn btn-success' onClick={gerarRelatorio}>Gerar Relatório</button>
-          <button className='btn btn-outline-primary d-print-none' onClick={imprimir}>Imprimir</button>
-          <button className='btn btn-outline-secondary d-print-none' onClick={gerarPDF}>Gerar PDF</button>
+        <div className="d-flex justify-content-end gap-3 mb-3">
+          <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
+            Voltar
+          </button>
+          <button className="btn btn-success" onClick={gerarRelatorio}>
+            Gerar Relatório
+          </button>
+          <button className="btn btn-outline-primary d-print-none" onClick={imprimir}>
+            Imprimir
+          </button>
+          <button className="btn btn-outline-secondary d-print-none" onClick={gerarPDF}>
+            Gerar PDF
+          </button>
         </div>
 
-        {/* Resumo de ocorrências da enfermidade selecionada */}
         {totalOcorrenciasEnf != null && (
-          <div className='alert alert-info'>
-            Ocorrências de <strong>"{enfTexto}"</strong>: <strong>{totalOcorrenciasEnf}</strong>
+          <div className="alert alert-info">
+            Ocorrências de <strong>"{enfTexto}"</strong>:{' '}
+            <strong>{totalOcorrenciasEnf}</strong>
           </div>
         )}
 
         {resultado && resultado.length > 0 && (
-          <div ref={divRef} className='relatorio-result mt-4'>
+          <div ref={divRef} className="relatorio-result mt-4">
             {resultado.map((r, index) => (
-              <div key={index} className='relatorio-bloco mb-5 p-4 border rounded shadow-sm'>
-                <h4 className='mb-3'>{r.equino}</h4>
+              <div key={index} className="relatorio-bloco mb-5 p-4 border rounded shadow-sm">
+                <h4 className="mb-3">{r.equino}</h4>
 
-                {/* Se filtro de enfermidade estiver ativo, deixa claro as ocorrências dessa enfermidade */}
                 {enfTexto.trim() && (
-                  <p><strong>Ocorrências da enfermidade:</strong> {r.totalAtendimentos}</p>
+                  <p>
+                    <strong>Ocorrências da enfermidade:</strong> {r.totalAtendimentos}
+                  </p>
                 )}
 
                 {tipoRelatorio === 'completo' && (
@@ -406,12 +447,14 @@ const VeterinariaRelatorioEquino = () => {
                 {tipoRelatorio === 'atendimentos' && (
                   <p><strong>Total de Atendimentos:</strong> {r.totalAtendimentos}</p>
                 )}
+
                 {tipoRelatorio === 'baixas' && (
                   <>
                     <p><strong>Total de Baixas:</strong> {r.totalBaixas}</p>
                     <p><strong>Total de Dias Baixado:</strong> {r.totalDiasBaixado}</p>
                   </>
                 )}
+
                 {tipoRelatorio === 'escalas' && (
                   <>
                     <p><strong>Total de Escalas:</strong> {r.totalEscalas}</p>
@@ -421,7 +464,7 @@ const VeterinariaRelatorioEquino = () => {
 
                 {r.atendimentos.length > 0 && (
                   <>
-                    <h5 className='mt-3'>Atendimentos</h5>
+                    <h5 className="mt-3">Atendimentos</h5>
                     <ul>
                       {r.atendimentos.map((a, i) => (
                         <li key={i}>
@@ -435,10 +478,12 @@ const VeterinariaRelatorioEquino = () => {
 
                 {r.baixas.length > 0 && (
                   <>
-                    <h5 className='mt-3'>Baixas</h5>
+                    <h5 className="mt-3">Baixas</h5>
                     <ul>
                       {r.baixas.map((b, i) => (
-                        <li key={i}>Baixado em {b.dataBaixa}, retornou em {b.dataRetorno} ({b.dias} dias)</li>
+                        <li key={i}>
+                          Baixado em {b.dataBaixa}, retornou em {b.dataRetorno} ({b.dias} dias)
+                        </li>
                       ))}
                     </ul>
                   </>
@@ -446,10 +491,13 @@ const VeterinariaRelatorioEquino = () => {
 
                 {r.escalas.length > 0 && (
                   <>
-                    <h5 className='mt-3'>Escalas</h5>
+                    <h5 className="mt-3">Escalas</h5>
                     <ul>
                       {r.escalas.map((s, i) => (
-                        <li key={i}>{new Date(s.data).toLocaleDateString('pt-BR')} - {s.localTrabalho}, {s.jornadaTrabalho}, Cavaleiro: {s.cavaleiro}</li>
+                        <li key={i}>
+                          {new Date(s.data).toLocaleDateString('pt-BR')} - {s.localTrabalho},{' '}
+                          {s.jornadaTrabalho}, Cavaleiro: {s.cavaleiro}
+                        </li>
                       ))}
                     </ul>
                   </>
@@ -459,11 +507,8 @@ const VeterinariaRelatorioEquino = () => {
           </div>
         )}
 
-        {/* Se não houver resultados */}
         {resultado && resultado.length === 0 && (
-          <div className='alert alert-warning mt-3'>
-            {emptyMsg}
-          </div>
+          <div className="alert alert-warning mt-3">{emptyMsg}</div>
         )}
       </div>
     </div>

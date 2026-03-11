@@ -18,6 +18,34 @@ Modal.setAppElement('#root');
 
 const ITENS_POR_PAGINA = 8;
 
+const CATEGORIAS = {
+  ANTIBIOTICO: 'Antibiótico',
+  ANTIINFLAMATORIO: 'Anti-inflamatório',
+  ANALGESICO: 'Analgésico',
+  ANTIPARASITARIO: 'Antiparasitário',
+  SEDATIVO: 'Sedativo',
+  VITAMINA: 'Vitamina',
+  ANESTESICO: 'Anestésico',
+  CICATRIZANTE: 'Cicatrizante',
+  SORO: 'Soro',
+  OUTROS: 'Outros'
+};
+
+const FORMAS = {
+  SOLUCAO: 'Solução',
+  LIQUIDO: 'Líquido',
+  INJETAVEL: 'Injetável',
+  COMPRIMIDO: 'Comprimido',
+  CAPSULA: 'Cápsula',
+  PO: 'Pó',
+  PASTA: 'Pasta',
+  POMADA: 'Pomada',
+  SPRAY: 'Spray',
+  CREME: 'Creme',
+  GEL: 'Gel',
+  OUTROS: 'Outros'
+};
+
 const VeterinariaMedicamentoList = () => {
   const navigate = useNavigate();
 
@@ -68,6 +96,19 @@ const VeterinariaMedicamentoList = () => {
       .toLowerCase()
       .trim();
 
+  const formatarCategoria = (categoria) => {
+    return CATEGORIAS[categoria] || categoria || '-';
+  };
+
+  const formatarForma = (forma) => {
+    return FORMAS[forma] || forma || '-';
+  };
+
+  const formatarConteudoApresentacao = (med) => {
+    if (!med?.quantidadePorApresentacao) return '-';
+    return `${med.quantidadePorApresentacao} ${med.unidadeConteudo || ''}`.trim();
+  };
+
   const calcularEstoqueAtual = (medicamentoId) => {
     const totalEntradas = entradasMedicamento
       .filter((entrada) => String(entrada.medicamentoId) === String(medicamentoId))
@@ -88,12 +129,16 @@ const VeterinariaMedicamentoList = () => {
       const nomeComercial = normalizar(med.nomeComercial);
       const fabricante = normalizar(med.fabricante);
       const categoria = med.categoria || '';
+      const tipoApresentacao = normalizar(med.tipoApresentacao);
+      const unidadeConteudo = normalizar(med.unidadeConteudo);
 
       const atendeBusca =
         !buscaNormalizada ||
         nome.includes(buscaNormalizada) ||
         nomeComercial.includes(buscaNormalizada) ||
-        fabricante.includes(buscaNormalizada);
+        fabricante.includes(buscaNormalizada) ||
+        tipoApresentacao.includes(buscaNormalizada) ||
+        unidadeConteudo.includes(buscaNormalizada);
 
       const atendeCategoria =
         !categoriaFiltro || categoria === categoriaFiltro;
@@ -189,31 +234,6 @@ const VeterinariaMedicamentoList = () => {
     navigate(`/medicamentoEntradaForm/${medicamentoId}`);
   };
 
-  const formatarCategoria = (categoria) => {
-    const mapa = {
-      ANTIBIOTICO: 'Antibiótico',
-      ANTIINFLAMATORIO: 'Anti-inflamatório',
-      ANALGESICO: 'Analgésico',
-      ANTIPARASITARIO: 'Antiparasitário',
-      SEDATIVO: 'Sedativo',
-      OUTROS: 'Outros',
-    };
-    return mapa[categoria] || categoria || '-';
-  };
-
-  const formatarForma = (forma) => {
-    const mapa = {
-      SOLUCAO: 'Solução',
-      COMPRIMIDO: 'Comprimido',
-      PO: 'Pó',
-      PASTA: 'Pasta',
-      POMADA: 'Pomada',
-      SPRAY: 'Spray',
-      OUTROS: 'Outros',
-    };
-    return mapa[forma] || forma || '-';
-  };
-
   return (
     <>
       <Navbar />
@@ -244,7 +264,7 @@ const VeterinariaMedicamentoList = () => {
                 <div className="row g-3 align-items-end">
 
                   <div className="col-md-5">
-                    <label className="form-label">Buscar por nome, nome comercial ou fabricante</label>
+                    <label className="form-label">Buscar por nome, nome comercial, fabricante ou apresentação</label>
                     <div className="input-group">
                       <span className="input-group-text">
                         <FaSearch />
@@ -267,12 +287,11 @@ const VeterinariaMedicamentoList = () => {
                       onChange={(e) => setCategoriaFiltro(e.target.value)}
                     >
                       <option value="">Todas</option>
-                      <option value="ANTIBIOTICO">Antibiótico</option>
-                      <option value="ANTIINFLAMATORIO">Anti-inflamatório</option>
-                      <option value="ANALGESICO">Analgésico</option>
-                      <option value="ANTIPARASITARIO">Antiparasitário</option>
-                      <option value="SEDATIVO">Sedativo</option>
-                      <option value="OUTROS">Outros</option>
+                      {Object.entries(CATEGORIAS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -306,7 +325,8 @@ const VeterinariaMedicamentoList = () => {
                         <th>Fabricante</th>
                         <th>Categoria</th>
                         <th>Forma</th>
-                        <th>Unidade Padrão</th>
+                        <th>Apresentação</th>
+                        <th>Conteúdo</th>
                         <th>Unidade Base</th>
                         <th>Qtde Estoque</th>
                         <th>Status</th>
@@ -326,7 +346,8 @@ const VeterinariaMedicamentoList = () => {
                             <td>{med.fabricante || '-'}</td>
                             <td>{formatarCategoria(med.categoria)}</td>
                             <td>{formatarForma(med.forma)}</td>
-                            <td>{med.unidadePadrao || '-'}</td>
+                            <td>{med.tipoApresentacao || '-'}</td>
+                            <td>{formatarConteudoApresentacao(med)}</td>
                             <td>{med.unidadeBase || '-'}</td>
 
                             <td>
@@ -378,7 +399,7 @@ const VeterinariaMedicamentoList = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="9" className="text-center py-4 text-muted">
+                          <td colSpan="10" className="text-center py-4 text-muted">
                             Nenhum medicamento encontrado.
                           </td>
                         </tr>

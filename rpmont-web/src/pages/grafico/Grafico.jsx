@@ -16,6 +16,7 @@ import axios from '../../api';
 
 // ---- Toast (MUI) ----
 import { Snackbar, Alert, AlertTitle, Button, Stack } from '@mui/material';
+
 // ---- Datas ----
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -36,80 +37,106 @@ const Grafico = () => {
   const [alertas, setAlertas] = useState([]);
   const [toastAberto, setToastAberto] = useState(false);
 
-  const maxAtendimentos = Math.max(...dadosAtendimentos, 10); // mínimo de segurança
+  const maxAtendimentos = Math.max(...dadosAtendimentos, 10);
 
   const normalizaData = (d) => (d ? dayjs(d) : null);
 
-  // Pega o último registro por equino (maior data) — usado nas métricas de atendimentos/baixados
-  const ultimoRegistroPorEquino = (registros, obterIdFn, campoData = 'data') => {
-    const mapa = new Map();
-    for (const r of registros || []) {
-      const id = obterIdFn(r);
-      const dt = normalizaData(r[campoData]);
-      if (!id || !dt?.isValid()) continue;
-      const atual = mapa.get(id);
-      if (!atual || dt.isAfter(atual.data)) {
-        mapa.set(id, { ...r, data: dt });
-      }
-    }
-    return mapa;
-  };
-
-  // ====== Estatísticas / gráficos ======
   useEffect(() => {
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const meses = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
+
     const hoje = new Date();
-    const ultimosMeses = [];
-    const chavesMeses = [];
 
-    for (let i = 2; i >= 0; i--) {
-      const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-      ultimosMeses.push(meses[data.getMonth()]);
-      chavesMeses.push(`${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`);
-    }
+    const dataMesMenos2 = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
+    const dataMesMenos1 = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const dataMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
 
-    setLabelsMeses(ultimosMeses);
+    const datasGrafico = [dataMesMenos2, dataMesMenos1, dataMesAtual];
 
-    Promise.all([axios.get('/equinos'), axios.get('/atendimentos')])
-      .then(([resEquinos, resAtendimentos]) => {
+    const labels = datasGrafico.map(
+      (data) => `${meses[data.getMonth()]} / ${data.getFullYear()}`
+    );
+
+    const chavesMeses = datasGrafico.map(
+      (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`
+    );
+
+    setLabelsMeses(labels);
+
+    Promise.all([
+      axios.get('/equino'),
+      axios.get('/atendimentos'),
+      axios.get('/equinosBaixados'),
+    ])
+      .then(([resEquinos, resAtendimentos, resBaixados]) => {
         const equinos = resEquinos.data || [];
         const atendimentos = resAtendimentos.data || [];
+        const equinosBaixados = resBaixados.data || [];
 
         setQtdEquinos(equinos.length);
-        setQtdAptos(equinos.filter(e => e.status === 'Ativo').length);
-        setQtdBaixados(equinos.filter(e => e.status === 'Baixado').length);
         setQtdAtendimentos(atendimentos.length);
 
+        // Equinos com baixa ativa = sem dataRetorno
+        // Equinos com baixa ativa = sem dataRetorno
+        const idsBaixadosAtivos = new Set(
+          equinosBaixados
+            .filter((b) => !b.dataRetorno || String(b.dataRetorno).trim() === '')
+            .map((b) => b.idEquino ?? b.equinoId ?? b.id_equino ?? null)
+            .filter((id) => id !== null && id !== undefined && id !== '')
+            .map((id) => String(id))
+        );
+
+        setQtdBaixados(idsBaixadosAtivos.size);
+        setQtdAptos(Math.max(0, equinos.length - idsBaixadosAtivos.size));
         const mapAtendimentos = {};
         const mapBaixados = {};
 
-        chavesMeses.forEach(key => {
+        chavesMeses.forEach((key) => {
           mapAtendimentos[key] = 0;
           mapBaixados[key] = 0;
         });
 
-        atendimentos.forEach(at => {
+        atendimentos.forEach((at) => {
           const mesAno = (at.data || '').slice(0, 7);
           if (mapAtendimentos[mesAno] !== undefined) {
             mapAtendimentos[mesAno]++;
-            const equino = equinos.find(eq => eq.id === at.idEquino);
-            if (equino && equino.status === 'Baixado') {
-              mapBaixados[mesAno]++;
-            }
           }
         });
 
-        setDadosAtendimentos(chavesMeses.map(key => mapAtendimentos[key]));
-        setDadosBaixados(chavesMeses.map(key => mapBaixados[key]));
+        equinosBaixados.forEach((bx) => {
+          const mesAno = (bx.dataBaixa || '').slice(0, 7);
+          if (mapBaixados[mesAno] !== undefined) {
+            mapBaixados[mesAno]++;
+          }
+        });
+
+        setDadosAtendimentos(chavesMeses.map((key) => mapAtendimentos[key]));
+        setDadosBaixados(chavesMeses.map((key) => mapBaixados[key]));
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar dados do gráfico:', error);
       });
   }, []);
 
-  /* ===== Checar próximos vencimentos =====
-     Agora usamos dataProximoProcedimento como a data-alvo de cada item.
-     Pegamos, por equino, a menor data futura (>= hoje). */
   useEffect(() => {
-    // menor data >= hoje por equino
-    const proximaPorEquino = (lista, getId, campo = 'dataProximoProcedimento', fallbackCampo = 'data') => {
+    const proximaPorEquino = (
+      lista,
+      getId,
+      campo = 'dataProximoProcedimento',
+      fallbackCampo = 'data'
+    ) => {
       const mapa = new Map();
       const hoje = dayjs().startOf('day');
 
@@ -117,16 +144,15 @@ const Grafico = () => {
         const id = String(getId(item));
         if (!id) continue;
 
-        let d = normalizaData(item[campo]); // dataProximoProcedimento
+        let d = normalizaData(item[campo]);
         if (!d?.isValid()) {
-          // fallback apenas se realmente não houver próximo informado
           const df = normalizaData(item[fallbackCampo]);
           if (df?.isValid()) d = df;
         }
         if (!d?.isValid()) continue;
 
         const d0 = d.startOf('day');
-        if (d0.isBefore(hoje)) continue; // ignora vencidos
+        if (d0.isBefore(hoje)) continue;
 
         const atualIso = mapa.get(id);
         if (!atualIso) {
@@ -136,15 +162,16 @@ const Grafico = () => {
           if (d0.isBefore(atual)) mapa.set(id, d0.toISOString());
         }
       }
+
       return mapa;
     };
 
     (async () => {
       try {
         const [respEquinos, respVac, respVer] = await Promise.all([
-          axios.get('/equinos'),
+          axios.get('/equino'),
           axios.get('/vacinacoes'),
-          axios.get('/vermifugacoes')
+          axios.get('/vermifugacoes'),
         ]);
 
         const equinos = respEquinos.data || [];
@@ -157,6 +184,7 @@ const Grafico = () => {
           'dataProximoProcedimento',
           'data'
         );
+
         const proxVer = proximaPorEquino(
           vermifugacoes,
           (r) => String(r.equinoId ?? r.idEquino ?? r.id_Eq ?? r.id_equino),
@@ -166,25 +194,36 @@ const Grafico = () => {
 
         const hoje = dayjs().startOf('day');
         const limite = hoje.add(15, 'day');
-        const mapaEquinos = new Map(equinos.map(e => [String(e.id ?? e.idEquino ?? e.id_equino), e]));
+        const mapaEquinos = new Map(
+          equinos.map((e) => [String(e.id ?? e.idEquino ?? e.id_equino), e])
+        );
+
         const lista = [];
 
         const pushIfDentro15 = (tipo, eqId, iso) => {
           if (!iso) return;
+
           const d = dayjs(iso).startOf('day');
           if (d.isBefore(hoje) || d.isAfter(limite)) return;
+
           const eq = mapaEquinos.get(eqId) || {};
+
           lista.push({
             tipo,
             equinoId: eqId,
-            nome: eq.name || eq.nome || `#${eqId}`,
+            nome: eq.nome || `#${eqId}`,
             dataProxima: d.format('DD/MM/YYYY'),
             diasParaVencer: d.diff(hoje, 'day'),
           });
         };
 
-        for (const [eqId, iso] of proxVac.entries()) pushIfDentro15('Vacinação', eqId, iso);
-        for (const [eqId, iso] of proxVer.entries()) pushIfDentro15('Vermifugação', eqId, iso);
+        for (const [eqId, iso] of proxVac.entries()) {
+          pushIfDentro15('Vacinação', eqId, iso);
+        }
+
+        for (const [eqId, iso] of proxVer.entries()) {
+          pushIfDentro15('Vermifugação', eqId, iso);
+        }
 
         lista.sort((a, b) => a.diasParaVencer - b.diasParaVencer);
 
@@ -192,21 +231,44 @@ const Grafico = () => {
           setAlertas(lista);
           setToastAberto(true);
         }
-      } catch {
-        // silencioso
+      } catch (error) {
+        console.error('Erro ao carregar alertas:', error);
       }
     })();
   }, []);
 
   const options = {
-    maintainAspectRatio: false,
     responsive: true,
-    plugins: { legend: { position: 'top' } },
+    maintainAspectRatio: false,
+    resizeDelay: 200,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          boxWidth: 12,
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
     scales: {
       y: {
         beginAtZero: true,
         suggestedMax: Math.ceil((maxAtendimentos + 5) / 5) * 5,
-        ticks: { stepSize: 5 },
+        ticks: {
+          stepSize: 5,
+          font: {
+            size: 11,
+          },
+        },
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
       },
     },
   };
@@ -214,51 +276,81 @@ const Grafico = () => {
   const atendimentosData = {
     labels: labelsMeses,
     datasets: [
-      { label: 'Quantidade de Atendimentos', data: dadosAtendimentos, backgroundColor: '#43e97b', borderRadius: 10 },
+      {
+        label: 'Quantidade de Atendimentos',
+        data: dadosAtendimentos,
+        backgroundColor: '#43e97b',
+        borderRadius: 10,
+      },
     ],
   };
 
   const baixadosData = {
     labels: labelsMeses,
     datasets: [
-      { label: 'Equinos Baixados', data: dadosBaixados, backgroundColor: '#f5576c', borderRadius: 10 },
+      {
+        label: 'Equinos Baixados',
+        data: dadosBaixados,
+        backgroundColor: '#f5576c',
+        borderRadius: 10,
+      },
     ],
   };
 
   return (
     <div className="container-fluid mt-page">
       <Navbar />
+
       <div className={styles['inicial-container']}>
-        <Link to="/veterinaria-List" className={`${styles['stat-box']} ${styles['stat-box-blue']}`}>
+        <Link
+          to="/veterinaria-List"
+          className={`${styles['stat-box']} ${styles['stat-box-blue']}`}
+        >
           <h3>Equinos</h3>
           <p>{qtdEquinos}</p>
         </Link>
-        <Link to="/veterinaria-List" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
+
+        <Link
+          to="/veterinaria-List"
+          className={`${styles['stat-box']} ${styles['stat-box-green']}`}
+        >
           <h3>Equinos Aptos</h3>
           <p>{qtdAptos}</p>
         </Link>
-        <Link to="/veterinaria-Equinos-Baixados" className={`${styles['stat-box']} ${styles['stat-box-orange']}`}>
+
+        <Link
+          to="/veterinaria-Equinos-Baixados"
+          className={`${styles['stat-box']} ${styles['stat-box-orange']}`}
+        >
           <h3>Equinos Baixados</h3>
           <p>{qtdBaixados}</p>
         </Link>
-        <Link to="/atendimento-List" className={`${styles['stat-box']} ${styles['stat-box-green']}`}>
+
+        <Link
+          to="/atendimento-List"
+          className={`${styles['stat-box']} ${styles['stat-box-green']}`}
+        >
           <h3>Atendimentos</h3>
           <p>{qtdAtendimentos}</p>
         </Link>
 
         <div className={styles['charts-container']}>
           <div className={styles.chart}>
-            <h3>Atendimentos (Últimos 3 meses)</h3>
-            <Bar data={atendimentosData} options={options} />
+            <h3>Atendimentos (2 meses anteriores + mês atual)</h3>
+            <div className={styles.chartCanvasWrap}>
+              <Bar data={atendimentosData} options={options} />
+            </div>
           </div>
+
           <div className={styles.chart}>
-            <h3>Equinos Baixados (Últimos 3 meses)</h3>
-            <Bar data={baixadosData} options={options} />
+            <h3>Equinos Baixados (2 meses anteriores + mês atual)</h3>
+            <div className={styles.chartCanvasWrap}>
+              <Bar data={baixadosData} options={options} />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Toast de alertas no canto inferior direito */}
       {!!alertas.length && (
         <Snackbar
           open={toastAberto}
@@ -273,22 +365,39 @@ const Grafico = () => {
             sx={{ minWidth: 360, maxWidth: 480 }}
           >
             <AlertTitle>
-              Atenção: {alertas.length} {alertas.length === 1 ? 'procedimento' : 'procedimentos'} vencem em até 15 dias
+              Atenção: {alertas.length}{' '}
+              {alertas.length === 1 ? 'procedimento' : 'procedimentos'} vencem em até
+              15 dias
             </AlertTitle>
 
             <Stack gap={0.5}>
               {alertas.slice(0, 6).map((a, i) => (
                 <div key={i}>
-                  {a.tipo} • {a.nome} — próximo: {a.dataProxima} ({a.diasParaVencer} dias)
+                  {a.tipo} • {a.nome} — próximo: {a.dataProxima} ({a.diasParaVencer}{' '}
+                  dias)
                 </div>
               ))}
+
               {alertas.length > 6 && <div>… e mais {alertas.length - 6}</div>}
 
               <Stack direction="row" gap={1} sx={{ mt: 1 }}>
-                <Button component={Link} to="/vacinacao-equino" size="small" variant="outlined" color="inherit">
+                <Button
+                  component={Link}
+                  to="/vacinacao-equino"
+                  size="small"
+                  variant="outlined"
+                  color="inherit"
+                >
                   Vacinações
                 </Button>
-                <Button component={Link} to="/vermifugacao-equino" size="small" variant="outlined" color="inherit">
+
+                <Button
+                  component={Link}
+                  to="/vermifugacao-equino"
+                  size="small"
+                  variant="outlined"
+                  color="inherit"
+                >
                   Vermifugações
                 </Button>
               </Stack>

@@ -6,31 +6,40 @@ import { imprimirRelatorioMedicamento } from './utils/imprimirRelatorioMedicamen
 import "../../../index.css";
 import './Veterinaria.css';
 
+const FILTROS_INICIAIS = {
+  medicamentoId: '',
+  fabricante: '',
+  dataInicial: '',
+  dataFinal: '',
+  validadeInicial: '',
+  validadeFinal: '',
+  somenteComEstoque: false,
+  somenteVencendo: false,
+  diasVencimento: 30
+};
+
+const TIPOS_RELATORIO_INICIAIS = {
+  estoque: true,
+  entradas: false,
+  saidas: false
+};
+
 const VeterinariaRelatorioMedicamento = () => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [entradas, setEntradas] = useState([]);
   const [saidas, setSaidas] = useState([]);
 
-  const [tiposRelatorio, setTiposRelatorio] = useState({
-    estoque: true,
-    entradas: false,
-    saidas: false
-  });
+  // Estados dos campos da tela (edição)
+  const [filtros, setFiltros] = useState(FILTROS_INICIAIS);
+  const [tiposRelatorio, setTiposRelatorio] = useState(TIPOS_RELATORIO_INICIAIS);
 
-  const [filtros, setFiltros] = useState({
-    medicamentoId: '',
-    fabricante: '',
-    dataInicial: '',
-    dataFinal: '',
-    validadeInicial: '',
-    validadeFinal: '',
-    somenteComEstoque: false,
-    somenteVencendo: false,
-    diasVencimento: 30
-  });
+  // Estados realmente aplicados no relatório
+  const [filtrosAplicados, setFiltrosAplicados] = useState(FILTROS_INICIAIS);
+  const [tiposRelatorioAplicados, setTiposRelatorioAplicados] = useState(TIPOS_RELATORIO_INICIAIS);
 
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+  const [buscaRealizada, setBuscaRealizada] = useState(true);
 
   const estiloBoxTipos = {
     width: '100%',
@@ -105,6 +114,7 @@ const VeterinariaRelatorioMedicamento = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setFiltros((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -120,24 +130,20 @@ const VeterinariaRelatorioMedicamento = () => {
     }));
   };
 
-  const limparFiltros = () => {
-    setFiltros({
-      medicamentoId: '',
-      fabricante: '',
-      dataInicial: '',
-      dataFinal: '',
-      validadeInicial: '',
-      validadeFinal: '',
-      somenteComEstoque: false,
-      somenteVencendo: false,
-      diasVencimento: 30
-    });
+  const handleBuscarDados = () => {
+    setFiltrosAplicados({ ...filtros });
+    setTiposRelatorioAplicados({ ...tiposRelatorio });
+    setBuscaRealizada(true);
+  };
 
-    setTiposRelatorio({
-      estoque: true,
-      entradas: false,
-      saidas: false
-    });
+  const limparFiltros = () => {
+    setFiltros(FILTROS_INICIAIS);
+    setTiposRelatorio(TIPOS_RELATORIO_INICIAIS);
+
+    setFiltrosAplicados(FILTROS_INICIAIS);
+    setTiposRelatorioAplicados(TIPOS_RELATORIO_INICIAIS);
+
+    setBuscaRealizada(true);
   };
 
   const normalizar = (texto) =>
@@ -173,23 +179,26 @@ const VeterinariaRelatorioMedicamento = () => {
   const entradasFiltradas = useMemo(() => {
     return entradas.filter((entrada) => {
       const atendeMedicamento =
-        !filtros.medicamentoId || String(entrada.medicamentoId) === String(filtros.medicamentoId);
+        !filtrosAplicados.medicamentoId ||
+        String(entrada.medicamentoId) === String(filtrosAplicados.medicamentoId);
 
       const atendeFabricante =
-        !filtros.fabricante ||
-        normalizar(entrada.fabricante).includes(normalizar(filtros.fabricante));
+        !filtrosAplicados.fabricante ||
+        normalizar(entrada.fabricante).includes(normalizar(filtrosAplicados.fabricante));
 
       const atendeDataInicial =
-        !filtros.dataInicial || entrada.dataEntrada >= filtros.dataInicial;
+        !filtrosAplicados.dataInicial || entrada.dataEntrada >= filtrosAplicados.dataInicial;
 
       const atendeDataFinal =
-        !filtros.dataFinal || entrada.dataEntrada <= filtros.dataFinal;
+        !filtrosAplicados.dataFinal || entrada.dataEntrada <= filtrosAplicados.dataFinal;
 
       const atendeValidadeInicial =
-        !filtros.validadeInicial || (entrada.validade && entrada.validade >= filtros.validadeInicial);
+        !filtrosAplicados.validadeInicial ||
+        (entrada.validade && entrada.validade >= filtrosAplicados.validadeInicial);
 
       const atendeValidadeFinal =
-        !filtros.validadeFinal || (entrada.validade && entrada.validade <= filtros.validadeFinal);
+        !filtrosAplicados.validadeFinal ||
+        (entrada.validade && entrada.validade <= filtrosAplicados.validadeFinal);
 
       return (
         atendeMedicamento &&
@@ -200,40 +209,41 @@ const VeterinariaRelatorioMedicamento = () => {
         atendeValidadeFinal
       );
     });
-  }, [entradas, filtros]);
+  }, [entradas, filtrosAplicados]);
 
   const saidasFiltradas = useMemo(() => {
     return saidas.filter((saida) => {
       const atendeMedicamento =
-        !filtros.medicamentoId || String(saida.medicamentoId) === String(filtros.medicamentoId);
+        !filtrosAplicados.medicamentoId ||
+        String(saida.medicamentoId) === String(filtrosAplicados.medicamentoId);
 
       const atendeFabricante =
-        !filtros.fabricante ||
-        normalizar(saida.fabricante).includes(normalizar(filtros.fabricante));
+        !filtrosAplicados.fabricante ||
+        normalizar(saida.fabricante).includes(normalizar(filtrosAplicados.fabricante));
 
       const atendeDataInicial =
-        !filtros.dataInicial || saida.dataSaida >= filtros.dataInicial;
+        !filtrosAplicados.dataInicial || saida.dataSaida >= filtrosAplicados.dataInicial;
 
       const atendeDataFinal =
-        !filtros.dataFinal || saida.dataSaida <= filtros.dataFinal;
+        !filtrosAplicados.dataFinal || saida.dataSaida <= filtrosAplicados.dataFinal;
 
       return atendeMedicamento && atendeFabricante && atendeDataInicial && atendeDataFinal;
     });
-  }, [saidas, filtros]);
+  }, [saidas, filtrosAplicados]);
 
   const estoqueFiltrado = useMemo(() => {
     return medicamentos.filter((med) => {
       const estoqueAtual = calcularEstoqueAtual(med.id);
 
       const atendeMedicamento =
-        !filtros.medicamentoId || String(med.id) === String(filtros.medicamentoId);
+        !filtrosAplicados.medicamentoId || String(med.id) === String(filtrosAplicados.medicamentoId);
 
       const atendeFabricante =
-        !filtros.fabricante ||
-        normalizar(med.fabricante).includes(normalizar(filtros.fabricante));
+        !filtrosAplicados.fabricante ||
+        normalizar(med.fabricante).includes(normalizar(filtrosAplicados.fabricante));
 
       const atendeSomenteComEstoque =
-        !filtros.somenteComEstoque || estoqueAtual > 0;
+        !filtrosAplicados.somenteComEstoque || estoqueAtual > 0;
 
       const entradasDoMedicamento = entradas.filter(
         (entrada) => String(entrada.medicamentoId) === String(med.id)
@@ -245,22 +255,22 @@ const VeterinariaRelatorioMedicamento = () => {
         .sort((a, b) => a - b)[0];
 
       const atendeValidadeInicial =
-        !filtros.validadeInicial ||
+        !filtrosAplicados.validadeInicial ||
         (validadeMaisProxima &&
-          validadeMaisProxima >= new Date(`${filtros.validadeInicial}T00:00:00`));
+          validadeMaisProxima >= new Date(`${filtrosAplicados.validadeInicial}T00:00:00`));
 
       const atendeValidadeFinal =
-        !filtros.validadeFinal ||
+        !filtrosAplicados.validadeFinal ||
         (validadeMaisProxima &&
-          validadeMaisProxima <= new Date(`${filtros.validadeFinal}T00:00:00`));
+          validadeMaisProxima <= new Date(`${filtrosAplicados.validadeFinal}T00:00:00`));
 
       let atendeSomenteVencendo = true;
-      if (filtros.somenteVencendo) {
+      if (filtrosAplicados.somenteVencendo) {
         if (!validadeMaisProxima) {
           atendeSomenteVencendo = false;
         } else {
           const limite = new Date(hojeSemHora);
-          limite.setDate(limite.getDate() + Number(filtros.diasVencimento || 30));
+          limite.setDate(limite.getDate() + Number(filtrosAplicados.diasVencimento || 30));
           atendeSomenteVencendo = validadeMaisProxima <= limite;
         }
       }
@@ -274,12 +284,12 @@ const VeterinariaRelatorioMedicamento = () => {
         atendeSomenteVencendo
       );
     });
-  }, [medicamentos, entradas, filtros]);
+  }, [medicamentos, entradas, filtrosAplicados]);
 
   const resumo = useMemo(() => {
     const totalMedicamentos = medicamentos.length;
 
-    const totalEstoque = medicamentos.reduce((acc, med) => {
+    const totalEstoque = estoqueFiltrado.reduce((acc, med) => {
       return acc + Math.max(0, calcularEstoqueAtual(med.id));
     }, 0);
 
@@ -297,11 +307,16 @@ const VeterinariaRelatorioMedicamento = () => {
       totalEntradas,
       totalSaidas
     };
-  }, [medicamentos, entradasFiltradas, saidasFiltradas]);
+  }, [medicamentos, estoqueFiltrado, entradasFiltradas, saidasFiltradas]);
+
+  const nomeMedicamentoPorId = (id) => {
+    const med = medicamentos.find((m) => String(m.id) === String(id));
+    return med?.nome || '-';
+  };
 
   const handleImprimir = () => {
     imprimirRelatorioMedicamento({
-      tiposRelatorio,
+      tiposRelatorio: tiposRelatorioAplicados,
       estoqueFiltrado,
       entradasFiltradas,
       saidasFiltradas,
@@ -311,11 +326,6 @@ const VeterinariaRelatorioMedicamento = () => {
       formatarData,
       nomeMedicamentoPorId
     });
-  };
-
-  const nomeMedicamentoPorId = (id) => {
-    const med = medicamentos.find((m) => String(m.id) === String(id));
-    return med?.nome || '-';
   };
 
   const renderTabelaEstoque = () => (
@@ -493,9 +503,9 @@ const VeterinariaRelatorioMedicamento = () => {
   );
 
   const nenhumTipoSelecionado =
-    !tiposRelatorio.estoque &&
-    !tiposRelatorio.entradas &&
-    !tiposRelatorio.saidas;
+    !tiposRelatorioAplicados.estoque &&
+    !tiposRelatorioAplicados.entradas &&
+    !tiposRelatorioAplicados.saidas;
 
   return (
     <>
@@ -726,6 +736,17 @@ const VeterinariaRelatorioMedicamento = () => {
                   <div className="col-md-3">
                     <button
                       type="button"
+                      className="btn btn-primary w-100 mt-md-4"
+                      onClick={handleBuscarDados}
+                    >
+                      <FaSearch className="me-2" />
+                      Buscar Dados
+                    </button>
+                  </div>
+
+                  <div className="col-md-3">
+                    <button
+                      type="button"
                       className="btn btn-outline-secondary w-100 mt-md-4"
                       onClick={limparFiltros}
                     >
@@ -777,15 +798,19 @@ const VeterinariaRelatorioMedicamento = () => {
 
             {carregando ? (
               <div className="alert alert-info mt-4">Carregando relatório...</div>
+            ) : !buscaRealizada ? (
+              <div className="alert alert-secondary mt-4">
+                Preencha os filtros desejados e clique em <strong>Buscar Dados</strong>.
+              </div>
             ) : nenhumTipoSelecionado ? (
               <div className="alert alert-warning mt-4">
                 Selecione pelo menos um tipo de relatório para visualizar os dados.
               </div>
             ) : (
               <>
-                {tiposRelatorio.estoque && renderTabelaEstoque()}
-                {tiposRelatorio.entradas && renderTabelaEntradas()}
-                {tiposRelatorio.saidas && renderTabelaSaidas()}
+                {tiposRelatorioAplicados.estoque && renderTabelaEstoque()}
+                {tiposRelatorioAplicados.entradas && renderTabelaEntradas()}
+                {tiposRelatorioAplicados.saidas && renderTabelaSaidas()}
               </>
             )}
           </div>
