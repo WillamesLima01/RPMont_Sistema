@@ -303,7 +303,7 @@ const Grafico = () => {
 
       <div className={styles['inicial-container']}>
         <Link
-          to="/veterinaria-List"
+          to="/veterinaria-List?filtro=todos"
           className={`${styles['stat-box']} ${styles['stat-box-blue']}`}
         >
           <h3>Equinos</h3>

@@ -1,6 +1,5 @@
 // src/pages/veterinaria/VeterinariaEquinosBaixadosList.jsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
 import BotaoAcao from '../../components/botoes/BotaoAcaoRows.jsx';
@@ -11,6 +10,25 @@ import autoTable from 'jspdf-autotable';
 
 Modal.setAppElement('#root');
 
+const SITUACOES = {
+  APTO: 'APTO',
+  APTO_COM_RESTRICAO: 'APTO_COM_RESTRICAO',
+  BAIXADO: 'BAIXADO',
+};
+
+const formatarSituacao = (situacao) => {
+  switch (situacao) {
+    case SITUACOES.APTO:
+      return 'Apto';
+    case SITUACOES.APTO_COM_RESTRICAO:
+      return 'Apto com restrição';
+    case SITUACOES.BAIXADO:
+      return 'Baixado';
+    default:
+      return situacao || '';
+  }
+};
+
 const VeterinariaEquinosBaixadosList = () => {
   const [equinos, setEquinos] = useState([]);
   const [equinosBaixados, setEquinosBaixados] = useState([]);
@@ -20,7 +38,7 @@ const VeterinariaEquinosBaixadosList = () => {
   const [filtroFim, setFiltroFim] = useState('');
   const [resultado, setResultado] = useState([]);
   const [modalAberto, setModalAberto] = useState(false);
-  const navigate = useNavigate();
+  const [retornandoId, setRetornandoId] = useState(null);
 
   useEffect(() => {
     carregarEquinos();
@@ -34,20 +52,28 @@ const VeterinariaEquinosBaixadosList = () => {
         axios.get('/equinosBaixados'),
       ]);
 
-      const baixadosAtivos = resEquinos.data.filter(eq => eq.situacao === 'Baixado');
-      setEquinos(baixadosAtivos);
-      setEquinosBaixados(resBaixados.data);
+      const todosEquinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];
+      const todosBaixados = Array.isArray(resBaixados.data) ? resBaixados.data : [];
 
-      // estado inicial: apenas baixas ativas com dataBaixa anexada
+      const baixadosAtivos = todosEquinos.filter(
+        (eq) => eq.situacao === SITUACOES.BAIXADO
+      );
+
+      setEquinos(baixadosAtivos);
+      setEquinosBaixados(todosBaixados);
+
       const mapaBaixaAtiva = new Map(
-        resBaixados.data
-          .filter(b => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-          .map(b => [String(b.idEquino), b.dataBaixa])
+        todosBaixados
+          .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
+          .map((b) => [String(b.idEquino), b.dataBaixa])
       );
 
       const resultadoInicial = baixadosAtivos
-        .filter(eq => mapaBaixaAtiva.has(String(eq.id)))
-        .map(eq => ({ ...eq, dataBaixa: mapaBaixaAtiva.get(String(eq.id)) }));
+        .filter((eq) => mapaBaixaAtiva.has(String(eq.id)))
+        .map((eq) => ({
+          ...eq,
+          dataBaixa: mapaBaixaAtiva.get(String(eq.id)),
+        }));
 
       setResultado(resultadoInicial);
     } catch (error) {
@@ -55,31 +81,40 @@ const VeterinariaEquinosBaixadosList = () => {
     }
   };
 
-  // === FILTRO com data da baixa ativa (string YYYY-MM-DD) ===
   const filtrar = () => {
-    // Mapa { idEquino -> dataBaixa } somente de baixas ativas
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter(b => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-        .map(b => [String(b.idEquino), b.dataBaixa])
+        .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
+        .map((b) => [String(b.idEquino), b.dataBaixa])
     );
 
-    // base: equinos Baixados que têm baixa ativa
     let lista = (equinos || [])
-      .filter(eq => eq.situacao === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
-      .map(eq => ({ ...eq, dataBaixa: baixasAtivasMap.get(String(eq.id)) })); // YYYY-MM-DD
+      .filter(
+        (eq) =>
+          eq.situacao === SITUACOES.BAIXADO &&
+          baixasAtivasMap.has(String(eq.id))
+      )
+      .map((eq) => ({
+        ...eq,
+        dataBaixa: baixasAtivasMap.get(String(eq.id)),
+      }));
 
-    // filtro por equino (id)
     if (filtroNome) {
-      lista = lista.filter(eq => String(eq.id) === String(filtroNome));
+      const termo = filtroNome.toLowerCase().trim();
+      lista = lista.filter(
+        (eq) =>
+          String(eq.id).includes(termo) ||
+          (eq.nome || '').toLowerCase().includes(termo) ||
+          (eq.registro || '').toLowerCase().includes(termo)
+      );
     }
 
-    // filtro por datas (comparação de string YYYY-MM-DD é segura)
     if (filtroInicio) {
-      lista = lista.filter(eq => eq.dataBaixa >= filtroInicio);
+      lista = lista.filter((eq) => eq.dataBaixa >= filtroInicio);
     }
+
     if (filtroFim) {
-      lista = lista.filter(eq => eq.dataBaixa <= filtroFim);
+      lista = lista.filter((eq) => eq.dataBaixa <= filtroFim);
     }
 
     setResultado(lista);
@@ -90,27 +125,46 @@ const VeterinariaEquinosBaixadosList = () => {
     setFiltroInicio('');
     setFiltroFim('');
 
-    // Recompõe estado inicial (baixas ativas) com dataBaixa
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter(b => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-        .map(b => [String(b.idEquino), b.dataBaixa])
+        .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
+        .map((b) => [String(b.idEquino), b.dataBaixa])
     );
 
     const inicial = (equinos || [])
-      .filter(eq => eq.situacao === 'Baixado' && baixasAtivasMap.has(String(eq.id)))
-      .map(eq => ({ ...eq, dataBaixa: baixasAtivasMap.get(String(eq.id)) }));
+      .filter(
+        (eq) =>
+          eq.situacao === SITUACOES.BAIXADO &&
+          baixasAtivasMap.has(String(eq.id))
+      )
+      .map((eq) => ({
+        ...eq,
+        dataBaixa: baixasAtivasMap.get(String(eq.id)),
+      }));
 
     setResultado(inicial);
   };
 
   const exportarCSV = () => {
-    const linhas = ['Nome,Raça,Pelagem,Registro,Status'];
-    resultado.forEach(eq => {
-      linhas.push(`${eq.name},${eq.raca},${eq.pelagem},${eq.numeroRegistro},${eq.situacao}`);
+    const linhas = ['Nome,Raça,Pelagem,Registro,Data da Baixa,Situação'];
+
+    resultado.forEach((eq) => {
+      linhas.push(
+        [
+          eq.nome || '',
+          eq.raca || '',
+          eq.pelagem || '',
+          eq.registro || '',
+          eq.dataBaixa || '',
+          formatarSituacao(eq.situacao),
+        ].join(',')
+      );
     });
 
-    const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([linhas.join('\n')], {
+      type: 'text/csv;charset=utf-8;',
+    });
+
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.setAttribute('download', 'equinos_baixados.csv');
@@ -128,38 +182,46 @@ const VeterinariaEquinosBaixadosList = () => {
     doc.setFontSize(10);
 
     const info = [];
-    if (filtroNome) {
-      const eqSel = equinos.find(e => e.id === filtroNome);
-      info.push(`Equino: ${eqSel?.name ?? filtroNome}`);
-    }
+    if (filtroNome) info.push(`Filtro: ${filtroNome}`);
     if (filtroInicio) info.push(`Início: ${filtroInicio}`);
     if (filtroFim) info.push(`Fim: ${filtroFim}`);
     info.push(`Total: ${resultado.length}`);
 
     let y = 48;
-    info.forEach(t => { doc.text(t, margem, y); y += 16; });
+    info.forEach((t) => {
+      doc.text(t, margem, y);
+      y += 16;
+    });
 
-    const dadosTabela = (resultado || []).map(eq => {
+    const dadosTabela = (resultado || []).map((eq) => {
       const dataBaixaFmt = eq.dataBaixa
         ? new Date(eq.dataBaixa + 'T00:00:00').toLocaleDateString('pt-BR')
         : '—';
-      return [eq.nome, eq.raca, eq.pelagem, eq.numeroRegistro, dataBaixaFmt, eq.situacao];
+
+      return [
+        eq.nome || '',
+        eq.raca || '',
+        eq.pelagem || '',
+        eq.registro || '',
+        dataBaixaFmt,
+        formatarSituacao(eq.situacao),
+      ];
     });
 
     autoTable(doc, {
-      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'situacao']],
+      head: [['Nome', 'Raça', 'Pelagem', 'Registro', 'Data da Baixa', 'Situação']],
       body: dadosTabela,
       startY: y + 8,
       styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
       headStyles: { fillColor: [33, 150, 243] },
       margin: { left: margem, right: margem },
       columnStyles: {
-        0: { cellWidth: 150 }, // Nome
-        1: { cellWidth: 100 }, // Raça
-        2: { cellWidth: 110 }, // Pelagem
-        3: { cellWidth: 120 }, // Registro
-        4: { cellWidth: 110 }, // Data da Baixa
-        5: { cellWidth: 90 },  // Status
+        0: { cellWidth: 150 },
+        1: { cellWidth: 100 },
+        2: { cellWidth: 110 },
+        3: { cellWidth: 120 },
+        4: { cellWidth: 110 },
+        5: { cellWidth: 110 },
       },
       didDrawPage: (data) => {
         const pages = doc.internal.getNumberOfPages();
@@ -174,20 +236,31 @@ const VeterinariaEquinosBaixadosList = () => {
     doc.save('equinos_baixados.pdf');
   };
 
-  const [retornandoId, setRetornandoId] = useState(null);
   const handleRetorno = async (equino) => {
     if (retornandoId) return;
-    const registroBaixa = equinosBaixados.find(b => b.idEquino === equino.id && !b.dataRetorno);
-    if (!registroBaixa) return alert('Registro de baixa não encontrado.');
+
+    const registroBaixa = equinosBaixados.find(
+      (b) => String(b.idEquino) === String(equino.id) && !b.dataRetorno
+    );
+
+    if (!registroBaixa) {
+      alert('Registro de baixa não encontrado.');
+      return;
+    }
 
     try {
       setRetornandoId(equino.id);
-      await axios.patch(`/equinos/${equino.id}`, { situacao: 'Ativo' });
+
+      await axios.patch(`/equino/${equino.id}`, {
+        situacao: SITUACOES.APTO,
+      });
+
       await axios.patch(`/equinosBaixados/${registroBaixa.id}`, {
         dataRetorno: new Date().toISOString().slice(0, 10),
       });
 
       setModalAberto(true);
+
       setTimeout(() => {
         setModalAberto(false);
         carregarEquinos();
@@ -216,6 +289,7 @@ const VeterinariaEquinosBaixadosList = () => {
         onFiltrar={filtrar}
         limparFiltros={limparFiltros}
         gerarPDF={gerarPDF}
+        exportarCSV={exportarCSV}
         mostrarDatas={true}
         mostrarBotoesPDF={true}
         resultado={resultado}
@@ -236,7 +310,7 @@ const VeterinariaEquinosBaixadosList = () => {
           </tr>
         </thead>
         <tbody>
-          {resultado.map(eq => {
+          {resultado.map((eq) => {
             const dataBaixaFormatada = eq.dataBaixa
               ? new Date(eq.dataBaixa + 'T00:00:00').toLocaleDateString('pt-BR')
               : '—';
@@ -250,16 +324,17 @@ const VeterinariaEquinosBaixadosList = () => {
                 <td>{eq.peso}</td>
                 <td>{eq.registro}</td>
                 <td>{dataBaixaFormatada}</td>
-                <td>{eq.situacao}</td>
+                <td>{formatarSituacao(eq.situacao)}</td>
                 <td className="text-end">
                   {botoes.includes('atendimento') && (
                     <BotaoAcao
-                      to={`/atendimento/${eq.id}`}
+                      to={`/atendimento-equino/${eq.id}`}
                       title="Atendimento"
                       className="botao-atendimento"
                       icone="bi-clipboard2-pulse"
                     />
                   )}
+
                   {botoes.includes('retorno') && (
                     <BotaoAcao
                       tipo="button"

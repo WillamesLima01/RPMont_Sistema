@@ -16,11 +16,11 @@ const VeterinariaForm = () => {
     pelagem: '',
     registro: '',
     dataNascimento: '',
-    situacao: '',
+    situacao: 'APTO',
     altura: '',
     peso: '',
-    sexo: '',        
-    local:''
+    sexo: '',
+    local: ''
   });
 
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
@@ -43,7 +43,7 @@ const VeterinariaForm = () => {
             pelagem: dados.pelagem ?? '',
             registro: dados.registro ?? '',
             dataNascimento: formatarDataParaInput(dados.dataNascimento),
-            situacao: dados.situacao ?? '',
+            situacao: dados.situacao ?? 'APTO',
             altura: dados.altura ?? '',
             peso: dados.peso ?? '',
             sexo: dados.sexo ?? '',
@@ -70,35 +70,51 @@ const VeterinariaForm = () => {
     event.preventDefault();
     setMensagensErro([]);
 
+    const payload = id
+      ? { ...equino }
+      : { ...equino, situacao: 'APTO' };
+
     console.log("JSON ENVIADO PARA API:");
-    console.log(equino);
-    console.log(JSON.stringify(equino, null, 2));
+    console.log(payload);
+    console.log(JSON.stringify(payload, null, 2));
 
     const request = id
-      ? axios.put(`/equino/${id}`, equino)
-      : axios.post('/equino', equino);
+      ? axios.put(`/equino/${id}`, payload)
+      : axios.post('/equino', payload);
 
-    request.then(() => {
-      document.activeElement.blur();
-      if (id) {
-        // Se está editando, apenas mostra sucesso e navega
-        setModalSucesso(true);
-        setTimeout(() => {
-          setModalSucesso(false);
-          navigate("/veterinaria-List?filtro=todos");
-        }, 3000);
-      } else {
-        // Se está adicionando novo, pergunta se quer adicionar outro
-        setModalConfirmacao(true);
-      }
-    }).catch(error => {
-      if (error.response && error.response.data) {
-        setMensagensErro(Object.values(error.response.data));
-        setModalErroAberto(true);
-      } else {
-        console.error("Ocorreu um erro: ", error);
-      }
-    });
+    request
+      .then(() => {
+        document.activeElement.blur();
+
+        if (id) {
+          setModalSucesso(true);
+          setTimeout(() => {
+            setModalSucesso(false);
+            navigate("/veterinaria-List?filtro=todos");
+          }, 3000);
+        } else {
+          setModalConfirmacao(true);
+        }
+      })
+      .catch(error => {
+        if (error.response && error.response.data) {
+          const data = error.response.data;
+
+          if (Array.isArray(data)) {
+            setMensagensErro(data);
+          } else if (typeof data === 'object') {
+            setMensagensErro(Object.values(data));
+          } else {
+            setMensagensErro(['Ocorreu um erro ao salvar o equino.']);
+          }
+
+          setModalErroAberto(true);
+        } else {
+          console.error("Ocorreu um erro: ", error);
+          setMensagensErro(['Ocorreu um erro inesperado.']);
+          setModalErroAberto(true);
+        }
+      });
   };
 
   const resetForm = () => {
@@ -108,7 +124,7 @@ const VeterinariaForm = () => {
       pelagem: '',
       registro: '',
       dataNascimento: '',
-      situacao: '',
+      situacao: 'APTO',
       altura: '',
       peso: '',
       sexo: '',
@@ -167,22 +183,37 @@ const VeterinariaForm = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="row g-3">
-              {/* campos */}
               <div className="col-md-6">
                 <label htmlFor="nome" className="form-label">Nome</label>
-                <input type="text" id="nome" name="nome" className="form-control" value={equino.nome} onChange={handleChange} required />
+                <input
+                  type="text"
+                  id="nome"
+                  name="nome"
+                  className="form-control"
+                  value={equino.nome}
+                  onChange={handleChange}
+                  required
+                />
               </div>
+
               <div className="col-md-6">
                 <label htmlFor="sexo" className="form-label">Sexo</label>
-                <select id="sexo" name="sexo" className="form-select" value={equino.sexo} onChange={handleChange} required>
+                <select
+                  id="sexo"
+                  name="sexo"
+                  className="form-select"
+                  value={equino.sexo}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="">Selecione</option>
                   <option value="MACHO">Macho</option>
                   <option value="FEMEA">Fêmea</option>
                 </select>
-              </div>              
+              </div>
+
               <div className="col-md-6">
                 <label htmlFor="pelagem" className="form-label">Pelagem</label>
-
                 <select
                   id="pelagem"
                   name="pelagem"
@@ -192,7 +223,6 @@ const VeterinariaForm = () => {
                   required
                 >
                   <option value="">Selecione</option>
-
                   <option value="CASTANHO">Castanho</option>
                   <option value="ALAZAO">Alazão</option>
                   <option value="TORDILHO">Tordilho</option>
@@ -203,43 +233,86 @@ const VeterinariaForm = () => {
                   <option value="LOBUNO">Lobuno</option>
                   <option value="PAMPA">Pampa</option>
                   <option value="PALOMINO">Palomino</option>
-
                 </select>
               </div>
+
               <div className="col-md-6">
                 <label htmlFor="registro" className="form-label">Registro</label>
-                <input type="text" id="registro" name="registro" className="form-control" value={equino.registro} onChange={handleChange} required />
+                <input
+                  type="text"
+                  id="registro"
+                  name="registro"
+                  className="form-control"
+                  value={equino.registro}
+                  onChange={handleChange}
+                  required
+                />
               </div>
+
               <div className="col-md-6">
                 <label htmlFor="dataNascimento" className="form-label">Data de Nascimento</label>
-                <input type="date" id="dataNascimento" name="dataNascimento" className="form-control" value={equino.dataNascimento} onChange={handleChange} required />
+                <input
+                  type="date"
+                  id="dataNascimento"
+                  name="dataNascimento"
+                  className="form-control"
+                  value={equino.dataNascimento}
+                  onChange={handleChange}
+                  required
+                />
               </div>
+
               <div className="col-md-6">
                 <label htmlFor="raca" className="form-label">Raça</label>
-                <input type="text" id="raca" name="raca" className="form-control" value={equino.raca} onChange={handleChange} required />
+                <input
+                  type="text"
+                  id="raca"
+                  name="raca"
+                  className="form-control"
+                  value={equino.raca}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="col-md-6">
                 <label htmlFor="altura" className="form-label">Altura</label>
-                <input type="number" step={"0.01"} id="altura" name="altura" className="form-control" value={equino.altura || ''} onChange={handleChange} required />
+                <input
+                  type="number"
+                  step="0.01"
+                  id="altura"
+                  name="altura"
+                  className="form-control"
+                  value={equino.altura || ''}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="col-md-6">
                 <label htmlFor="peso" className="form-label">Peso</label>
-                <input type="number" step={"0.01"} id="peso" name="peso" className="form-control" value={equino.peso || ''} onChange={handleChange} required />
+                <input
+                  type="number"
+                  step="0.01"
+                  id="peso"
+                  name="peso"
+                  className="form-control"
+                  value={equino.peso || ''}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="col-md-6">
-                <label htmlFor="situacao" className="form-label">Situação</label>
-                <select id="situacao" name="situacao" className="form-select" value={equino.situacao} onChange={handleChange} required>
-                  <option value="">Selecione</option>
-                  <option value="ATIVO">Ativo</option>
-                  <option value="BAIXADO">Baixado</option>
-                </select>
-              </div>
-              <div className="col-md-6">
                 <label htmlFor="local" className="form-label">Unidade</label>
-                <select id="local" name="local" className="form-select" value={equino.local} onChange={handleChange} required>
+                <select
+                  id="local"
+                  name="local"
+                  className="form-select"
+                  value={equino.local}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="">Selecione</option>
                   <option value="RPMont">RPMont</option>
                   <option value="3ºEPMont">3º EPMont</option>
@@ -247,12 +320,15 @@ const VeterinariaForm = () => {
               </div>
 
               <div className="col-12 text-end mt-4">
-                <Link to="/veterinaria-List?filtro=todos" className="btn btn-outline-danger me-2">Cancelar</Link>
-                <button type="submit" className="btn btn-primary">{id ? 'Salvar' : 'Adicionar'}</button>
+                <Link to="/veterinaria-List?filtro=todos" className="btn btn-outline-danger me-2">
+                  Cancelar
+                </Link>
+                <button type="submit" className="btn btn-primary">
+                  {id ? 'Salvar' : 'Adicionar'}
+                </button>
               </div>
             </form>
 
-            {/* Modal confirmação */}
             <Modal
               isOpen={modalConfirmacao}
               onRequestClose={() => setModalConfirmacao(false)}
@@ -260,16 +336,19 @@ const VeterinariaForm = () => {
               overlayClassName="overlay"
             >
               <div className="modalContent text-center">
-              <FaExclamationTriangle className="icone-interrogacao" />
+                <FaExclamationTriangle className="icone-interrogacao" />
                 <h2 className="mensagem-azul">Deseja adicionar outro equino?</h2>
                 <div className="modalButtons mt-3">
-                  <button onClick={adicionarOutroProduto} className="btn btn-confirmar me-2">Sim</button>
-                  <button onClick={finalizarCadastro} className="btn btn-cancelar">Não</button>
+                  <button onClick={adicionarOutroProduto} className="btn btn-confirmar me-2">
+                    Sim
+                  </button>
+                  <button onClick={finalizarCadastro} className="btn btn-cancelar">
+                    Não
+                  </button>
                 </div>
               </div>
             </Modal>
 
-            {/* Modal sucesso */}
             <Modal
               isOpen={modalSucesso}
               className="modal"
@@ -278,15 +357,11 @@ const VeterinariaForm = () => {
               <div className="modalContent text-center">
                 <FaCheckCircle className="icone-sucesso" />
                 <h2 className="mensagem-azul">
-                  {id 
-                    ? 'Dados editados com sucesso!'
-                    : 'Equino adicionado com sucesso!'
-                  }
+                  {id ? 'Dados editados com sucesso!' : 'Equino adicionado com sucesso!'}
                 </h2>
               </div>
             </Modal>
 
-            {/* Modal erro */}
             <Modal
               isOpen={modalErroAberto}
               onRequestClose={fecharModalErro}
@@ -299,7 +374,9 @@ const VeterinariaForm = () => {
                 {mensagensErro.map((mensagem, index) => (
                   <h5 key={index} className="text-danger">{mensagem}</h5>
                 ))}
-                <button onClick={fecharModalErro} className="btn btn-outline-secondary mt-3">Fechar</button>
+                <button onClick={fecharModalErro} className="btn btn-outline-secondary mt-3">
+                  Fechar
+                </button>
               </div>
             </Modal>
 
