@@ -28,7 +28,7 @@ const VeterinariaAtendimentoList = () => {
   const itemsPerPage = 15;
 
   useEffect(() => {
-    axios.get('/equinos').then(res => setEquinos(res.data));
+    axios.get('/equino').then(res => setEquinos(res.data));
     axios.get('/atendimentos').then(res => {
       setAtendimentos(res.data);
       setResultado(res.data);
@@ -193,9 +193,9 @@ const VeterinariaAtendimentoList = () => {
               const equino = equinos.find(eq => eq.id === atendimento.idEquino);
               return (
                 <tr key={idx}>
-                  <td>{equino?.name || '-'}</td>
+                  <td>{equino?.nome || '-'}</td>
                   <td>{equino?.raca || '-'}</td>
-                  <td>{equino?.numeroRegistro || '-'}</td>
+                  <td>{equino?.registro || '-'}</td>
                   <td>{atendimento.data}</td>
                   <td>{atendimento.textoConsulta}</td>
                   <td className="text-end">

@@ -56,7 +56,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
       try {
         // ✅ MODO CRIAÇÃO (sem tipo) — id é o equinoId
         if (!tipo) {
-          const equinoRes = await axios.get(`/equinos/${id}`);
+          const equinoRes = await axios.get(`/equino/${id}`);
           setEquino(equinoRes.data);
           setFormData(prev => ({
             ...prev,
@@ -233,12 +233,12 @@ const VeterinariaFerrageamentoEquinoForm = () => {
             <i className="bi bi-horse me-2"></i> Dados do Equino
           </h5>
           <div className="d-flex justify-content-between flex-wrap">
-            <p className="mb-1 me-4"><strong>Nome:</strong> {equino.name}</p>
+            <p className="mb-1 me-4"><strong>Nome:</strong> {equino.nome}</p>
             <p className="mb-1 me-4"><strong>Raça:</strong> {equino.raca}</p>
-            <p className="mb-1 me-4"><strong>Registro:</strong> {equino.numeroRegistro}</p>
+            <p className="mb-1 me-4"><strong>Registro:</strong> {equino.registro}</p>
             <p className="mb-1 me-4"><strong>Pelagem:</strong> {equino.pelagem}</p>
             <p className="mb-1 me-4"><strong>Sexo:</strong> {equino.sexo}</p>
-            <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.unidade}</p>
+            <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.local}</p>
           </div>
         </div>
       )}

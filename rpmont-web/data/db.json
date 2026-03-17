@@ -773,6 +773,16 @@
       "cargaHoraria": 4.5,
       "observacao": "usar manta em gel",
       "data": "2026-03-03"
+    },
+    {
+      "id": "318c",
+      "idEquino": "11",
+      "localTrabalho": "Busto de tamadaré",
+      "jornadaTrabalho": "16:00h às 22:00h",
+      "cavaleiro": "Sub Charles",
+      "cargaHoraria": 6,
+      "observacao": "",
+      "data": "2026-03-17"
     }
   ],
   "users": [

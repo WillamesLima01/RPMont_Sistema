@@ -42,7 +42,7 @@ const rotas = () => {
         <Route path="/veterinaria-Form" element={<VeterinariaForm />} />
         <Route path="/edit-equino/:id" element={<VeterinariaForm />} />
         <Route path="/atendimento-List" element={<VeterinariaAtendimentoList />} />
-        <Route path="/atendimento/:id" element={<VeterinariaAtendimento />} />
+        <Route path="/atendimento-equino/:id" element={<VeterinariaAtendimento />} />
         <Route path="/edit-atendimento/:id" element={<VeterinariaAtendimento />} />
         <Route path="/escala-equinos/:id" element={<VeterinariaEscalaEquinoForm />} />
         <Route path="/escala-equinos-List" element={<VeterinariaEscalaEquinoList />} />

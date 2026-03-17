@@ -25,7 +25,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
   useEffect(() => {
   const carregarDados = async () => {
     const [eqRes, ferrarRes] = await Promise.all([
-      axios.get('/equinos'),
+      axios.get('/equino'),
       axios.get('/ferrageamentoEquino'),
     ]);
     setEquinos(eqRes.data);
@@ -162,7 +162,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
             const equino = equinos.find(eq => eq.id === item.equinoId);
             return (
               <tr key={item.id}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{formatarData(item.data)}</td>
                 <td>{item.tipoFerradura}</td>
                 <td>{item.tipoCravo}</td>
