@@ -160,7 +160,7 @@ const VeterinariaFerrageamentoEquinoList = () => {
             const equino = equinos.find(eq => eq.id === toalete.equinoId);
             return (
               <tr key={toalete.id}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{toalete.tosa ? 'Sim' : 'Não'}</td>
                 <td>{toalete.banho ? 'Sim' : 'Não'}</td>
                 <td>{toalete.limpezaOuvidos ? 'Sim' : 'Não'}</td>

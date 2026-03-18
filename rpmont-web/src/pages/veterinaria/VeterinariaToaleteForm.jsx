@@ -52,14 +52,14 @@ const VeterinariaToaleteForm = () => {
             observacoes: resToalete.data.observacoes || ''            
           });
 
-          const resEquino = await axios.get(`/equinos/${resToalete.data.equinoId}`);
+          const resEquino = await axios.get(`/equino/${resToalete.data.equinoId}`);
           setEquino(resEquino.data);
           return;
         }
       } catch {
         // Não encontrou toalete, tentar carregar equino novo
         try {
-          const resEquino = await axios.get(`/equinos/${id}`);
+          const resEquino = await axios.get(`/equino/${id}`);
           setEquino(resEquino.data);
           setFormData(prev => ({ ...prev, equinoId: id }));
         } catch (error) {
@@ -115,12 +115,12 @@ const VeterinariaToaleteForm = () => {
                 <i className="bi bi-horse me-2"></i> Dados do Equino
                 </h5>
                 <div className="d-flex justify-content-between flex-wrap">
-                <p className="mb-1 me-4"><strong>Nome:</strong> {equino.name}</p>
+                <p className="mb-1 me-4"><strong>Nome:</strong> {equino.nome}</p>
                 <p className="mb-1 me-4"><strong>Raça:</strong> {equino.raca}</p>
-                <p className="mb-1 me-4"><strong>Registro:</strong> {equino.numeroRegistro}</p>
+                <p className="mb-1 me-4"><strong>Registro:</strong> {equino.registro}</p>
                 <p className="mb-1 me-4"><strong>Pelagem:</strong> {equino.pelagem}</p>
                 <p className="mb-1 me-4"><strong>Sexo:</strong> {equino.sexo}</p>
-                <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.unidade}</p>
+                <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.local}</p>
                 </div>
             </div>
         )}

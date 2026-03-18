@@ -33,10 +33,14 @@ const HOJE = dayjs().startOf('day');
 const LIMITE = HOJE.add(15, 'day');
 
 const proximaDataDe = (item) => {
-  // agora priorizamos o campo que você já salva
   const d = item?.dataProximoProcedimento || item?.proximaData || item?.data;
-  const dt = d ? dayjs(d).startOf('day') : null;
-  return dt?.isValid() ? dt : null;
+  if (!d) return null;
+
+  // pega só a parte da data e ignora horário/fuso
+  const somenteData = String(d).slice(0, 10); // ex: 2026-03-18
+  const dt = dayjs(somenteData, 'YYYY-MM-DD', true);
+
+  return dt.isValid() ? dt.startOf('day') : null;
 };
 
 const estaDentroDe15Dias = (item) => {
@@ -49,7 +53,7 @@ const estaDentroDe15Dias = (item) => {
   useEffect(() => {
     const carregarDados = async () => {
       const [eqRes, vacRes] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/vacinacoes')
       ]);
       setEquinos(eqRes.data);
@@ -93,7 +97,7 @@ const estaDentroDe15Dias = (item) => {
       const equino = equinos.find(eq => eq.id === v.id_Eq);
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         formatarData(v.data),
         v.nomeVacina || '-',
         v.observacao || '-'
@@ -174,7 +178,7 @@ const estaDentroDe15Dias = (item) => {
             const dentro15 = estaDentroDe15Dias(item);
             return (
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{item.nomeVacina}</td>
                 <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>

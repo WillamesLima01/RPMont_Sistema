@@ -133,7 +133,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
           return base;
         });
 
-        const equinoRes = await axios.get(`/equinos/${dados.equinoId}`);
+        const equinoRes = await axios.get(`/equino/${dados.equinoId}`);
         setEquino(equinoRes.data);
       } catch (error) {
         console.error('Erro ao buscar dados:', error);

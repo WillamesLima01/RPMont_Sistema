@@ -8,6 +8,12 @@ import autoTable from 'jspdf-autotable';
 import CabecalhoEquinos from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
+import dayjs from 'dayjs';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(isSameOrBefore);
+dayjs.extend(customParseFormat);
 
 const VeterinariaFerrageamentoFerrarList = () => {
   const [equinos, setEquinos] = useState([]);
@@ -22,32 +28,83 @@ const VeterinariaFerrageamentoFerrarList = () => {
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [botoes, setBotoes] = useState(['editar', 'excluir']);
 
-  useEffect(() => {
-  const carregarDados = async () => {
-    const [eqRes, ferrarRes] = await Promise.all([
-      axios.get('/equino'),
-      axios.get('/ferrageamentoEquino'),
-    ]);
-    setEquinos(eqRes.data);
-    setFerrageamentos(ferrarRes.data);
-    setResultado(ferrarRes.data);
-    setBotoes(['editar', 'excluir']);
-  };
-  carregarDados();
-}, []);
+  const HOJE = dayjs().startOf('day');
+  const LIMITE_ALERTA = HOJE.add(10, 'day');
 
-  const formatarData = (iso) =>
-    new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  const parseDataSemFuso = (valor) => {
+    if (!valor) return null;
+
+    const somenteData = String(valor).slice(0, 10);
+    const dt = dayjs(somenteData, 'YYYY-MM-DD', true);
+
+    return dt.isValid() ? dt.startOf('day') : null;
+  };
+
+  const formatarData = (valor) => {
+    const dt = parseDataSemFuso(valor);
+    return dt ? dt.format('DD/MM/YYYY') : '-';
+  };
+
+  const proximaDataDe = (item) => {
+    return parseDataSemFuso(item?.dataProximoProcedimento);
+  };
+
+  const estaProximoDoVencimento = (item) => {
+    const prox = proximaDataDe(item);
+    if (!prox) return false;
+
+    return prox.isSame(HOJE, 'day') || (
+      prox.isAfter(HOJE) && prox.isSameOrBefore(LIMITE_ALERTA, 'day')
+    );
+  };
+
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        const [eqRes, ferrarRes] = await Promise.all([
+          axios.get('/equino'),
+          axios.get('/ferrageamentoEquino'),
+        ]);
+
+        setEquinos(eqRes.data || []);
+        setFerrageamentos(ferrarRes.data || []);
+        setResultado(ferrarRes.data || []);
+        setBotoes(['editar', 'excluir']);
+      } catch (error) {
+        console.error('Erro ao carregar dados de ferrageamento:', error);
+      }
+    };
+
+    carregarDados();
+  }, []);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
 
   const filtrar = () => {
-    let filtrados = ferrageamentos;
-    if (filtroNome) filtrados = filtrados.filter(a => a.equinoId === filtroNome);
-    if (filtroInicio) filtrados = filtrados.filter(a => new Date(a.data) >= new Date(filtroInicio + 'T00:00:00'));
-    if (filtroFim) filtrados = filtrados.filter(a => new Date(a.data) <= new Date(filtroFim + 'T23:59:59'));
+    let filtrados = [...ferrageamentos];
+
+    if (filtroNome) {
+      filtrados = filtrados.filter(a => String(a.equinoId) === String(filtroNome));
+    }
+
+    if (filtroInicio) {
+      const inicio = dayjs(filtroInicio).startOf('day');
+      filtrados = filtrados.filter(a => {
+        const dataItem = parseDataSemFuso(a.data);
+        return dataItem && (dataItem.isSame(inicio, 'day') || dataItem.isAfter(inicio));
+      });
+    }
+
+    if (filtroFim) {
+      const fim = dayjs(filtroFim).endOf('day');
+      filtrados = filtrados.filter(a => {
+        const dataItem = parseDataSemFuso(a.data);
+        return dataItem && (dataItem.isSame(fim, 'day') || dataItem.isBefore(fim));
+      });
+    }
+
     setResultado(filtrados);
     setCurrentPage(1);
   };
@@ -66,17 +123,18 @@ const VeterinariaFerrageamentoFerrarList = () => {
     doc.text('Relatório de Ferrageamento - Ferrar', 14, 15);
 
     const dadosTabela = resultado.map((f, i) => {
-      const equino = equinos.find(eq => eq.id === f.equinoId);
+      const equino = equinos.find(eq => String(eq.id) === String(f.equinoId));
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         formatarData(f.data),
-        f.tipoFerradura,
-        f.tipoCravo,
-        f.tipoJustura,
-        f.tipoFerrageamento,
-        f.ferros,
-        f.cravos,
+        formatarData(f.dataProximoProcedimento),
+        f.tipoFerradura || '-',
+        f.tipoCravo || '-',
+        f.tipoJustura || '-',
+        f.tipoFerrageamento || '-',
+        f.ferros ?? '-',
+        f.cravos ?? '-',
         f.observacoes || '-',
       ];
     });
@@ -84,15 +142,24 @@ const VeterinariaFerrageamentoFerrarList = () => {
     autoTable(doc, {
       startY: 25,
       head: [[
-        '#', 'Nome', 'Data', 'Ferradura', 'Cravo', 'Justura',
-        'Tipo', 'Ferros', 'Cravos', 'Obs.'
+        '#',
+        'Nome',
+        'Data',
+        'Próx. procedimento',
+        'Ferradura',
+        'Cravo',
+        'Justura',
+        'Tipo',
+        'Ferros',
+        'Cravos',
+        'Obs.'
       ]],
       body: dadosTabela,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [52, 152, 219] }
     });
 
-    doc.save('relatorio_ferrageamento.pdf');
+    doc.save('relatorio_ferrageamento_ferrar.pdf');
   };
 
   const confirmarExclusao = (item) => {
@@ -114,9 +181,10 @@ const VeterinariaFerrageamentoFerrarList = () => {
         setFerrageamentos(atualizados);
         setResultado(atualizados);
         setModalExcluirAberto(false);
+        setItemSelecionado(null);
       })
       .catch(error => {
-        console.error("Erro ao excluir ferrageamento:", error);
+        console.error('Erro ao excluir ferrageamento:', error);
       });
   };
 
@@ -147,6 +215,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
           <tr>
             <th>Nome</th>
             <th>Data</th>
+            <th>Próx. procedimento</th>
             <th>Ferradura</th>
             <th>Cravo</th>
             <th>Justura</th>
@@ -159,28 +228,33 @@ const VeterinariaFerrageamentoFerrarList = () => {
         </thead>
         <tbody>
           {itensPaginados.map((item) => {
-            const equino = equinos.find(eq => eq.id === item.equinoId);
+            const equino = equinos.find(eq => String(eq.id) === String(item.equinoId));
+            const proximoDoVencimento = estaProximoDoVencimento(item);
+            const estiloAlerta = proximoDoVencimento ? { backgroundColor: '#f8d7da' } : {};
+
             return (
               <tr key={item.id}>
-                <td>{equino?.nome || '-'}</td>
-                <td>{formatarData(item.data)}</td>
-                <td>{item.tipoFerradura}</td>
-                <td>{item.tipoCravo}</td>
-                <td>{item.tipoJustura}</td>
-                <td>{item.tipoFerrageamento}</td>
-                <td>{item.ferros}</td>
-                <td>{item.cravos}</td>
-                <td>{item.observacoes || '-'}</td>
-                <td className="text-end">
+                <td style={estiloAlerta}>{equino?.nome || '-'}</td>
+                <td style={estiloAlerta}>{formatarData(item.data)}</td>
+                <td style={estiloAlerta}>{formatarData(item.dataProximoProcedimento)}</td>
+                <td style={estiloAlerta}>{item.tipoFerradura || '-'}</td>
+                <td style={estiloAlerta}>{item.tipoCravo || '-'}</td>
+                <td style={estiloAlerta}>{item.tipoJustura || '-'}</td>
+                <td style={estiloAlerta}>{item.tipoFerrageamento || '-'}</td>
+                <td style={estiloAlerta}>{item.ferros ?? '-'}</td>
+                <td style={estiloAlerta}>{item.cravos ?? '-'}</td>
+                <td style={estiloAlerta}>{item.observacoes || '-'}</td>
+                <td className="text-end" style={estiloAlerta}>
                   <div className="d-flex justify-content-end">
                     {botoes.includes('editar') && (
-                        <BotaoAcaoRows
-                            to={`/veterinaria-ferrageamento-equino/ferrar/${item.id}`}
-                            title="Editar Ferrageamento"
-                            className="botao-editar"
-                            icone="bi-pencil"
-                        />
+                      <BotaoAcaoRows
+                        to={`/veterinaria-ferrageamento-equino/ferrar/${item.id}`}
+                        title="Editar Ferrageamento"
+                        className="botao-editar"
+                        icone="bi-pencil"
+                      />
                     )}
+
                     {botoes.includes('excluir') && (
                       <BotaoAcaoRows
                         tipo="button"
@@ -202,8 +276,14 @@ const VeterinariaFerrageamentoFerrarList = () => {
         <nav>
           <ul className="pagination">
             {[...Array(totalPages)].map((_, index) => (
-              <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                <button className="page-link" onClick={() => setCurrentPage(index + 1)}>
+              <li
+                key={index}
+                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => setCurrentPage(index + 1)}
+                >
                   {index + 1}
                 </button>
               </li>
@@ -215,15 +295,19 @@ const VeterinariaFerrageamentoFerrarList = () => {
       <ModalGenerico
         open={modalExcluirAberto}
         onClose={cancelarExclusao}
-        tipo='confirmacao'
-        tamanho='medio'
-        icone={<FaExclamationTriangle size={40} color='#f39c12' />}
-        titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.name}"?`}
+        tipo="confirmacao"
+        tamanho="medio"
+        icone={<FaExclamationTriangle size={40} color="#f39c12" />}
+        titulo="Confirmar Exclusão"
+        subtitulo={`Deseja realmente excluir o procedimento do equino "${equinos.find(eq => String(eq.id) === String(itemSelecionado?.equinoId))?.nome || ''}"?`}
       >
-        <div className='d-flex justify-content-center gap-3 mt-4'>
-          <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>
-          <button className='btn btn-danger' onClick={excluirItemSelecionado} data-modal-focus>Excluir</button>
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>
+            Cancelar
+          </button>
+          <button className="btn btn-danger" onClick={excluirItemSelecionado} data-modal-focus>
+            Excluir
+          </button>
         </div>
       </ModalGenerico>
     </div>

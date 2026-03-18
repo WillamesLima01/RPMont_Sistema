@@ -48,7 +48,7 @@ const VeterinariaVermifugacaoList = () => {
   useEffect(() => {
     const carregarDados = async () => {
       const [eqRes, vermRes] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/vermifugacoes')
       ]);
       setEquinos(eqRes.data);
@@ -92,7 +92,7 @@ const VeterinariaVermifugacaoList = () => {
       const equino = equinos.find(eq => eq.id === v.equinoId);
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         formatarData(v.data),
         v.vermifugo || '-',
         v.observacao || '-'
@@ -173,7 +173,7 @@ const VeterinariaVermifugacaoList = () => {
             const dentro15 = estaDentroDe15Dias(item);
             return (
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{item.vermifugo}</td>
                 <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>

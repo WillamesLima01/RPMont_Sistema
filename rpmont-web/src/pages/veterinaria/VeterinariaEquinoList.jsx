@@ -53,12 +53,17 @@ const formatarSituacao = (situacao) => {
 /* ===== Helpers ===== */
 const diasAte = (iso) => {
   if (!iso) return Number.POSITIVE_INFINITY;
+
+  const somenteData = String(iso).slice(0, 10);
+  const [ano, mes, dia] = somenteData.split('-').map(Number);
+
+  if (!ano || !mes || !dia) return Number.POSITIVE_INFINITY;
+
   const MS_DIA = 24 * 60 * 60 * 1000;
-  const alvo = new Date(iso);
-  if (isNaN(alvo)) return Number.POSITIVE_INFINITY;
-  const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate());
+  const alvoLocal = new Date(ano, mes - 1, dia);
   const hoje = new Date();
   const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
   return Math.floor((alvoLocal.getTime() - hojeLocal.getTime()) / MS_DIA);
 };
 
@@ -69,37 +74,60 @@ const estaNosProximos15Dias = (proximaISO) => {
 
 const proximaPorEquino = (lista, getId, intervaloDias) => {
   const m = new Map();
+
   const hoje = new Date();
-  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
+  const hojeLocal = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate()
+  ).getTime();
 
   for (const item of lista || []) {
-    const id = String(getId(item));
-    if (!id) continue;
+    const idBruto = getId(item);
+    if (idBruto === null || idBruto === undefined || idBruto === '') continue;
+
+    const id = String(idBruto);
 
     let iso = item.dataProximoProcedimento || item.proximaData;
+
     if (!iso && item.data && intervaloDias) {
-      const base = new Date(item.data);
-      if (!isNaN(base)) {
+      const baseStr = String(item.data).slice(0, 10);
+      const [anoBase, mesBase, diaBase] = baseStr.split('-').map(Number);
+
+      if (anoBase && mesBase && diaBase) {
+        const base = new Date(anoBase, mesBase - 1, diaBase);
         const calc = new Date(base.getTime() + intervaloDias * 24 * 60 * 60 * 1000);
-        iso = calc.toISOString();
+        const yyyy = calc.getFullYear();
+        const mm = String(calc.getMonth() + 1).padStart(2, '0');
+        const dd = String(calc.getDate()).padStart(2, '0');
+        iso = `${yyyy}-${mm}-${dd}`;
       }
     }
+
     if (!iso) continue;
 
-    const alvo = new Date(iso);
-    if (isNaN(alvo)) continue;
-    const alvoLocal = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate()).getTime();
+    const somenteData = String(iso).slice(0, 10);
+    const [ano, mes, dia] = somenteData.split('-').map(Number);
+    if (!ano || !mes || !dia) continue;
+
+    const alvoLocal = new Date(ano, mes - 1, dia).getTime();
     if (alvoLocal < hojeLocal) continue;
 
     const atualISO = m.get(id);
+
     if (!atualISO) {
-      m.set(id, iso);
+      m.set(id, somenteData);
     } else {
-      const atual = new Date(atualISO);
-      const atualLocal = new Date(atual.getFullYear(), atual.getMonth(), atual.getDate()).getTime();
-      if (alvoLocal < atualLocal) m.set(id, iso);
+      const atualData = String(atualISO).slice(0, 10);
+      const [anoAtual, mesAtual, diaAtual] = atualData.split('-').map(Number);
+      const atualLocal = new Date(anoAtual, mesAtual - 1, diaAtual).getTime();
+
+      if (alvoLocal < atualLocal) {
+        m.set(id, somenteData);
+      }
     }
   }
+
   return m;
 };
 
@@ -210,13 +238,24 @@ const VeterinariaEquinoList = () => {
         const toaletes = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
 
-        const proxVac = proximaPorEquino(vacinacoes, (v) => v.id_Eq, INTERVALOS.vacinacaoDias);
-        const proxVer = proximaPorEquino(vermifugacoes, (v) => v.equinoId, INTERVALOS.vermifugacaoDias);
+        const proxVac = proximaPorEquino(
+          vacinacoes,
+          (v) => v.id_Eq ?? v.equinoId ?? v.idEquino,
+          INTERVALOS.vacinacaoDias
+        );
+
+        const proxVer = proximaPorEquino(
+          vermifugacoes,
+          (v) => v.equinoId ?? v.idEquino ?? v.id_Eq,
+          INTERVALOS.vermifugacaoDias
+        );
+
         const proxToa = proximaPorEquino(
           toaletes,
           (t) => t.equinoId ?? t.idEquino ?? t.id_Eq,
           INTERVALOS.toaleteDias
         );
+
         const proxFer = proximaPorEquino(
           ferrageamentos,
           (f) => f.equinoId ?? f.idEquino ?? f.id_Eq,

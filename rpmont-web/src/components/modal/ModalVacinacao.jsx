@@ -113,8 +113,8 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
           </Typography>
 
           <div className="mb-3">
-            <Typography variant="subtitle1"><strong>Nome:</strong> {equino?.name}</Typography>
-            <Typography variant="subtitle1"><strong>Registro:</strong> {equino?.numeroRegistro}</Typography>
+            <Typography variant="subtitle1"><strong>Nome:</strong> {equino?.nome}</Typography>
+            <Typography variant="subtitle1"><strong>Registro:</strong> {equino?.registro}</Typography>
             <Typography variant="subtitle1"><strong>Raça:</strong> {equino?.raca}</Typography>
           </div>
 

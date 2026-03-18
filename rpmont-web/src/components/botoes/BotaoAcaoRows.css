@@ -78,7 +78,7 @@
   background-color: #dc3545 !important;
   border-color: #dc3545 !important;
   color: #fff !important;
-  animation: btnPulse 1.2s ease-in-out infinite;
+  animation: btnPulse 1.25s ease-in-out infinite;
 }
 
 @keyframes btnPulse {

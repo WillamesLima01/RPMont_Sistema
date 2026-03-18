@@ -25,7 +25,7 @@ const VeterinariaToaleteList = () => {
   useEffect(() => {
     const carregarDados = async () => {
       const [eqRes, toRes] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/toaletes')
       ]);
       setEquinos(eqRes.data);
@@ -160,7 +160,7 @@ const VeterinariaToaleteList = () => {
             const equino = equinos.find(eq => eq.id === toalete.equinoId);
             return (
               <tr key={toalete.id}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{toalete.tosa ? 'Sim' : 'Não'}</td>
                 <td>{toalete.banho ? 'Sim' : 'Não'}</td>
                 <td>{toalete.limpezaOuvidos ? 'Sim' : 'Não'}</td>
