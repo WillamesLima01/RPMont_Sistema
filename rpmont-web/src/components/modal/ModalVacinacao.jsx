@@ -5,93 +5,391 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
 import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import { FaQuestionCircle } from 'react-icons/fa';
 import axios from '../../api';
 import './ModalVermifugacao.css';
 import ModalGenerico from './ModalGenerico.jsx';
 
 const isoFromDateOnly = (yyyy_mm_dd) => {
   if (!yyyy_mm_dd) return null;
-  // grava às 00:00:00Z do dia
   return new Date(`${yyyy_mm_dd}T00:00:00.000Z`).toISOString();
 };
 
 const dateOnlyFromIso = (iso) => {
   if (!iso) return '';
   const d = new Date(iso);
-  // formata yyyy-mm-dd pro input type="date"
-  return String(d.getUTCFullYear()) + '-' +
-         String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
-         String(d.getUTCDate()).padStart(2, '0');
+  return (
+    String(d.getUTCFullYear()) +
+    '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(d.getUTCDate()).padStart(2, '0')
+  );
 };
 
 const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
-  const [nomeVacina, setNomeVacina] = useState('');
-  const [observacao, setObservacao] = useState('');
-  const [vacinasAnteriores, setVacinasAnteriores] = useState([]);
-  const [dataProximoProcedimento, setDataProximoProcedimento] = useState(''); // yyyy-mm-dd
+  const [dataProximoProcedimento, setDataProximoProcedimento] = useState('');
+  const [erroProximaData, setErroProximaData] = useState('');
 
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
   const [modalErroAberto, setModalErroAberto] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState('');
+
+  const [usarMedicacaoExterna, setUsarMedicacaoExterna] = useState(false);
+  const [medicamentosEstoque, setMedicamentosEstoque] = useState([]);
+  const [medicamentoSelecionado, setMedicamentoSelecionado] = useState(null);
+  const [doseAplicada, setDoseAplicada] = useState('');
+  const [unidadeMedicacao, setUnidadeMedicacao] = useState('');
+  const [observacaoMedicacao, setObservacaoMedicacao] = useState('');
+
+  const [nomeMedicacaoExterna, setNomeMedicacaoExterna] = useState('');
+  const [doseMedicacaoExterna, setDoseMedicacaoExterna] = useState('');
+  const [unidadeMedicacaoExterna, setUnidadeMedicacaoExterna] = useState('mL');
+  const [observacaoMedicacaoExterna, setObservacaoMedicacaoExterna] = useState('');
+
+  const [entradasMedicamento, setEntradasMedicamento] = useState([]);
+  const [saidasMedicamento, setSaidasMedicamento] = useState([]);
+  const [saidaExistente, setSaidaExistente] = useState(null);
+
+  const unidadesMedicacao = ['mL', 'L', 'mg', 'g', 'kg', 'UN'];
+
+  const getNomeMedicamento = (med) =>
+    med?.nomeMedicamento || med?.nome || med?.descricao || 'Sem nome';
+
+  const getFabricanteMedicamento = (med) => med?.fabricante || '';
+
+  const getUnidadeMedicamento = (med) =>
+    med?.unidadeBase || med?.unidadeConteudo || med?.unidade || '';
+
+  const getQuantidadeDisponivel = (med, ignorarSaidaId = null) => {
+    if (!med) return 0;
+
+    const medicamentoId = String(med.id);
+
+    const totalEntradas = (entradasMedicamento || [])
+      .filter((e) => String(e.medicamentoId) === medicamentoId)
+      .reduce((acc, e) => acc + Number(e.quantidadeBase || 0), 0);
+
+    const totalSaidas = (saidasMedicamento || [])
+      .filter((s) => {
+        if (String(s.medicamentoId) !== medicamentoId) return false;
+        if (ignorarSaidaId && String(s.id) === String(ignorarSaidaId)) return false;
+        return true;
+      })
+      .reduce((acc, s) => acc + Number(s.quantidadeBase || 0), 0);
+
+    return totalEntradas - totalSaidas;
+  };
+
+  const abrirErro = (texto) => {
+    setMensagemErro(texto);
+    setModalErroAberto(true);
+  };
 
   useEffect(() => {
-    const carregarVacinas = async () => {
+    const carregarDados = async () => {
       try {
-        const { data } = await axios.get('/vacinacoes');
-        const nomes = [...new Set(data.map(v => v.nomeVacina).filter(Boolean))];
-        setVacinasAnteriores(nomes);
+        const [medicamentosRes, entradasRes, saidasRes] = await Promise.all([
+          axios.get('/medicamentos'),
+          axios.get('/entradasMedicamento'),
+          axios.get('/saidasMedicamento'),
+        ]);
+
+        const medicamentosData = (medicamentosRes.data || []).filter((m) => m.ativo !== false);
+        const entradasData = entradasRes.data || [];
+        const saidasData = saidasRes.data || [];
+
+        setMedicamentosEstoque(medicamentosData);
+        setEntradasMedicamento(entradasData);
+        setSaidasMedicamento(saidasData);
+
+        if (dadosEditar) {
+          setDataProximoProcedimento(dateOnlyFromIso(dadosEditar.dataProximoProcedimento));
+
+          const saidaVinculada =
+            saidasData.find(
+              (s) =>
+                s.tipoSaida === 'VACINACAO' &&
+                String(s.vacinacaoId) === String(dadosEditar.id)
+            ) || null;
+
+          setSaidaExistente(saidaVinculada);
+
+          if (saidaVinculada) {
+            const ehExterno = Boolean(saidaVinculada.medicacaoExterna);
+            setUsarMedicacaoExterna(ehExterno);
+
+            if (ehExterno) {
+              setNomeMedicacaoExterna(
+                saidaVinculada.medicamentoNome || dadosEditar.nomeVacina || ''
+              );
+              setDoseMedicacaoExterna(
+                saidaVinculada.quantidadeInformada !== undefined &&
+                  saidaVinculada.quantidadeInformada !== null
+                  ? String(saidaVinculada.quantidadeInformada)
+                  : ''
+              );
+              setUnidadeMedicacaoExterna(saidaVinculada.unidadeInformada || 'mL');
+              setObservacaoMedicacaoExterna(
+                saidaVinculada.observacao || dadosEditar.observacao || ''
+              );
+
+              setMedicamentoSelecionado(null);
+              setDoseAplicada('');
+              setUnidadeMedicacao('');
+              setObservacaoMedicacao('');
+            } else {
+              const medEncontrado =
+                medicamentosData.find(
+                  (m) => String(m.id) === String(saidaVinculada.medicamentoId)
+                ) || null;
+
+              setMedicamentoSelecionado(medEncontrado);
+              setDoseAplicada(
+                saidaVinculada.quantidadeInformada !== undefined &&
+                  saidaVinculada.quantidadeInformada !== null
+                  ? String(saidaVinculada.quantidadeInformada)
+                  : ''
+              );
+              setUnidadeMedicacao(
+                saidaVinculada.unidadeInformada ||
+                  getUnidadeMedicamento(medEncontrado) ||
+                  ''
+              );
+              setObservacaoMedicacao(
+                saidaVinculada.observacao || dadosEditar.observacao || ''
+              );
+
+              setNomeMedicacaoExterna('');
+              setDoseMedicacaoExterna('');
+              setUnidadeMedicacaoExterna('mL');
+              setObservacaoMedicacaoExterna('');
+            }
+          } else {
+            setUsarMedicacaoExterna(false);
+            setMedicamentoSelecionado(null);
+            setDoseAplicada('');
+            setUnidadeMedicacao('');
+            setObservacaoMedicacao(dadosEditar.observacao || '');
+
+            setNomeMedicacaoExterna(dadosEditar.nomeVacina || '');
+            setDoseMedicacaoExterna('');
+            setUnidadeMedicacaoExterna('mL');
+            setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+          }
+        } else {
+          setDataProximoProcedimento('');
+          setErroProximaData('');
+
+          setUsarMedicacaoExterna(false);
+          setMedicamentoSelecionado(null);
+          setDoseAplicada('');
+          setUnidadeMedicacao('');
+          setObservacaoMedicacao('');
+
+          setNomeMedicacaoExterna('');
+          setDoseMedicacaoExterna('');
+          setUnidadeMedicacaoExterna('mL');
+          setObservacaoMedicacaoExterna('');
+
+          setSaidaExistente(null);
+        }
       } catch (error) {
-        console.error('Erro ao buscar vacinas:', error);
+        console.error('Erro ao carregar dados da vacinação:', error);
+        abrirErro('Erro ao carregar dados do modal de vacinação.');
       }
     };
 
     if (open) {
-      carregarVacinas();
-
-      if (dadosEditar) {
-        setNomeVacina(dadosEditar.nomeVacina || '');
-        setObservacao(dadosEditar.observacao || '');
-        setDataProximoProcedimento(dateOnlyFromIso(dadosEditar.dataProximoProcedimento));
-      } else {
-        setNomeVacina('');
-        setObservacao('');
-        setDataProximoProcedimento('');
-      }
+      carregarDados();
     }
   }, [open, dadosEditar]);
 
+  useEffect(() => {
+    if (medicamentoSelecionado && !saidaExistente && !usarMedicacaoExterna) {
+      const unidade = getUnidadeMedicamento(medicamentoSelecionado);
+      if (unidade) setUnidadeMedicacao(unidade);
+    }
+  }, [medicamentoSelecionado, saidaExistente, usarMedicacaoExterna]);
+
+  const validarProximaData = () => {
+    if (!dataProximoProcedimento) {
+      setErroProximaData('');
+      return true;
+    }
+
+    const hoje = new Date();
+    const d = new Date(`${dataProximoProcedimento}T00:00:00`);
+    const hojeSemHora = new Date(
+      Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate())
+    );
+    const dataSemHora = new Date(
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    );
+
+    if (dataSemHora < hojeSemHora) {
+      setErroProximaData('A data do próximo procedimento não pode estar no passado.');
+      return false;
+    }
+
+    setErroProximaData('');
+    return true;
+  };
+
+  const validarMedicacao = () => {
+    if (usarMedicacaoExterna) {
+      if (!nomeMedicacaoExterna.trim()) {
+        abrirErro('Informe o nome da vacina externa.');
+        return false;
+      }
+
+      if (!doseMedicacaoExterna || Number(doseMedicacaoExterna) <= 0) {
+        abrirErro('Informe uma dose válida da vacina externa.');
+        return false;
+      }
+
+      if (!unidadeMedicacaoExterna.trim()) {
+        abrirErro('Informe a unidade da vacina externa.');
+        return false;
+      }
+
+      return true;
+    }
+
+    if (!medicamentoSelecionado) {
+      abrirErro('Selecione uma vacina do estoque.');
+      return false;
+    }
+
+    if (!doseAplicada || Number(doseAplicada) <= 0) {
+      abrirErro('Informe uma dose aplicada válida.');
+      return false;
+    }
+
+    if (!unidadeMedicacao.trim()) {
+      abrirErro('Informe a unidade da medicação.');
+      return false;
+    }
+
+    const qtdDisponivel = getQuantidadeDisponivel(
+      medicamentoSelecionado,
+      saidaExistente?.id || null
+    );
+    const qtdSaida = Number(doseAplicada);
+
+    if (qtdSaida > qtdDisponivel) {
+      abrirErro(
+        `Quantidade insuficiente no estoque. Disponível: ${qtdDisponivel} ${
+          getUnidadeMedicamento(medicamentoSelecionado) || ''
+        }`.trim()
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSalvar = async () => {
-    if (!nomeVacina.trim()) {
-      setModalErroAberto(true);
+    if (!validarProximaData()) return;
+    if (!validarMedicacao()) return;
+
+    if (!equino?.id) {
+      abrirErro('Equino não identificado.');
       return;
     }
 
-    // (opcional) recusa data passada
-    if (dataProximoProcedimento) {
-      const hoje = new Date();
-      hoje.setHours(0,0,0,0);
-      const escolhida = new Date(`${dataProximoProcedimento}T00:00:00`);
-      if (escolhida < hoje) {
-        alert('A data do próximo procedimento não pode ser anterior a hoje.');
-        return;
-      }
-    }
+    const nomeVacinaFinal = usarMedicacaoExterna
+      ? nomeMedicacaoExterna.trim()
+      : getNomeMedicamento(medicamentoSelecionado);
 
-    const payload = {
-      id_Eq: equino.id,
-      nomeVacina: nomeVacina.trim(),
-      observacao: observacao.trim(),
-      data: new Date().toISOString(),
-      // salva somente se o usuário informou
+    const observacaoFinal = usarMedicacaoExterna
+      ? observacaoMedicacaoExterna.trim()
+      : observacaoMedicacao.trim();
+
+    const payloadVacinacao = {
+      equinoId: String(equino.id),
+      nomeVacina: nomeVacinaFinal,
+      observacao: observacaoFinal,
+      data: dadosEditar?.data || new Date().toISOString(),
       ...(dataProximoProcedimento
         ? { dataProximoProcedimento: isoFromDateOnly(dataProximoProcedimento) }
-        : {})
+        : {}),
     };
 
     try {
+      let vacinacaoSalva;
+
       if (dadosEditar) {
-        await axios.put(`/vacinacoes/${dadosEditar.id}`, { ...dadosEditar, ...payload });
+        await axios.put(`/vacinacoes/${dadosEditar.id}`, {
+          ...dadosEditar,
+          ...payloadVacinacao,
+        });
+        vacinacaoSalva = { ...dadosEditar, ...payloadVacinacao };
       } else {
-        await axios.post('/vacinacoes', payload);
+        const response = await axios.post('/vacinacoes', payloadVacinacao);
+        vacinacaoSalva = response.data;
+      }
+
+      if (dadosEditar && saidaExistente) {
+        await axios.delete(`/saidasMedicamento/${saidaExistente.id}`);
+      }
+
+      if (usarMedicacaoExterna) {
+        const payloadSaidaExterna = {
+          tipoSaida: 'VACINACAO',
+          medicacaoExterna: true,
+          medicamentoId: null,
+          medicamentoNome: nomeMedicacaoExterna.trim(),
+          fabricante: 'EXTERNO',
+          quantidadeInformada: Number(doseMedicacaoExterna),
+          unidadeInformada: unidadeMedicacaoExterna.trim(),
+          quantidadeBase: 0,
+          unidadeBase: unidadeMedicacaoExterna.trim(),
+          dataSaida: new Date().toISOString().slice(0, 10),
+          observacao:
+            observacaoMedicacaoExterna.trim() ||
+            `Uso de vacina externa no equino ${equino?.nome || ''}`.trim(),
+          idEquino: String(equino.id),
+          nomeEquino: equino?.nome || '',
+          vacinacaoId: String(vacinacaoSalva.id),
+        };
+
+        await axios.post('/saidasMedicamento', payloadSaidaExterna);
+      } else {
+        const medAtual = medicamentosEstoque.find(
+          (m) => String(m.id) === String(medicamentoSelecionado.id)
+        );
+
+        if (!medAtual) {
+          abrirErro('Vacina do estoque não encontrada.');
+          return;
+        }
+
+        const payloadSaida = {
+          medicamentoId: String(medAtual.id),
+          medicamentoNome: getNomeMedicamento(medAtual),
+          fabricante: getFabricanteMedicamento(medAtual),
+          tipoSaida: 'VACINACAO',
+          medicacaoExterna: false,
+          quantidadeInformada: Number(doseAplicada),
+          unidadeInformada: unidadeMedicacao.trim(),
+          quantidadeBase: Number(doseAplicada),
+          unidadeBase: getUnidadeMedicamento(medAtual) || unidadeMedicacao.trim(),
+          dataSaida: new Date().toISOString().slice(0, 10),
+          observacao:
+            observacaoMedicacao.trim() ||
+            `Uso em vacinação do equino ${equino?.nome || ''}`.trim(),
+          idEquino: String(equino.id),
+          nomeEquino: equino?.nome || '',
+          vacinacaoId: String(vacinacaoSalva.id),
+        };
+
+        await axios.post('/saidasMedicamento', payloadSaida);
       }
 
       setModalSucessoAberto(true);
@@ -101,6 +399,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
       }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vacinação:', error);
+      abrirErro('Erro ao salvar vacinação e movimentação de estoque.');
     }
   };
 
@@ -113,32 +412,17 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
           </Typography>
 
           <div className="mb-3">
-            <Typography variant="subtitle1"><strong>Nome:</strong> {equino?.nome}</Typography>
-            <Typography variant="subtitle1"><strong>Registro:</strong> {equino?.registro}</Typography>
-            <Typography variant="subtitle1"><strong>Raça:</strong> {equino?.raca}</Typography>
+            <Typography variant="subtitle1">
+              <strong>Nome:</strong> {equino?.nome}
+            </Typography>
+            <Typography variant="subtitle1">
+              <strong>Registro:</strong> {equino?.registro}
+            </Typography>
+            <Typography variant="subtitle1">
+              <strong>Raça:</strong> {equino?.raca}
+            </Typography>
           </div>
 
-          <Autocomplete
-            freeSolo
-            options={vacinasAnteriores}
-            value={nomeVacina}
-            onInputChange={(e, newValue) => setNomeVacina(newValue)}
-            renderInput={(params) => (
-              <TextField {...params} label="Nome da Vacina" fullWidth required />
-            )}
-          />
-
-          <TextField
-            label="Observações"
-            multiline
-            rows={3}
-            fullWidth
-            className="mt-3"
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-          />
-
-          {/* NOVO: Próxima dose (data do próximo procedimento) */}
           <TextField
             label="Próxima dose (opcional)"
             type="date"
@@ -147,11 +431,196 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
             InputLabelProps={{ shrink: true }}
             value={dataProximoProcedimento}
             onChange={(e) => setDataProximoProcedimento(e.target.value)}
-            helperText="Defina quando deverá ocorrer a próxima vacinação (usado para avisos de vencimento)."
+            onBlur={validarProximaData}
+            error={!!erroProximaData}
+            helperText={
+              erroProximaData ||
+              'Defina quando deverá ocorrer a próxima vacinação.'
+            }
           />
 
+          <div className="mt-3 p-3 border rounded">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <Typography variant="subtitle1">
+                <strong>Vacina utilizada</strong>
+              </Typography>
+
+              <div className="d-flex align-items-center">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={usarMedicacaoExterna}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setUsarMedicacaoExterna(checked);
+
+                        if (checked) {
+                          setMedicamentoSelecionado(null);
+                          setDoseAplicada('');
+                          setUnidadeMedicacao('');
+                          setObservacaoMedicacao('');
+                          setNomeMedicacaoExterna('');
+                          setDoseMedicacaoExterna('');
+                          setUnidadeMedicacaoExterna('mL');
+                          setObservacaoMedicacaoExterna('');
+                        } else {
+                          setNomeMedicacaoExterna('');
+                          setDoseMedicacaoExterna('');
+                          setUnidadeMedicacaoExterna('mL');
+                          setObservacaoMedicacaoExterna('');
+                          setMedicamentoSelecionado(null);
+                          setDoseAplicada('');
+                          setUnidadeMedicacao('');
+                          setObservacaoMedicacao('');
+                        }
+                      }}
+                    />
+                  }
+                  label="Usar vacina externa"
+                />
+
+                <Tooltip title="Esta opção é para uso de vacina particular que não esteja cadastrada no banco de dados.">
+                  <IconButton size="small">
+                    <FaQuestionCircle />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            </div>
+
+            {!usarMedicacaoExterna ? (
+              <>
+                <Autocomplete
+                  className="mt-2"
+                  options={medicamentosEstoque}
+                  value={medicamentoSelecionado}
+                  onChange={(e, newValue) => {
+                    setMedicamentoSelecionado(newValue);
+
+                    if (newValue && !saidaExistente) {
+                      const unidade = getUnidadeMedicamento(newValue);
+                      if (unidade) setUnidadeMedicacao(unidade);
+                    }
+                  }}
+                  getOptionLabel={(option) =>
+                    `${getNomeMedicamento(option)}${
+                      option
+                        ? ` (Disp.: ${getQuantidadeDisponivel(
+                            option,
+                            saidaExistente?.id || null
+                          )} ${getUnidadeMedicamento(option) || ''})`
+                        : ''
+                    }`
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    String(option.id) === String(value.id)
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Vacina do estoque" fullWidth />
+                  )}
+                />
+
+                <div className="row mt-2">
+                  <div className="col-md-4">
+                    <TextField
+                      label="Dose aplicada"
+                      type="number"
+                      fullWidth
+                      value={doseAplicada}
+                      onChange={(e) => setDoseAplicada(e.target.value)}
+                      inputProps={{ min: 0, step: 'any' }}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <TextField
+                      label="Unidade"
+                      fullWidth
+                      value={unidadeMedicacao}
+                      onChange={(e) => setUnidadeMedicacao(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="col-md-4 d-flex align-items-center">
+                    {medicamentoSelecionado && (
+                      <Typography variant="body2" color="text.secondary">
+                        Disponível:{' '}
+                        {getQuantidadeDisponivel(
+                          medicamentoSelecionado,
+                          saidaExistente?.id || null
+                        )}{' '}
+                        {getUnidadeMedicamento(medicamentoSelecionado) || ''}
+                      </Typography>
+                    )}
+                  </div>
+                </div>
+
+                <TextField
+                  label="Observação"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  className="mt-3"
+                  value={observacaoMedicacao}
+                  onChange={(e) => setObservacaoMedicacao(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <TextField
+                  label="Nome da vacina externa"
+                  fullWidth
+                  className="mt-2"
+                  value={nomeMedicacaoExterna}
+                  onChange={(e) => setNomeMedicacaoExterna(e.target.value)}
+                />
+
+                <div className="row mt-2">
+                  <div className="col-md-6">
+                    <TextField
+                      label="Dose aplicada"
+                      type="number"
+                      fullWidth
+                      value={doseMedicacaoExterna}
+                      onChange={(e) => setDoseMedicacaoExterna(e.target.value)}
+                      inputProps={{ min: 0, step: 'any' }}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <TextField
+                      select
+                      label="Unidade"
+                      fullWidth
+                      value={unidadeMedicacaoExterna}
+                      onChange={(e) => setUnidadeMedicacaoExterna(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    >
+                      {unidadesMedicacao.map((unidade) => (
+                        <MenuItem key={unidade} value={unidade}>
+                          {unidade}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </div>
+                </div>
+
+                <TextField
+                  label="Observação"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  className="mt-3"
+                  value={observacaoMedicacaoExterna}
+                  onChange={(e) => setObservacaoMedicacaoExterna(e.target.value)}
+                />
+              </>
+            )}
+          </div>
+
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button variant="outlined" color="secondary" onClick={onClose}>Cancelar</Button>
+            <Button variant="outlined" color="secondary" onClick={onClose}>
+              Cancelar
+            </Button>
             <Button variant="contained" color="success" onClick={handleSalvar}>
               {dadosEditar ? 'Salvar Alterações' : 'Salvar'}
             </Button>
@@ -159,24 +628,26 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
         </Box>
       </Modal>
 
-      {/* Modal de sucesso */}
       <ModalGenerico
         open={modalSucessoAberto}
         onClose={() => setModalSucessoAberto(false)}
         tipo="mensagem"
         titulo="Sucesso"
-        subtitulo={dadosEditar ? 'Vacinação atualizada com sucesso.' : 'Vacinação registrada com sucesso.'}
+        subtitulo={
+          dadosEditar
+            ? 'Vacinação atualizada com sucesso.'
+            : 'Vacinação registrada com sucesso.'
+        }
         cor="success"
         tamanho="pequeno"
       />
 
-      {/* Modal de erro */}
       <ModalGenerico
         open={modalErroAberto}
         onClose={() => setModalErroAberto(false)}
         tipo="mensagem"
         titulo="Atenção"
-        subtitulo="Informe o nome da vacina antes de salvar."
+        subtitulo={mensagemErro || 'Verifique os dados informados.'}
         cor="error"
         tamanho="pequeno"
         tempoDeDuracao={3000}

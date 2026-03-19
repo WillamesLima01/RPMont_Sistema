@@ -5,74 +5,214 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
 import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import { FaQuestionCircle } from 'react-icons/fa';
 import axios from '../../api';
 import './ModalVermifugacao.css';
 import ModalGenerico from './ModalGenerico.jsx';
 
 const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
-  const [vermifugo, setVermifugo] = useState('');
-  const [observacao, setObservacao] = useState('');
-  const [vermifugosAnteriores, setVermifugosAnteriores] = useState([]);
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
   const [modalErroAberto, setModalErroAberto] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState('');
 
-  // Novo: data do próximo procedimento (obrigatória)
-  const [proximaData, setProximaData] = useState('');       // yyyy-MM-dd (para o input date)
-  const [erroProximaData, setErroProximaData] = useState(''); // mensagem de erro
+  const [proximaData, setProximaData] = useState('');
+  const [erroProximaData, setErroProximaData] = useState('');
+
+  const [usarMedicacaoExterna, setUsarMedicacaoExterna] = useState(false);
+  const [medicamentosEstoque, setMedicamentosEstoque] = useState([]);
+  const [medicamentoSelecionado, setMedicamentoSelecionado] = useState(null);
+  const [doseAplicada, setDoseAplicada] = useState('');
+  const [unidadeMedicacao, setUnidadeMedicacao] = useState('');
+  const [observacaoMedicacao, setObservacaoMedicacao] = useState('');
+
+  const [nomeMedicacaoExterna, setNomeMedicacaoExterna] = useState('');
+  const [doseMedicacaoExterna, setDoseMedicacaoExterna] = useState('');
+  const [unidadeMedicacaoExterna, setUnidadeMedicacaoExterna] = useState('mL');
+  const [observacaoMedicacaoExterna, setObservacaoMedicacaoExterna] = useState('');
+
+  const [entradasMedicamento, setEntradasMedicamento] = useState([]);
+  const [saidasMedicamento, setSaidasMedicamento] = useState([]);
+  const [saidaExistente, setSaidaExistente] = useState(null);
+
+  const unidadesMedicacao = ['mL', 'L', 'mg', 'g', 'kg', 'UN'];
+
+  const getNomeMedicamento = (med) =>
+    med?.nomeMedicamento || med?.nome || med?.descricao || 'Sem nome';
+
+  const getFabricanteMedicamento = (med) => med?.fabricante || '';
+
+  const getUnidadeMedicamento = (med) =>
+    med?.unidadeBase || med?.unidadeConteudo || med?.unidade || '';
+
+  const getQuantidadeDisponivel = (med, ignorarSaidaId = null) => {
+    if (!med) return 0;
+
+    const medicamentoId = String(med.id);
+
+    const totalEntradas = (entradasMedicamento || [])
+      .filter((e) => String(e.medicamentoId) === medicamentoId)
+      .reduce((acc, e) => acc + Number(e.quantidadeBase || 0), 0);
+
+    const totalSaidas = (saidasMedicamento || [])
+      .filter((s) => {
+        if (String(s.medicamentoId) !== medicamentoId) return false;
+        if (ignorarSaidaId && String(s.id) === String(ignorarSaidaId)) return false;
+        return true;
+      })
+      .reduce((acc, s) => acc + Number(s.quantidadeBase || 0), 0);
+
+    return totalEntradas - totalSaidas;
+  };
+
+  const abrirErro = (texto) => {
+    setMensagemErro(texto);
+    setModalErroAberto(true);
+  };
 
   useEffect(() => {
-    const carregarVermifugos = async () => {
+    const carregarDados = async () => {
       try {
-        const { data } = await axios.get('/vermifugacoes');
-        const nomes = [...new Set(data.map(v => v.vermifugo).filter(Boolean))];
-        setVermifugosAnteriores(nomes);
+        const [medicamentosRes, entradasRes, saidasRes] = await Promise.all([
+          axios.get('/medicamentos'),
+          axios.get('/entradasMedicamento'),
+          axios.get('/saidasMedicamento'),
+        ]);
+
+        const medicamentosData = (medicamentosRes.data || []).filter((m) => m.ativo !== false);
+        const entradasData = entradasRes.data || [];
+        const saidasData = saidasRes.data || [];
+
+        setMedicamentosEstoque(medicamentosData);
+        setEntradasMedicamento(entradasData);
+        setSaidasMedicamento(saidasData);
+
+        if (dadosEditar) {
+          if (dadosEditar.dataProximoProcedimento) {
+            const d = new Date(dadosEditar.dataProximoProcedimento);
+            setProximaData(!isNaN(d) ? d.toISOString().slice(0, 10) : '');
+          } else {
+            setProximaData('');
+          }
+
+          const saidaVinculada =
+            saidasData.find(
+              (s) =>
+                s.tipoSaida === 'VERMIFUGACAO' &&
+                String(s.vermifugacaoId) === String(dadosEditar.id)
+            ) || null;
+
+          setSaidaExistente(saidaVinculada);
+
+          if (saidaVinculada) {
+            const ehExterno = Boolean(saidaVinculada.medicacaoExterna);
+            setUsarMedicacaoExterna(ehExterno);
+
+            if (ehExterno) {
+              setNomeMedicacaoExterna(saidaVinculada.medicamentoNome || dadosEditar.vermifugo || '');
+              setDoseMedicacaoExterna(
+                saidaVinculada.quantidadeInformada !== undefined &&
+                saidaVinculada.quantidadeInformada !== null
+                  ? String(saidaVinculada.quantidadeInformada)
+                  : ''
+              );
+              setUnidadeMedicacaoExterna(saidaVinculada.unidadeInformada || 'mL');
+              setObservacaoMedicacaoExterna(saidaVinculada.observacao || dadosEditar.observacao || '');
+
+              setMedicamentoSelecionado(null);
+              setDoseAplicada('');
+              setUnidadeMedicacao('');
+              setObservacaoMedicacao('');
+            } else {
+              const medEncontrado =
+                medicamentosData.find(
+                  (m) => String(m.id) === String(saidaVinculada.medicamentoId)
+                ) || null;
+
+              setMedicamentoSelecionado(medEncontrado);
+              setDoseAplicada(
+                saidaVinculada.quantidadeInformada !== undefined &&
+                saidaVinculada.quantidadeInformada !== null
+                  ? String(saidaVinculada.quantidadeInformada)
+                  : ''
+              );
+              setUnidadeMedicacao(
+                saidaVinculada.unidadeInformada ||
+                  getUnidadeMedicamento(medEncontrado) ||
+                  ''
+              );
+              setObservacaoMedicacao(saidaVinculada.observacao || dadosEditar.observacao || '');
+
+              setNomeMedicacaoExterna('');
+              setDoseMedicacaoExterna('');
+              setUnidadeMedicacaoExterna('mL');
+              setObservacaoMedicacaoExterna('');
+            }
+          } else {
+            setUsarMedicacaoExterna(false);
+            setMedicamentoSelecionado(null);
+            setDoseAplicada('');
+            setUnidadeMedicacao('');
+            setObservacaoMedicacao(dadosEditar.observacao || '');
+
+            setNomeMedicacaoExterna(dadosEditar.vermifugo || '');
+            setDoseMedicacaoExterna('');
+            setUnidadeMedicacaoExterna('mL');
+            setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+          }
+        } else {
+          setProximaData('');
+          setErroProximaData('');
+
+          setUsarMedicacaoExterna(false);
+          setMedicamentoSelecionado(null);
+          setDoseAplicada('');
+          setUnidadeMedicacao('');
+          setObservacaoMedicacao('');
+
+          setNomeMedicacaoExterna('');
+          setDoseMedicacaoExterna('');
+          setUnidadeMedicacaoExterna('mL');
+          setObservacaoMedicacaoExterna('');
+
+          setSaidaExistente(null);
+        }
       } catch (error) {
-        console.error('Erro ao buscar vermífugos:', error);
+        console.error('Erro ao carregar dados da vermifugação:', error);
+        abrirErro('Erro ao carregar dados do modal de vermifugação.');
       }
     };
 
     if (open) {
-      carregarVermifugos();
-
-      if (dadosEditar) {
-        setVermifugo(dadosEditar.vermifugo || '');
-        setObservacao(dadosEditar.observacao || '');
-        // Preenche a data próxima (se existir) no formato yyyy-MM-dd
-        if (dadosEditar.dataProximoProcedimento) {
-          try {
-            const d = new Date(dadosEditar.dataProximoProcedimento);
-            if (!isNaN(d)) {
-              setProximaData(d.toISOString().slice(0, 10));
-            } else {
-              setProximaData('');
-            }
-          } catch {
-            setProximaData('');
-          }
-        } else {
-          setProximaData('');
-        }
-      } else {
-        setVermifugo('');
-        setObservacao('');
-        setProximaData('');
-      }
-
-      setErroProximaData('');
+      carregarDados();
     }
   }, [open, dadosEditar]);
 
-  // Validação simples da data (obrigatória e não no passado)
+  useEffect(() => {
+    if (medicamentoSelecionado && !saidaExistente && !usarMedicacaoExterna) {
+      const unidade = getUnidadeMedicamento(medicamentoSelecionado);
+      if (unidade) setUnidadeMedicacao(unidade);
+    }
+  }, [medicamentoSelecionado, saidaExistente, usarMedicacaoExterna]);
+
   const validarProximaData = () => {
     if (!proximaData) {
       setErroProximaData('Informe a data do próximo procedimento.');
       return false;
     }
+
     const hoje = new Date();
     const d = new Date(`${proximaData}T00:00:00`);
-    // zera hora de "hoje" para comparar apenas a data
-    const hojeSemHora = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate()));
-    const dataSemHora = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const hojeSemHora = new Date(
+      Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate())
+    );
+    const dataSemHora = new Date(
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    );
 
     if (dataSemHora < hojeSemHora) {
       setErroProximaData('A data do próximo procedimento não pode estar no passado.');
@@ -83,28 +223,151 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
     return true;
   };
 
+  const validarMedicacao = () => {
+    if (usarMedicacaoExterna) {
+      if (!nomeMedicacaoExterna.trim()) {
+        abrirErro('Informe o nome do medicamento externo.');
+        return false;
+      }
+
+      if (!doseMedicacaoExterna || Number(doseMedicacaoExterna) <= 0) {
+        abrirErro('Informe uma dose válida do medicamento externo.');
+        return false;
+      }
+
+      if (!unidadeMedicacaoExterna.trim()) {
+        abrirErro('Informe a unidade do medicamento externo.');
+        return false;
+      }
+
+      return true;
+    }
+
+    if (!medicamentoSelecionado) {
+      abrirErro('Selecione um medicamento do estoque.');
+      return false;
+    }
+
+    if (!doseAplicada || Number(doseAplicada) <= 0) {
+      abrirErro('Informe uma dose aplicada válida.');
+      return false;
+    }
+
+    if (!unidadeMedicacao.trim()) {
+      abrirErro('Informe a unidade da medicação.');
+      return false;
+    }
+
+    const qtdDisponivel = getQuantidadeDisponivel(
+      medicamentoSelecionado,
+      saidaExistente?.id || null
+    );
+    const qtdSaida = Number(doseAplicada);
+
+    if (qtdSaida > qtdDisponivel) {
+      abrirErro(
+        `Quantidade insuficiente no estoque. Disponível: ${qtdDisponivel} ${getUnidadeMedicamento(medicamentoSelecionado) || ''}`.trim()
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSalvar = async () => {
-    if (!vermifugo.trim()) {
-      setModalErroAberto(true);
+    if (!validarProximaData()) return;
+    if (!validarMedicacao()) return;
+
+    if (!equino?.id) {
+      abrirErro('Equino não identificado.');
       return;
     }
 
-    if (!validarProximaData()) return;
+    const nomeVermifugo = usarMedicacaoExterna
+      ? nomeMedicacaoExterna.trim()
+      : getNomeMedicamento(medicamentoSelecionado);
 
-    const vermifugacao = {
-      equinoId: equino.id,
-      vermifugo: vermifugo.trim(),
-      observacao: observacao.trim(),
-      data: new Date().toISOString(), // data do registro atual
-      // novo campo persistido:
+    const observacaoFinal = usarMedicacaoExterna
+      ? observacaoMedicacaoExterna.trim()
+      : observacaoMedicacao.trim();
+
+    const payloadVermifugacao = {
+      equinoId: String(equino.id),
+      vermifugo: nomeVermifugo,
+      observacao: observacaoFinal,
+      data: dadosEditar?.data || new Date().toISOString(),
       dataProximoProcedimento: new Date(`${proximaData}T00:00:00`).toISOString(),
     };
 
     try {
+      let vermifugacaoSalva;
+
       if (dadosEditar) {
-        await axios.put(`/vermifugacoes/${dadosEditar.id}`, { ...dadosEditar, ...vermifugacao });
+        await axios.put(`/vermifugacoes/${dadosEditar.id}`, {
+          ...dadosEditar,
+          ...payloadVermifugacao,
+        });
+        vermifugacaoSalva = { ...dadosEditar, ...payloadVermifugacao };
       } else {
-        await axios.post('/vermifugacoes', vermifugacao);
+        const response = await axios.post('/vermifugacoes', payloadVermifugacao);
+        vermifugacaoSalva = response.data;
+      }
+
+      if (dadosEditar && saidaExistente) {
+        await axios.delete(`/saidasMedicamento/${saidaExistente.id}`);
+      }
+
+      if (usarMedicacaoExterna) {
+        const payloadSaidaExterna = {
+          tipoSaida: 'VERMIFUGACAO',
+          medicacaoExterna: true,
+          medicamentoId: null,
+          medicamentoNome: nomeMedicacaoExterna.trim(),
+          fabricante: 'EXTERNO',
+          quantidadeInformada: Number(doseMedicacaoExterna),
+          unidadeInformada: unidadeMedicacaoExterna.trim(),
+          quantidadeBase: 0,
+          unidadeBase: unidadeMedicacaoExterna.trim(),
+          dataSaida: new Date().toISOString().slice(0, 10),
+          observacao:
+            observacaoMedicacaoExterna.trim() ||
+            `Uso de medicamento externo em vermifugação do equino ${equino?.nome || ''}`.trim(),
+          idEquino: String(equino.id),
+          nomeEquino: equino?.nome || '',
+          vermifugacaoId: String(vermifugacaoSalva.id),
+        };
+
+        await axios.post('/saidasMedicamento', payloadSaidaExterna);
+      } else {
+        const medAtual = medicamentosEstoque.find(
+          (m) => String(m.id) === String(medicamentoSelecionado.id)
+        );
+
+        if (!medAtual) {
+          abrirErro('Medicamento do estoque não encontrado.');
+          return;
+        }
+
+        const payloadSaida = {
+          medicamentoId: String(medAtual.id),
+          medicamentoNome: getNomeMedicamento(medAtual),
+          fabricante: getFabricanteMedicamento(medAtual),
+          tipoSaida: 'VERMIFUGACAO',
+          medicacaoExterna: false,
+          quantidadeInformada: Number(doseAplicada),
+          unidadeInformada: unidadeMedicacao.trim(),
+          quantidadeBase: Number(doseAplicada),
+          unidadeBase: getUnidadeMedicamento(medAtual) || unidadeMedicacao.trim(),
+          dataSaida: new Date().toISOString().slice(0, 10),
+          observacao:
+            observacaoMedicacao.trim() ||
+            `Uso em vermifugação do equino ${equino?.nome || ''}`.trim(),
+          idEquino: String(equino.id),
+          nomeEquino: equino?.nome || '',
+          vermifugacaoId: String(vermifugacaoSalva.id),
+        };
+
+        await axios.post('/saidasMedicamento', payloadSaida);
       }
 
       setModalSucessoAberto(true);
@@ -114,6 +377,7 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vermifugação:', error);
+      abrirErro('Erro ao salvar vermifugação e movimentação de estoque.');
     }
   };
 
@@ -131,27 +395,6 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
             <Typography variant="subtitle1"><strong>Raça:</strong> {equino?.raca}</Typography>
           </div>
 
-          <Autocomplete
-            freeSolo
-            options={vermifugosAnteriores}
-            value={vermifugo}
-            onInputChange={(e, newValue) => setVermifugo(newValue)}
-            renderInput={(params) => (
-              <TextField {...params} label="Vermífugo" fullWidth required />
-            )}
-          />
-
-          <TextField
-            label="Observações"
-            multiline
-            rows={3}
-            fullWidth
-            className="mt-3"
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-          />
-
-          {/* NOVO: Data do próximo procedimento (obrigatória) */}
           <TextField
             type="date"
             label="Próximo procedimento"
@@ -166,8 +409,184 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
             helperText={erroProximaData || 'Informe quando o próximo vermífugo deve ser aplicado.'}
           />
 
+          <div className="mt-3 p-3 border rounded">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <Typography variant="subtitle1">
+                <strong>Medicação utilizada</strong>
+              </Typography>
+
+              <div className="d-flex align-items-center">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={usarMedicacaoExterna}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setUsarMedicacaoExterna(checked);
+
+                        if (checked) {
+                          setMedicamentoSelecionado(null);
+                          setDoseAplicada('');
+                          setUnidadeMedicacao('');
+                          setObservacaoMedicacao('');
+                          setNomeMedicacaoExterna('');
+                          setDoseMedicacaoExterna('');
+                          setUnidadeMedicacaoExterna('mL');
+                          setObservacaoMedicacaoExterna('');
+                        } else {
+                          setNomeMedicacaoExterna('');
+                          setDoseMedicacaoExterna('');
+                          setUnidadeMedicacaoExterna('mL');
+                          setObservacaoMedicacaoExterna('');
+                          setMedicamentoSelecionado(null);
+                          setDoseAplicada('');
+                          setUnidadeMedicacao('');
+                          setObservacaoMedicacao('');
+                        }
+                      }}
+                    />
+                  }
+                  label="Usar medicamento externo"
+                />
+
+                <Tooltip title="Esta opção é para uso de medicamento particular que não esteja cadastrado no banco de dados.">
+                  <IconButton size="small">
+                    <FaQuestionCircle />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            </div>
+
+            {!usarMedicacaoExterna ? (
+              <>
+                <Autocomplete
+                  className="mt-2"
+                  options={medicamentosEstoque}
+                  value={medicamentoSelecionado}
+                  onChange={(e, newValue) => {
+                    setMedicamentoSelecionado(newValue);
+
+                    if (newValue && !saidaExistente) {
+                      const unidade = getUnidadeMedicamento(newValue);
+                      if (unidade) setUnidadeMedicacao(unidade);
+                    }
+                  }}
+                  getOptionLabel={(option) =>
+                    `${getNomeMedicamento(option)}${
+                      option
+                        ? ` (Disp.: ${getQuantidadeDisponivel(
+                            option,
+                            saidaExistente?.id || null
+                          )} ${getUnidadeMedicamento(option) || ''})`
+                        : ''
+                    }`
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    String(option.id) === String(value.id)
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Medicamento do estoque" fullWidth />
+                  )}
+                />
+
+                <div className="row mt-2">
+                  <div className="col-md-4">
+                    <TextField
+                      label="Dose aplicada"
+                      type="number"
+                      fullWidth
+                      value={doseAplicada}
+                      onChange={(e) => setDoseAplicada(e.target.value)}
+                      inputProps={{ min: 0, step: 'any' }}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <TextField
+                      label="Unidade"
+                      fullWidth
+                      value={unidadeMedicacao}
+                      onChange={(e) => setUnidadeMedicacao(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="col-md-4 d-flex align-items-center">
+                    {medicamentoSelecionado && (
+                      <Typography variant="body2" color="text.secondary">
+                        Disponível: {getQuantidadeDisponivel(medicamentoSelecionado, saidaExistente?.id || null)}{' '}
+                        {getUnidadeMedicamento(medicamentoSelecionado) || ''}
+                      </Typography>
+                    )}
+                  </div>
+                </div>
+
+                <TextField
+                  label="Observação"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  className="mt-3"
+                  value={observacaoMedicacao}
+                  onChange={(e) => setObservacaoMedicacao(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <TextField
+                  label="Nome do medicamento externo"
+                  fullWidth
+                  className="mt-2"
+                  value={nomeMedicacaoExterna}
+                  onChange={(e) => setNomeMedicacaoExterna(e.target.value)}
+                />
+
+                <div className="row mt-2">
+                  <div className="col-md-6">
+                    <TextField
+                      label="Dose aplicada"
+                      type="number"
+                      fullWidth
+                      value={doseMedicacaoExterna}
+                      onChange={(e) => setDoseMedicacaoExterna(e.target.value)}
+                      inputProps={{ min: 0, step: 'any' }}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <TextField
+                      select
+                      label="Unidade"
+                      fullWidth
+                      value={unidadeMedicacaoExterna}
+                      onChange={(e) => setUnidadeMedicacaoExterna(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    >
+                      {unidadesMedicacao.map((unidade) => (
+                        <MenuItem key={unidade} value={unidade}>
+                          {unidade}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </div>
+                </div>
+
+                <TextField
+                  label="Observação"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  className="mt-3"
+                  value={observacaoMedicacaoExterna}
+                  onChange={(e) => setObservacaoMedicacaoExterna(e.target.value)}
+                />
+              </>
+            )}
+          </div>
+
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button variant="outlined" color="secondary" onClick={onClose}>Cancelar</Button>
+            <Button variant="outlined" color="secondary" onClick={onClose}>
+              Cancelar
+            </Button>
             <Button variant="contained" color="success" onClick={handleSalvar}>
               {dadosEditar ? 'Salvar Alterações' : 'Salvar'}
             </Button>
@@ -190,7 +609,7 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
         onClose={() => setModalErroAberto(false)}
         tipo="mensagem"
         titulo="Atenção"
-        subtitulo="Informe o nome do vermífugo antes de salvar."
+        subtitulo={mensagemErro || 'Verifique os dados informados.'}
         cor="error"
         tamanho="pequeno"
       />

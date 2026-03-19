@@ -48,6 +48,7 @@ const CATEGORIAS = [
   { value: 'VITAMINA', label: 'Vitamina' },
   { value: 'ANESTESICO', label: 'Anestésico' },
   { value: 'CICATRIZANTE', label: 'Cicatrizante' },
+  { value: 'IMUNIZACAO', label: 'Imunização' },
   { value: 'SORO', label: 'Soro' },
   { value: 'OUTROS', label: 'Outros' }
 ];

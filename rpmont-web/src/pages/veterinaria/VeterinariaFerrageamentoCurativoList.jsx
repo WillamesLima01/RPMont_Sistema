@@ -25,7 +25,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
   useEffect(() => {
     const carregarDados = async () => {
       const [eqRes, curRes] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/ferrageamentoCurativoEquino')
       ]);
       setEquinos(eqRes.data);
@@ -68,7 +68,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
       const equino = equinos.find(eq => eq.id === c.equinoId);
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         formatarData(c.data),
         c.tipoCurativo || '-',
         c.observacoes || '-'
@@ -147,7 +147,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
             const equino = equinos.find(eq => eq.id === item.equinoId);
             return (
               <tr key={item.id}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{formatarData(item.data)}</td>
                 <td>{item.tipoCurativo || '-'}</td>
                 <td>{item.observacoes || '-'}</td>

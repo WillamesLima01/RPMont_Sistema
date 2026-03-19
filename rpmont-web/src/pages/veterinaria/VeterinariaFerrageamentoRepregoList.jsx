@@ -25,7 +25,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
   useEffect(() => {
     const carregarDados = async () => {
       const [eqRes, repRes] = await Promise.all([
-        axios.get('/equinos'),
+        axios.get('/equino'),
         axios.get('/ferrageamentoRepregoEquino')
       ]);
       setEquinos(eqRes.data);
@@ -68,7 +68,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
       const equino = equinos.find(eq => eq.id === f.equinoId);
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         formatarData(f.data),
         (f.patas || []).join(', '),
         f.ferroNovo,
@@ -154,7 +154,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
             const equino = equinos.find(eq => eq.id === item.equinoId);
             return (
               <tr key={item.id}>
-                <td>{equino?.name || '-'}</td>
+                <td>{equino?.nome || '-'}</td>
                 <td>{formatarData(item.data)}</td>
                 <td>{(item.patas || []).join(', ')}</td>
                 <td>{item.ferroNovo}</td>

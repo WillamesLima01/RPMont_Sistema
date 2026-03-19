@@ -147,7 +147,12 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link to="/entradaMedicamentoList" className="dropdown-item">
-                    Listar todos as entrada
+                    Listar todos as entradas
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/saidaMedicamentoList" className="dropdown-item">
+                    Listar todos as saídas
                   </Link>
                 </li>
                 <li>

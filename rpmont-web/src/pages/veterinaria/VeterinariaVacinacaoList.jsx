@@ -174,7 +174,7 @@ const estaDentroDe15Dias = (item) => {
         </thead>
         <tbody>
           {itensPaginados.map(item => {
-            const equino = equinos.find(eq => eq.id === item.id_Eq);
+            const equino = equinos.find(eq => eq.id === item.equinoId);
             const dentro15 = estaDentroDe15Dias(item);
             return (
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
@@ -188,7 +188,7 @@ const estaDentroDe15Dias = (item) => {
                         <BotaoAcaoRows
                             tipo="button"
                             onClick={() => {
-                            const equino = equinos.find(eq => eq.id === item.id_Eq);
+                            const equino = equinos.find(eq => eq.id === item.equinoId);
                             setEquinoSelecionado(equino);
                             setDadosEditar(item);
                             setModalAberto(true);
