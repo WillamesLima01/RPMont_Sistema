@@ -20,7 +20,7 @@
       "pelagem": "Alazão",
       "registro": "PMPB202500245",
       "dataNascimento": "2001-03-15",
-      "situacao": "BAIXADO",
+      "situacao": "APTO",
       "altura": 1.58,
       "peso": 470,
       "sexo": "Macho",
@@ -46,7 +46,7 @@
       "pelagem": "Preto",
       "registro": "PMPB2025004",
       "dataNascimento": "2003-01-10",
-      "situacao": "BAIXADO",
+      "situacao": "APTO",
       "altura": 1.55,
       "peso": 445,
       "sexo": "Fêmea",
@@ -85,7 +85,7 @@
       "pelagem": "Alazão",
       "registro": "PMPB2025007",
       "dataNascimento": "2006-11-11",
-      "situacao": "BAIXADO",
+      "situacao": "APTO",
       "altura": 1.54,
       "peso": 440,
       "sexo": "Macho",
@@ -98,7 +98,7 @@
       "pelagem": "Baio",
       "registro": "PMPB2025008",
       "dataNascimento": "2007-04-05",
-      "situacao": "BAIXADO",
+      "situacao": "APTO",
       "altura": 1.59,
       "peso": 465,
       "sexo": "Fêmea",
@@ -124,7 +124,7 @@
       "pelagem": "Tordilho",
       "registro": "PMPB2025010",
       "dataNascimento": "2009-09-08",
-      "situacao": "APTO",
+      "situacao": "BAIXADO",
       "altura": 1.58,
       "peso": 460,
       "sexo": "Fêmea",
@@ -163,7 +163,7 @@
       "pelagem": "Alazão",
       "registro": "PMPB202500465",
       "dataNascimento": "2025-05-15",
-      "situacao": "BAIXADO",
+      "situacao": "APTO",
       "altura": 1.5,
       "peso": 420,
       "sexo": "Macho",
@@ -261,84 +261,12 @@
       "local": "RPMont"
     }
   ],
-  "equinosBaixados": [
+  "equino_baixado": [    
     {
-      "id": "e6c4",
-      "idEquino": "2",
-      "dataBaixa": "2025-05-15",
-      "dataRetorno": "2025-05-15"
-    },
-    {
-      "id": "123",
-      "idEquino": "2",
-      "dataBaixa": "2025-05-19",
-      "dataRetorno": null
-    },
-    {
-      "id": "98a5",
-      "idEquino": "7",
-      "dataBaixa": "2025-05-15",
-      "dataRetorno": "2025-08-23"
-    },
-    {
-      "id": "f049",
-      "idEquino": "f167",
-      "dataBaixa": "2025-05-15",
-      "dataRetorno": null
-    },
-    {
-      "id": "05ef",
-      "idEquino": "6",
-      "dataBaixa": "2025-05-16",
-      "dataRetorno": "2025-10-20"
-    },
-    {
-      "id": "c0dbd3f7-f5d9-412f-aee7-3ae013225e9f",
-      "idEquino": "3",
-      "dataBaixa": "2025-07-17",
-      "dataRetorno": "2025-08-24"
-    },
-    {
-      "id": "15e99582-3a5c-4781-a393-bc671589fe73",
-      "idEquino": "fc22",
-      "dataBaixa": "2025-07-17",
-      "dataRetorno": "2025-08-24"
-    },
-    {
-      "id": "f76ff25b-ab15-45c0-b6db-3672128e46ef",
-      "idEquino": "5",
-      "dataBaixa": "2025-07-18",
-      "dataRetorno": "2025-08-23"
-    },
-    {
-      "id": "d6306936-5b2d-4afb-8990-cf496d09e617",
-      "idEquino": "4",
-      "dataBaixa": "2025-07-18",
-      "dataRetorno": "2025-08-23"
-    },
-    {
-      "id": "1fe3ee96-3546-4b63-a874-3f95efb5ddaf",
-      "idEquino": "4",
-      "dataBaixa": "2025-07-18",
-      "dataRetorno": null
-    },
-    {
-      "id": "3227942a-519b-4825-88e5-94d6c5113a4e",
-      "idEquino": "8",
-      "dataBaixa": "2025-07-18",
-      "dataRetorno": null
-    },
-    {
-      "id": "14a2b9b8-2874-42f7-bddc-445ad9a3c128",
-      "idEquino": "7",
-      "dataBaixa": "2025-08-30",
-      "dataRetorno": null
-    },
-    {
-      "id": "06dba9b6-55f5-4ec4-8d21-6c174a60f4cf",
-      "idEquino": "5711",
-      "dataBaixa": "2026-02-28",
-      "dataRetorno": "2026-02-28"
+      "id": "ebff7c34-121a-461e-87d0-3ee35f4f87f7",
+      "equino_id": "10",
+      "data_baixa": "2026-03-23",
+      "data_retorno": null
     }
   ],
   "atendimentos": [

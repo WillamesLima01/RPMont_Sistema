@@ -49,7 +49,7 @@ const VeterinariaEquinosBaixadosList = () => {
     try {
       const [resEquinos, resBaixados] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/equinosBaixados'),
+        axios.get('/equino_baixado'),
       ]);
 
       const todosEquinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];
@@ -64,15 +64,15 @@ const VeterinariaEquinosBaixadosList = () => {
 
       const mapaBaixaAtiva = new Map(
         todosBaixados
-          .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-          .map((b) => [String(b.idEquino), b.dataBaixa])
+          .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
+          .map((b) => [String(b.equino_id), b.data_baixa])
       );
 
       const resultadoInicial = baixadosAtivos
         .filter((eq) => mapaBaixaAtiva.has(String(eq.id)))
         .map((eq) => ({
           ...eq,
-          dataBaixa: mapaBaixaAtiva.get(String(eq.id)),
+          data_baixa: mapaBaixaAtiva.get(String(eq.id)),
         }));
 
       setResultado(resultadoInicial);
@@ -84,8 +84,8 @@ const VeterinariaEquinosBaixadosList = () => {
   const filtrar = () => {
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-        .map((b) => [String(b.idEquino), b.dataBaixa])
+        .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
+        .map((b) => [String(b.equino_id), b.data_baixa])
     );
 
     let lista = (equinos || [])
@@ -96,7 +96,7 @@ const VeterinariaEquinosBaixadosList = () => {
       )
       .map((eq) => ({
         ...eq,
-        dataBaixa: baixasAtivasMap.get(String(eq.id)),
+        data_baixa: baixasAtivasMap.get(String(eq.id)),
       }));
 
     if (filtroNome) {
@@ -110,11 +110,11 @@ const VeterinariaEquinosBaixadosList = () => {
     }
 
     if (filtroInicio) {
-      lista = lista.filter((eq) => eq.dataBaixa >= filtroInicio);
+      lista = lista.filter((eq) => eq.data_baixa >= filtroInicio);
     }
 
     if (filtroFim) {
-      lista = lista.filter((eq) => eq.dataBaixa <= filtroFim);
+      lista = lista.filter((eq) => eq.data_baixa <= filtroFim);
     }
 
     setResultado(lista);
@@ -127,8 +127,8 @@ const VeterinariaEquinosBaixadosList = () => {
 
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter((b) => b && b.idEquino && !b.dataRetorno && b.dataBaixa)
-        .map((b) => [String(b.idEquino), b.dataBaixa])
+        .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
+        .map((b) => [String(b.equino_id), b.data_baixa])
     );
 
     const inicial = (equinos || [])
@@ -139,7 +139,7 @@ const VeterinariaEquinosBaixadosList = () => {
       )
       .map((eq) => ({
         ...eq,
-        dataBaixa: baixasAtivasMap.get(String(eq.id)),
+        data_baixa: baixasAtivasMap.get(String(eq.id)),
       }));
 
     setResultado(inicial);
@@ -155,7 +155,7 @@ const VeterinariaEquinosBaixadosList = () => {
           eq.raca || '',
           eq.pelagem || '',
           eq.registro || '',
-          eq.dataBaixa || '',
+          eq.data_baixa || '',
           formatarSituacao(eq.situacao),
         ].join(',')
       );
@@ -194,8 +194,8 @@ const VeterinariaEquinosBaixadosList = () => {
     });
 
     const dadosTabela = (resultado || []).map((eq) => {
-      const dataBaixaFmt = eq.dataBaixa
-        ? new Date(eq.dataBaixa + 'T00:00:00').toLocaleDateString('pt-BR')
+      const data_baixaFmt = eq.data_baixa
+        ? new Date(eq.data_baixa + 'T00:00:00').toLocaleDateString('pt-BR')
         : '—';
 
       return [
@@ -203,7 +203,7 @@ const VeterinariaEquinosBaixadosList = () => {
         eq.raca || '',
         eq.pelagem || '',
         eq.registro || '',
-        dataBaixaFmt,
+        data_baixaFmt,
         formatarSituacao(eq.situacao),
       ];
     });
@@ -240,7 +240,7 @@ const VeterinariaEquinosBaixadosList = () => {
     if (retornandoId) return;
 
     const registroBaixa = equinosBaixados.find(
-      (b) => String(b.idEquino) === String(equino.id) && !b.dataRetorno
+      (b) => String(b.equino_id) === String(equino.id) && !b.data_retorno
     );
 
     if (!registroBaixa) {
@@ -256,7 +256,7 @@ const VeterinariaEquinosBaixadosList = () => {
       });
 
       await axios.patch(`/equinosBaixados/${registroBaixa.id}`, {
-        dataRetorno: new Date().toISOString().slice(0, 10),
+        data_retorno: new Date().toISOString().slice(0, 10),
       });
 
       setModalAberto(true);
@@ -311,8 +311,8 @@ const VeterinariaEquinosBaixadosList = () => {
         </thead>
         <tbody>
           {resultado.map((eq) => {
-            const dataBaixaFormatada = eq.dataBaixa
-              ? new Date(eq.dataBaixa + 'T00:00:00').toLocaleDateString('pt-BR')
+            const dataBaixaFormatada = eq.data_baixa
+              ? new Date(eq.data_baixa + 'T00:00:00').toLocaleDateString('pt-BR')
               : '—';
 
             return (

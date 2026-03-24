@@ -78,12 +78,12 @@ const Grafico = () => {
     Promise.all([
       axios.get('/equino'),
       axios.get('/atendimentos'),
-      axios.get('/equinosBaixados'),
+      axios.get('/equino_baixado'),
     ])
       .then(([resEquinos, resAtendimentos, resBaixados]) => {
         const equinos = resEquinos.data || [];
         const atendimentos = resAtendimentos.data || [];
-        const equinosBaixados = resBaixados.data || [];
+        const equino_baixado = resBaixados.data || [];
 
         setQtdEquinos(equinos.length);
         setQtdAtendimentos(atendimentos.length);
@@ -91,9 +91,9 @@ const Grafico = () => {
         // Equinos com baixa ativa = sem dataRetorno
         // Equinos com baixa ativa = sem dataRetorno
         const idsBaixadosAtivos = new Set(
-          equinosBaixados
-            .filter((b) => !b.dataRetorno || String(b.dataRetorno).trim() === '')
-            .map((b) => b.idEquino ?? b.equinoId ?? b.id_equino ?? null)
+          equino_baixado
+            .filter((b) => !b.data_retorno || String(b.data_retorno).trim() === '')
+            .map((b) => b.equino_id ?? b.equino_id ?? b.equino_id ?? null)
             .filter((id) => id !== null && id !== undefined && id !== '')
             .map((id) => String(id))
         );
@@ -115,8 +115,8 @@ const Grafico = () => {
           }
         });
 
-        equinosBaixados.forEach((bx) => {
-          const mesAno = (bx.dataBaixa || '').slice(0, 7);
+        equino_baixado.forEach((bx) => {
+          const mesAno = (bx.data_baixa || '').slice(0, 7);
           if (mapBaixados[mesAno] !== undefined) {
             mapBaixados[mesAno]++;
           }

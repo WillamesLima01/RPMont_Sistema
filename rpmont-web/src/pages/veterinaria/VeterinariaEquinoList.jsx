@@ -523,9 +523,9 @@ const VeterinariaEquinoList = () => {
 
         const novoRegistro = {
           id: uuidv4(),
-          idEquino: String(equinoSelecionado.id),
-          dataBaixa: dataAlteracao,
-          dataRetorno: null,
+          equino_id: String(equinoSelecionado.id),
+          data_baixa: dataAlteracao,
+          data_retorno: null,
         };
 
         await axios.post('/equinosBaixados', novoRegistro);
