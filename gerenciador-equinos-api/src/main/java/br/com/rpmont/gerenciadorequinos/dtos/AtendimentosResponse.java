@@ -5,8 +5,7 @@ import java.time.LocalDate;
 public record AtendimentosResponse(
 
         Long id,
-        Long equinoId,
-        String textoAtendimento,
+        String textoConsulta,
         String enfermidade,
         LocalDate dataAtendimento
 ) {

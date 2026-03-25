@@ -16,8 +16,8 @@ const VeterinariaToaleteForm = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
 
-
   const [formData, setFormData] = useState({
+    id: null,
     equinoId: id,
     tosa: false,
     banho: false,
@@ -28,40 +28,50 @@ const VeterinariaToaleteForm = () => {
     ripagemCola: false,
     escovacao: false,
     rasqueamento: false,
-    observacoes: ''
+    observacao: ''
   });
 
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const resToalete = await axios.get(`/toaletes/${id}`);
+        const resToalete = await axios.get(`/toalete/${id}`);
+
         if (resToalete.data) {
           setModoEdicao(true);
+
           setFormData({
             id: resToalete.data.id,
-            equinoId: resToalete.data.equinoId,
-            tosa: resToalete.data.tosa,
-            banho: resToalete.data.banho,
-            limpezaOuvidos: resToalete.data.limpezaOuvidos,
-            limpezaGenital: resToalete.data.limpezaGenital,
-            limpezaCascos: resToalete.data.limpezaCascos,
-            ripagemCrina: resToalete.data.ripagemCrina,
-            ripagemCola: resToalete.data.ripagemCola,
-            escovacao: resToalete.data.escovacao,
-            rasqueamento: resToalete.data.rasqueamento,
-            observacoes: resToalete.data.observacoes || ''            
+            equinoId: resToalete.data.equino?.id ?? '',
+            tosa: resToalete.data.tosa ?? false,
+            banho: resToalete.data.banho ?? false,
+            limpezaOuvidos: resToalete.data.limpezaOuvidos ?? false,
+            limpezaGenital: resToalete.data.limpezaGenital ?? false,
+            limpezaCascos: resToalete.data.limpezaCascos ?? false,
+            ripagemCrina: resToalete.data.ripagemCrina ?? false,
+            ripagemCola: resToalete.data.ripagemCola ?? false,
+            escovacao: resToalete.data.escovacao ?? false,
+            rasqueamento: resToalete.data.rasqueamento ?? false,
+            observacao: resToalete.data.observacao || ''
           });
 
-          const resEquino = await axios.get(`/equino/${resToalete.data.equinoId}`);
-          setEquino(resEquino.data);
+          const equinoId = resToalete.data.equino?.id;
+          if (equinoId) {
+            const resEquino = await axios.get(`/equino/${equinoId}`);
+            setEquino(resEquino.data);
+          }
+
           return;
         }
       } catch {
-        // Não encontrou toalete, tentar carregar equino novo
         try {
           const resEquino = await axios.get(`/equino/${id}`);
           setEquino(resEquino.data);
-          setFormData(prev => ({ ...prev, equinoId: id }));
+          setModoEdicao(false);
+
+          setFormData((prev) => ({
+            ...prev,
+            equinoId: id
+          }));
         } catch (error) {
           console.error('Erro ao carregar dados:', error);
         }
@@ -73,6 +83,7 @@ const VeterinariaToaleteForm = () => {
 
   const handleChange = (e) => {
     const { name, type, checked, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -81,26 +92,37 @@ const VeterinariaToaleteForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     try {
-      const dadosComData = {
-        ...formData,
-        data: new Date().toISOString()
+      const payload = {
+        tosa: formData.tosa,
+        banho: formData.banho,
+        limpezaOuvidos: formData.limpezaOuvidos,
+        limpezaGenital: formData.limpezaGenital,
+        limpezaCascos: formData.limpezaCascos,
+        ripagemCrina: formData.ripagemCrina,
+        ripagemCola: formData.ripagemCola,
+        escovacao: formData.escovacao,
+        rasqueamento: formData.rasqueamento,
+        observacao: formData.observacao || '',
+        equinoId: Number(formData.equinoId)
       };
-
+  
       if (modoEdicao) {
-        await axios.put(`/toaletes/${formData.id}`, dadosComData);
+        await axios.put(`/toalete/${formData.id}`, payload);
       } else {
-        await axios.post('/toaletes', dadosComData);
+        await axios.post('/toalete', payload);
       }
-
+  
       setModalAberto(true);
+  
       setTimeout(() => {
         setModalAberto(false);
-        navigate(formData.id ? '/veterinaria-toalete-list' : '/manejo-sanitario-list');
-        
+        navigate(modoEdicao ? '/veterinaria-toalete-list' : '/manejo-sanitario-list');
       }, 2500);
     } catch (error) {
       console.error('Erro ao salvar os dados:', error);
+      console.error('Resposta do backend:', error.response?.data);
     }
   };
 
@@ -110,20 +132,21 @@ const VeterinariaToaleteForm = () => {
       <h2 className="text-primary mb-4">Toalete Equino</h2>
 
       {equino && (
-            <div className="alert alert-info">
-                <h5 className="mb-3 text-primary d-flex align-items-center">
-                <i className="bi bi-horse me-2"></i> Dados do Equino
-                </h5>
-                <div className="d-flex justify-content-between flex-wrap">
-                <p className="mb-1 me-4"><strong>Nome:</strong> {equino.nome}</p>
-                <p className="mb-1 me-4"><strong>Raça:</strong> {equino.raca}</p>
-                <p className="mb-1 me-4"><strong>Registro:</strong> {equino.registro}</p>
-                <p className="mb-1 me-4"><strong>Pelagem:</strong> {equino.pelagem}</p>
-                <p className="mb-1 me-4"><strong>Sexo:</strong> {equino.sexo}</p>
-                <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.local}</p>
-                </div>
-            </div>
-        )}
+        <div className="alert alert-info">
+          <h5 className="mb-3 text-primary d-flex align-items-center">
+            <i className="bi bi-horse me-2"></i> Dados do Equino
+          </h5>
+
+          <div className="d-flex justify-content-between flex-wrap">
+            <p className="mb-1 me-4"><strong>Nome:</strong> {equino.nome}</p>
+            <p className="mb-1 me-4"><strong>Raça:</strong> {equino.raca}</p>
+            <p className="mb-1 me-4"><strong>Registro:</strong> {equino.registro}</p>
+            <p className="mb-1 me-4"><strong>Pelagem:</strong> {equino.pelagem}</p>
+            <p className="mb-1 me-4"><strong>Sexo:</strong> {equino.sexo}</p>
+            <p className="mb-1 me-4"><strong>Unidade:</strong> {equino.local}</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-white">
         <h5 className="mb-4 text-primary">Procedimentos Realizados</h5>
@@ -138,7 +161,7 @@ const VeterinariaToaleteForm = () => {
             { label: 'Ripagem da Crina', name: 'ripagemCrina' },
             { label: 'Ripagem da Cola', name: 'ripagemCola' },
             { label: 'Escovação', name: 'escovacao' },
-            { label: 'Rasqueamento', name: 'rasqueamento' },
+            { label: 'Rasqueamento', name: 'rasqueamento' }
           ].map((item) => (
             <div className="col-md-4 mb-3" key={item.name}>
               <div className="form-check">
@@ -159,53 +182,59 @@ const VeterinariaToaleteForm = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="observacoes" className="form-label">Observações</label>
+          <label htmlFor="observacao" className="form-label">Observações</label>
           <textarea
             className="form-control"
-            id="observacoes"
-            name="observacoes"
+            id="observacao"
+            name="observacao"
             rows="4"
-            value={formData.observacoes}
+            value={formData.observacao}
             onChange={handleChange}
           />
         </div>
 
         <div className="d-flex justify-content-end gap-2">
-          <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancelar</button>
-          <button type="submit" className="btn btn-success">
-            {formData.id ? 'Editar' : 'Salvar'}
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => navigate(-1)}
+          >
+            Cancelar
           </button>
 
+          <button type="submit" className="btn btn-success">
+            {modoEdicao ? 'Atualizar' : 'Salvar'}
+          </button>
         </div>
       </form>
 
       <Modal
-            isOpen={modalAberto}
-            onRequestClose={() => setModalAberto(false)}
-            contentLabel="Sucesso"
-            style={{
-                content: {
-                top: '40%',
-                left: '50%',
-                right: 'auto',
-                bottom: 'auto',
-                transform: 'translate(-50%, -50%)',
-                border: 'none',
-                background: 'none',
-                padding: 0,
-                },
-                overlay: {
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                zIndex: 9999
-                }
-            }}
-            >
-            <div className="modal-content-custom">
-                <FaCheckCircle className="modal-success-icon" />
-                <h4 className="modal-success-title">
-                  {modoEdicao ? 'Dados atualizados com sucesso!' : 'Dados salvos com sucesso!'}
-                </h4>
-            </div>
+        isOpen={modalAberto}
+        onRequestClose={() => setModalAberto(false)}
+        contentLabel="Sucesso"
+        style={{
+          content: {
+            top: '40%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            border: 'none',
+            background: 'none',
+            padding: 0
+          },
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            zIndex: 9999
+          }
+        }}
+      >
+        <div className="modal-content-custom">
+          <FaCheckCircle className="modal-success-icon" />
+          <h4 className="modal-success-title">
+            {modoEdicao ? 'Dados atualizados com sucesso!' : 'Dados salvos com sucesso!'}
+          </h4>
+        </div>
       </Modal>
     </div>
   );
