@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.web.servlet.tags.form.TextareaTag;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -53,7 +54,7 @@ public class Toalete implements Serializable {
     private String observacao;
 
     @Column(name = "data_proximo_procedimento")
-    private LocalDateTime dataProximoProcedimento;
+    private LocalDate dataProximoProcedimento;
 
     @CreationTimestamp
     @Column(name = "data_cadastro", nullable = false, updatable = false )

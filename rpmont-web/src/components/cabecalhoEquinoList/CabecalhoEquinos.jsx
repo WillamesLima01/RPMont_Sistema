@@ -67,7 +67,9 @@ const CabecalhoEquinoLista = ({
           >
             <option value="">Todos os equinos</option>
             {equinos.map(eq => (
-              <option key={eq.id} value={eq.id}>{eq.name}</option>
+              <option key={eq.id} value={eq.id}>
+                {eq.nome}
+              </option>
             ))}
           </select>
 

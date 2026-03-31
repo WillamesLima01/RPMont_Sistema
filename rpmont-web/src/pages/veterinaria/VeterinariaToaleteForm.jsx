@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './Veterinaria.css';
 import axios from '../../api';
 import Modal from 'react-modal';
@@ -9,8 +9,11 @@ import Navbar from '../../components/navbar/Navbar.jsx';
 Modal.setAppElement('#root');
 
 const VeterinariaToaleteForm = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // id da rota = equinoId
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const toaleteId = location.state?.toaleteId || null;
 
   const [equino, setEquino] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
@@ -28,20 +31,24 @@ const VeterinariaToaleteForm = () => {
     ripagemCola: false,
     escovacao: false,
     rasqueamento: false,
+    dataProximoProcedimento: '',
     observacao: ''
   });
 
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const resToalete = await axios.get(`/toalete/${id}`);
+        const resEquino = await axios.get(`/equino/${id}`);
+        setEquino(resEquino.data);
 
-        if (resToalete.data) {
+        if (toaleteId) {
+          const resToalete = await axios.get(`/toalete/${toaleteId}`);
+
           setModoEdicao(true);
 
           setFormData({
             id: resToalete.data.id,
-            equinoId: resToalete.data.equino?.id ?? '',
+            equinoId: resToalete.data.equinoId ?? id,
             tosa: resToalete.data.tosa ?? false,
             banho: resToalete.data.banho ?? false,
             limpezaOuvidos: resToalete.data.limpezaOuvidos ?? false,
@@ -51,35 +58,35 @@ const VeterinariaToaleteForm = () => {
             ripagemCola: resToalete.data.ripagemCola ?? false,
             escovacao: resToalete.data.escovacao ?? false,
             rasqueamento: resToalete.data.rasqueamento ?? false,
+            dataProximoProcedimento: resToalete.data.dataProximoProcedimento ?? '',
             observacao: resToalete.data.observacao || ''
           });
-
-          const equinoId = resToalete.data.equino?.id;
-          if (equinoId) {
-            const resEquino = await axios.get(`/equino/${equinoId}`);
-            setEquino(resEquino.data);
-          }
-
-          return;
-        }
-      } catch {
-        try {
-          const resEquino = await axios.get(`/equino/${id}`);
-          setEquino(resEquino.data);
+        } else {
           setModoEdicao(false);
 
-          setFormData((prev) => ({
-            ...prev,
-            equinoId: id
-          }));
-        } catch (error) {
-          console.error('Erro ao carregar dados:', error);
+          setFormData({
+            id: null,
+            equinoId: id,
+            tosa: false,
+            banho: false,
+            limpezaOuvidos: false,
+            limpezaGenital: false,
+            limpezaCascos: false,
+            ripagemCrina: false,
+            ripagemCola: false,
+            escovacao: false,
+            rasqueamento: false,
+            dataProximoProcedimento: '',
+            observacao: ''
+          });
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
       }
     };
 
     carregarDados();
-  }, [id]);
+  }, [id, toaleteId]);
 
   const handleChange = (e) => {
     const { name, type, checked, value } = e.target;
@@ -92,7 +99,7 @@ const VeterinariaToaleteForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const payload = {
         tosa: formData.tosa,
@@ -104,18 +111,19 @@ const VeterinariaToaleteForm = () => {
         ripagemCola: formData.ripagemCola,
         escovacao: formData.escovacao,
         rasqueamento: formData.rasqueamento,
+        dataProximoProcedimento: formData.dataProximoProcedimento || null,
         observacao: formData.observacao || '',
         equinoId: Number(formData.equinoId)
       };
-  
-      if (modoEdicao) {
+
+      if (modoEdicao && formData.id) {
         await axios.put(`/toalete/${formData.id}`, payload);
       } else {
         await axios.post('/toalete', payload);
       }
-  
+
       setModalAberto(true);
-  
+
       setTimeout(() => {
         setModalAberto(false);
         navigate(modoEdicao ? '/veterinaria-toalete-list' : '/manejo-sanitario-list');
@@ -179,6 +187,20 @@ const VeterinariaToaleteForm = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="dataProximoProcedimento" className="form-label">
+            Data do Próximo Procedimento
+          </label>
+          <input
+            type="date"
+            className="form-control"
+            id="dataProximoProcedimento"
+            name="dataProximoProcedimento"
+            value={formData.dataProximoProcedimento}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="mb-3">

@@ -2,7 +2,7 @@ package br.com.rpmont.gerenciadorequinos.dtos;
 
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public record ToaleteRequest(
 
@@ -19,6 +19,7 @@ public record ToaleteRequest(
         boolean escovacao,
         boolean rasqueamento,
 
+        LocalDate dataProximoProcedimento,
         String observacao
 
 ) {

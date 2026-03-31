@@ -28,27 +28,40 @@ const VeterinariaAtendimentoList = () => {
   const itemsPerPage = 15;
 
   useEffect(() => {
-    axios.get('/equino').then(res => setEquinos(res.data));
+    axios.get('/equino').then(res => setEquinos(res.data || []));
     axios.get('/atendimentos').then(res => {
-      setAtendimentos(res.data);
-      setResultado(res.data);
+      setAtendimentos(res.data || []);
+      setResultado(res.data || []);
     });
     setBotoes(['editar', 'excluir']);
   }, []);
 
+  const obterEquinoAtendimento = (atendimento) => {
+    if (!atendimento) return null;
+  
+    const idEquino = atendimento.equinoId ?? null;
+    if (!idEquino) return null;
+  
+    return equinos.find((eq) => String(eq.id) === String(idEquino)) || null;
+  };
+
   const filtrar = () => {
-    let filtrados = atendimentos;
-
+    let filtrados = [...atendimentos];
+  
     if (filtroNome) {
-      filtrados = filtrados.filter(a => a.idEquino === filtroNome);
+      filtrados = filtrados.filter(
+        (a) => String(a.equinoId) === String(filtroNome)
+      );
     }
+  
     if (filtroInicio) {
-      filtrados = filtrados.filter(a => a.data >= filtroInicio); // ISO YYYY-MM-DD
+      filtrados = filtrados.filter((a) => a.data >= filtroInicio);
     }
+  
     if (filtroFim) {
-      filtrados = filtrados.filter(a => a.data <= filtroFim);
+      filtrados = filtrados.filter((a) => a.data <= filtroFim);
     }
-
+  
     setResultado(filtrados);
     setCurrentPage(1);
   };
@@ -61,37 +74,36 @@ const VeterinariaAtendimentoList = () => {
     setCurrentPage(1);
   };
 
-  // === GERAR PDF (usado pelo botão do cabeçalho) ===
   const exportarPDF = () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     const margem = 40;
 
-    // Cabeçalho
     doc.setFontSize(16);
     doc.text('Relatório de Atendimentos', margem, 30);
     doc.setFontSize(10);
 
     const linhasInfo = [];
     if (filtroNome) {
-      const eq = equinos.find(e => e.id === filtroNome);
-      linhasInfo.push(`Equino: ${eq?.name ?? filtroNome}`);
+      linhasInfo.push(`Filtro: ${filtroNome}`);
     }
     if (filtroInicio) linhasInfo.push(`Início: ${filtroInicio}`);
     if (filtroFim) linhasInfo.push(`Fim: ${filtroFim}`);
     linhasInfo.push(`Total: ${resultado.length}`);
 
     let y = 48;
-    linhasInfo.forEach(t => { doc.text(t, margem, y); y += 16; });
+    linhasInfo.forEach(t => {
+      doc.text(t, margem, y);
+      y += 16;
+    });
 
-    // Tabela
     const head = [['#', 'Nome do Equino', 'Raça', 'Registro', 'Data', 'Consulta']];
     const body = resultado.map((a, i) => {
-      const equino = equinos.find(eq => eq.id === a.idEquino);
+      const equino = obterEquinoAtendimento(a);
       return [
         i + 1,
-        equino?.name || '-',
+        equino?.nome || '-',
         equino?.raca || '-',
-        equino?.numeroRegistro || '-',
+        equino?.registro || '-',
         a.data || '-',
         a.textoConsulta || '-',
       ];
@@ -105,12 +117,12 @@ const VeterinariaAtendimentoList = () => {
       headStyles: { fillColor: [22, 160, 133] },
       margin: { left: margem, right: margem },
       columnStyles: {
-        0: { cellWidth: 40 },   // #
-        1: { cellWidth: 130 },  // Nome
-        2: { cellWidth: 100 },  // Raça
-        3: { cellWidth: 120 },  // Registro
-        4: { cellWidth: 90 },   // Data
-        5: { cellWidth: 'auto' } // Consulta
+        0: { cellWidth: 40 },
+        1: { cellWidth: 130 },
+        2: { cellWidth: 100 },
+        3: { cellWidth: 120 },
+        4: { cellWidth: 90 },
+        5: { cellWidth: 'auto' }
       },
       didDrawPage: (data) => {
         const pages = doc.internal.getNumberOfPages();
@@ -150,7 +162,7 @@ const VeterinariaAtendimentoList = () => {
         setModalExcluirAberto(false);
       })
       .catch(error => {
-        console.error("Erro ao excluir atendimento:", error);
+        console.error('Erro ao excluir atendimento:', error);
       });
   };
 
@@ -190,7 +202,8 @@ const VeterinariaAtendimentoList = () => {
           </thead>
           <tbody>
             {itensPaginados.map((atendimento, idx) => {
-              const equino = equinos.find(eq => eq.id === atendimento.idEquino);
+              const equino = obterEquinoAtendimento(atendimento);
+
               return (
                 <tr key={idx}>
                   <td>{equino?.nome || '-'}</td>
@@ -208,6 +221,7 @@ const VeterinariaAtendimentoList = () => {
                           icone="bi-pencil"
                         />
                       )}
+
                       {botoes.includes('excluir') && (
                         <BotaoAcaoRows
                           tipo='button'
@@ -263,11 +277,16 @@ const VeterinariaAtendimentoList = () => {
         <div className="modalContent text-center">
           <FaExclamationTriangle className="icone-exclamacao text-warning mb-3" size={50} />
           <h4 className="mensagem-azul">
-            Tem certeza que deseja excluir o atendimento de <strong>{equinos.find(eq => eq.id === atendimentoSelecionado?.idEquino)?.name}</strong>?
+            Tem certeza que deseja excluir o atendimento de{' '}
+            <strong>{obterEquinoAtendimento(atendimentoSelecionado)?.nome || '-'}</strong>?
           </h4>
           <div className="d-flex justify-content-center gap-3 mt-4">
-            <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>Cancelar</button>
-            <button className="btn btn-danger" onClick={excluirAtendimentoSelecionado}>Excluir</button>
+            <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>
+              Cancelar
+            </button>
+            <button className="btn btn-danger" onClick={excluirAtendimentoSelecionado}>
+              Excluir
+            </button>
           </div>
         </div>
       </Modal>

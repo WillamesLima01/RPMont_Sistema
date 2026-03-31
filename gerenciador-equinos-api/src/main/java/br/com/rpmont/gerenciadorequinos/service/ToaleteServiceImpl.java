@@ -41,6 +41,7 @@ public class ToaleteServiceImpl implements ToaleteService{
         toalete.setEscovacao(toaleteRequest.escovacao());
         toalete.setRasqueamento(toaleteRequest.rasqueamento());
         toalete.setObservacao(toaleteRequest.observacao());
+        toalete.setDataProximoProcedimento(toaleteRequest.dataProximoProcedimento());
 
         Toalete toaleteSalvar = toaleteRepository.save(toalete);
 
@@ -104,6 +105,7 @@ public class ToaleteServiceImpl implements ToaleteService{
         toaleteExistente.setEscovacao(toaleteRequest.escovacao());
         toaleteExistente.setRasqueamento(toaleteRequest.rasqueamento());
         toaleteExistente.setObservacao(toaleteRequest.observacao());
+        toaleteExistente.setDataProximoProcedimento(toaleteRequest.dataProximoProcedimento());
 
         Toalete toaleteAtualizado = toaleteRepository.save(toaleteExistente);
 
@@ -136,6 +138,7 @@ public class ToaleteServiceImpl implements ToaleteService{
                 toalete.getRasqueamento(),
                 toalete.getObservacao(),
                 toalete.getDataCadastro(),
+                toalete.getDataProximoProcedimento(),
                 toalete.getDataAtualizacao()
         );
     }
