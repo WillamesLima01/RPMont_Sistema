@@ -189,7 +189,7 @@
       "pelagem": "Castanho",
       "registro": "PMPB202249484748",
       "dataNascimento": "2002-02-12",
-      "situacao": "APTO",
+      "situacao": "APTO_COM_RESTRICAO",
       "altura": 1.61,
       "peso": 490,
       "sexo": "Macho",
@@ -423,8 +423,28 @@
       "textoConsulta": "foi realizado vermefugação",
       "enfermidade": "Verme",
       "data": "2025-10-20"
+    },
+    {
+      "id": "345f",
+      "equinoId": "fc22",
+      "textoConsulta": "foi aplicado remédio na pasterior direita",
+      "enfermidade": "Frieira",
+      "data": "2026-04-01"
+    },
+    {
+      "id": "95d1",
+      "equinoId": "fc22",
+      "textoConsulta": "Foi realizado curativo no corte dorsal",
+      "enfermidade": "Corte",
+      "data": "2026-04-01"
+    },
+    {
+      "id": "22d4",
+      "equinoId": "fc22",
+      "textoConsulta": "foi ministrado pomado no local afetado",
+      "enfermidade": "Coceira",
+      "data": "2026-04-01"
     }
-    
   ],
   "escala": [
     {
@@ -725,6 +745,21 @@
       "rasqueamento": false,
       "dataProximoProcedimento": "2026-04-30",
       "observacao": "teste create",
+      "equinoId": null
+    },
+    {
+      "id": "8ae3",
+      "tosa": false,
+      "banho": false,
+      "limpezaOuvidos": false,
+      "limpezaGenital": false,
+      "limpezaCascos": false,
+      "ripagemCrina": false,
+      "ripagemCola": true,
+      "escovacao": true,
+      "rasqueamento": true,
+      "dataProximoProcedimento": "2026-05-01",
+      "observacao": "",
       "equinoId": null
     }
   ],
@@ -1557,6 +1592,38 @@
       "idEquino": "2",
       "nomeEquino": "Habati",
       "atendimentoId": "c175"
+    },
+    {
+      "id": "a0c6",
+      "medicamentoId": "5748",
+      "medicamentoNome": "Soro fisiológico",
+      "fabricante": "WPL",
+      "tipoSaida": "ATENDIMENTO",
+      "quantidadeInformada": 1000,
+      "unidadeInformada": "ML",
+      "quantidadeBase": 1000,
+      "unidadeBase": "ML",
+      "dataSaida": "2026-04-01",
+      "observacao": "Uso em atendimento do equino Goulever",
+      "equinoId": "fc22",
+      "nomeEquino": "Goulever",
+      "atendimentoId": "95d1"
+    },
+    {
+      "id": "7350",
+      "medicamentoId": "f0d2",
+      "medicamentoNome": "flunixin",
+      "fabricante": "alexandre",
+      "tipoSaida": "ATENDIMENTO",
+      "quantidadeInformada": 9.99,
+      "unidadeInformada": "ML",
+      "quantidadeBase": 9.99,
+      "unidadeBase": "ML",
+      "dataSaida": "2026-04-01",
+      "observacao": "Uso em atendimento do equino Goulever",
+      "equinoId": "fc22",
+      "nomeEquino": "Goulever",
+      "atendimentoId": "22d4"
     }
   ],
   "medicacoesAtendimento": [
@@ -1679,6 +1746,42 @@
       "unidade": "MG",
       "observacao": "",
       "data": "2026-03-31"
+    },
+    {
+      "id": "2ed7",
+      "atendimentoId": "345f",
+      "idEquino": "fc22",
+      "origem": "EXTERNO",
+      "medicamentoId": null,
+      "nomeMedicamento": "flucuzal",
+      "doseAplicada": 20,
+      "unidade": "MG",
+      "observacao": "Medicamento particular do veterinário alexandre",
+      "data": "2026-04-01"
+    },
+    {
+      "id": "1833",
+      "atendimentoId": "95d1",
+      "equinoId": "fc22",
+      "origem": "ESTOQUE",
+      "medicamentoId": "5748",
+      "nomeMedicamento": "Soro fisiológico",
+      "doseAplicada": 1000,
+      "unidade": "ML",
+      "observacao": "",
+      "data": "2026-04-01"
+    },
+    {
+      "id": "b3b7",
+      "atendimentoId": "22d4",
+      "equinoId": "fc22",
+      "origem": "ESTOQUE",
+      "medicamentoId": "f0d2",
+      "nomeMedicamento": "flunixin",
+      "doseAplicada": 9.99,
+      "unidade": "ML",
+      "observacao": "",
+      "data": "2026-04-01"
     }
   ]
 }

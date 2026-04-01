@@ -51,7 +51,7 @@ const VeterinariaAtendimento = () => {
   const [consulta, setConsulta] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [idEquino, setIdEquino] = useState(null);
+  const [equinoId, setEquinoId] = useState(null);
 
   const [carregando, setCarregando] = useState(true);
   const [erroTela, setErroTela] = useState('');
@@ -96,13 +96,14 @@ const VeterinariaAtendimento = () => {
 
           setConsulta(atendimentoAtual.textoConsulta || '');
           setEnfTexto(atendimentoAtual.enfermidade || '');
-          setIdEquino(atendimentoAtual.idEquino);
+          setEquinoId(atendimentoAtual.equinoId);
           setModoEdicao(true);
 
-          equinoIdEncontrado = atendimentoAtual.idEquino;
+          equinoIdEncontrado = atendimentoAtual.equinoId;
         } catch {
           setModoEdicao(false);
-          setIdEquino(id);
+          setEquinoId(id);
+          equinoIdEncontrado = id;
         }
 
         const [
@@ -192,27 +193,27 @@ const VeterinariaAtendimento = () => {
         const equinoIdStr = String(equinoIdEncontrado);
 
         const atendimentosDoEquino = atendimentos
-          .filter((a) => String(a.idEquino) === equinoIdStr)
+          .filter((a) => String(a.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         const vacinacoesDoEquino = vacinacoes
-          .filter((item) => String(item.idEquino) === equinoIdStr)
+          .filter((item) => String(item.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         const vermifugacoesDoEquino = vermifugacoes
-          .filter((item) => String(item.idEquino) === equinoIdStr)
+          .filter((item) => String(item.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         const toaletesDoEquino = toaletes
-          .filter((item) => String(item.idEquino) === equinoIdStr)
+          .filter((item) => String(item.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         const ferrageamentosDoEquino = ferrageamentos
-          .filter((item) => String(item.idEquino) === equinoIdStr)
+          .filter((item) => String(item.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         const medicacoesDoEquino = medicacoesData
-          .filter((item) => String(item.idEquino) === equinoIdStr)
+          .filter((item) => String(item.equinoId) === equinoIdStr)
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
 
         setHistorico({
@@ -349,7 +350,7 @@ const VeterinariaAtendimento = () => {
   const validarFormulario = () => {
     const erros = [];
 
-    if (!idEquino) erros.push('Equino não identificado.');
+    if (!equinoId) erros.push('Equino não identificado.');
     if (!enfTexto.trim()) erros.push('A enfermidade é obrigatória.');
     if (!consulta.trim()) erros.push('O texto do atendimento é obrigatório.');
 
@@ -393,17 +394,17 @@ const VeterinariaAtendimento = () => {
       if (item.origem === 'EXTERNO') {
         const nomeExterno = String(item.nomeMedicamentoExterno || '').trim();
         const unidadeInformada = String(item.unidade || '').trim();
-      
+
         if (!nomeExterno) {
           erros.push(`Informe o nome do medicamento externo na linha ${linha}.`);
           return;
         }
-      
+
         if (Number.isNaN(dose) || dose <= 0) {
           erros.push(`Informe uma dose válida na linha ${linha}.`);
           return;
         }
-      
+
         if (!unidadeInformada) {
           erros.push(`Informe a unidade do medicamento externo na linha ${linha}.`);
         }
@@ -424,7 +425,7 @@ const VeterinariaAtendimento = () => {
     }
 
     const payloadAtendimento = {
-      idEquino,
+      equinoId: String(equinoId),
       textoConsulta: consulta,
       enfermidade: enfTexto.trim(),
       data: new Date().toISOString().split('T')[0]
@@ -479,7 +480,7 @@ const VeterinariaAtendimento = () => {
 
               const payloadMedicacao = {
                 atendimentoId: atendimentoSalvo.id,
-                idEquino,
+                equinoId: String(equinoId),
                 origem: 'ESTOQUE',
                 medicamentoId: med?.id || null,
                 nomeMedicamento: med?.nome || '',
@@ -500,7 +501,7 @@ const VeterinariaAtendimento = () => {
                 unidadeBase: med?.unidadeBase || item.unidade || '',
                 dataSaida: new Date().toISOString().split('T')[0],
                 observacao: item.observacao?.trim() || `Uso em atendimento do equino ${equino?.nome || ''}`,
-                idEquino,
+                equinoId: String(equinoId),
                 nomeEquino: equino?.nome || '',
                 atendimentoId: atendimentoSalvo.id
               };
@@ -512,7 +513,7 @@ const VeterinariaAtendimento = () => {
             if (item.origem === 'EXTERNO') {
               const payloadMedicacaoExterna = {
                 atendimentoId: atendimentoSalvo.id,
-                idEquino,
+                equinoId: String(equinoId),
                 origem: 'EXTERNO',
                 medicamentoId: null,
                 nomeMedicamento: String(item.nomeMedicamentoExterno || '').trim(),
@@ -521,7 +522,7 @@ const VeterinariaAtendimento = () => {
                 observacao: item.observacao?.trim() || 'Medicamento externo ao estoque',
                 data: new Date().toISOString().split('T')[0]
               };
-            
+
               await axios.post('/medicacoesAtendimento', payloadMedicacaoExterna);
             }
           })
@@ -531,7 +532,12 @@ const VeterinariaAtendimento = () => {
       setModalAberto(true);
       setTimeout(() => {
         setModalAberto(false);
-        navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-Equinos-Baixados');
+        navigate('/atendimento-List', {
+          state: {
+            irParaUltimaPagina: true,
+            atendimentoSalvoId: atendimentoSalvo.id
+          }
+        });
       }, 2000);
     } catch (err) {
       console.error('Erro ao salvar atendimento:', err);
@@ -539,8 +545,7 @@ const VeterinariaAtendimento = () => {
     }
   };
 
-  const cancelar = () =>
-    navigate(modoEdicao ? '/atendimento-List' : '/veterinaria-Equinos-Baixados');
+  const cancelar = () => navigate('/atendimento-List');
 
   if (carregando) {
     return (
@@ -574,7 +579,6 @@ const VeterinariaAtendimento = () => {
         <div className="row justify-content-center">
           <div className="col-12 mt-5">
             <div className="row g-4 align-items-start">
-
               <div className="col-lg-8">
                 <div className="card shadow-sm border-0 rounded-4 mb-4">
                   <div className="card-body">
@@ -1011,7 +1015,6 @@ const VeterinariaAtendimento = () => {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>

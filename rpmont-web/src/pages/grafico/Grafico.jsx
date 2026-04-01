@@ -93,7 +93,7 @@ const Grafico = () => {
         const idsBaixadosAtivos = new Set(
           equino_baixado
             .filter((b) => !b.data_retorno || String(b.data_retorno).trim() === '')
-            .map((b) => b.equino_id ?? b.equino_id ?? b.equino_id ?? null)
+            .map((b) => b.equino_id ?? b.equinoId ?? b.idEquino ?? null)
             .filter((id) => id !== null && id !== undefined && id !== '')
             .map((id) => String(id))
         );

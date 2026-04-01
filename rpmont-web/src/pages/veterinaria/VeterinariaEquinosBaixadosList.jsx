@@ -10,7 +10,7 @@ import autoTable from 'jspdf-autotable';
 
 Modal.setAppElement('#root');
 
-const SITUACOES = {
+const SITUACAO = {
   APTO: 'APTO',
   APTO_COM_RESTRICAO: 'APTO_COM_RESTRICAO',
   BAIXADO: 'BAIXADO',
@@ -18,11 +18,11 @@ const SITUACOES = {
 
 const formatarSituacao = (situacao) => {
   switch (situacao) {
-    case SITUACOES.APTO:
+    case SITUACAO.APTO:
       return 'Apto';
-    case SITUACOES.APTO_COM_RESTRICAO:
+    case SITUACAO.APTO_COM_RESTRICAO:
       return 'Apto com restrição';
-    case SITUACOES.BAIXADO:
+    case SITUACAO.BAIXADO:
       return 'Baixado';
     default:
       return situacao || '';
@@ -51,30 +51,40 @@ const VeterinariaEquinosBaixadosList = () => {
         axios.get('/equino'),
         axios.get('/equino_baixado'),
       ]);
-
+  
       const todosEquinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];
       const todosBaixados = Array.isArray(resBaixados.data) ? resBaixados.data : [];
-
+  
       const baixadosAtivos = todosEquinos.filter(
-        (eq) => eq.situacao === SITUACOES.BAIXADO
+        (eq) => String(eq.situacao || '').toUpperCase() === 'BAIXADO'
       );
-
+  
       setEquinos(baixadosAtivos);
       setEquinosBaixados(todosBaixados);
-
+  
       const mapaBaixaAtiva = new Map(
         todosBaixados
-          .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
-          .map((b) => [String(b.equino_id), b.data_baixa])
+          .filter((b) => {
+            const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+            const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+            const dataRetorno = b?.data_retorno ?? b?.dataRetorno;
+  
+            return equinoId && dataBaixa && !dataRetorno;
+          })
+          .map((b) => {
+            const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+            const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+            return [String(equinoId), dataBaixa];
+          })
       );
-
+  
       const resultadoInicial = baixadosAtivos
         .filter((eq) => mapaBaixaAtiva.has(String(eq.id)))
         .map((eq) => ({
           ...eq,
           data_baixa: mapaBaixaAtiva.get(String(eq.id)),
         }));
-
+  
       setResultado(resultadoInicial);
     } catch (error) {
       console.error('Erro ao carregar equinos:', error);
@@ -84,21 +94,31 @@ const VeterinariaEquinosBaixadosList = () => {
   const filtrar = () => {
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
-        .map((b) => [String(b.equino_id), b.data_baixa])
+        .filter((b) => {
+          const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+          const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+          const dataRetorno = b?.data_retorno ?? b?.dataRetorno;
+  
+          return equinoId && dataBaixa && !dataRetorno;
+        })
+        .map((b) => {
+          const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+          const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+          return [String(equinoId), dataBaixa];
+        })
     );
-
+  
     let lista = (equinos || [])
       .filter(
         (eq) =>
-          eq.situacao === SITUACOES.BAIXADO &&
+          String(eq.situacao || '').toUpperCase() === 'BAIXADO' &&
           baixasAtivasMap.has(String(eq.id))
       )
       .map((eq) => ({
         ...eq,
         data_baixa: baixasAtivasMap.get(String(eq.id)),
       }));
-
+  
     if (filtroNome) {
       const termo = filtroNome.toLowerCase().trim();
       lista = lista.filter(
@@ -108,15 +128,15 @@ const VeterinariaEquinosBaixadosList = () => {
           (eq.registro || '').toLowerCase().includes(termo)
       );
     }
-
+  
     if (filtroInicio) {
       lista = lista.filter((eq) => eq.data_baixa >= filtroInicio);
     }
-
+  
     if (filtroFim) {
       lista = lista.filter((eq) => eq.data_baixa <= filtroFim);
     }
-
+  
     setResultado(lista);
   };
 
@@ -124,24 +144,34 @@ const VeterinariaEquinosBaixadosList = () => {
     setFiltroNome('');
     setFiltroInicio('');
     setFiltroFim('');
-
+  
     const baixasAtivasMap = new Map(
       (equinosBaixados || [])
-        .filter((b) => b && b.equino_id && !b.data_retorno && b.data_baixa)
-        .map((b) => [String(b.equino_id), b.data_baixa])
+        .filter((b) => {
+          const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+          const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+          const dataRetorno = b?.data_retorno ?? b?.dataRetorno;
+  
+          return equinoId && dataBaixa && !dataRetorno;
+        })
+        .map((b) => {
+          const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+          const dataBaixa = b?.data_baixa ?? b?.dataBaixa;
+          return [String(equinoId), dataBaixa];
+        })
     );
-
+  
     const inicial = (equinos || [])
       .filter(
         (eq) =>
-          eq.situacao === SITUACOES.BAIXADO &&
+          String(eq.situacao || '').toUpperCase() === 'BAIXADO' &&
           baixasAtivasMap.has(String(eq.id))
       )
       .map((eq) => ({
         ...eq,
         data_baixa: baixasAtivasMap.get(String(eq.id)),
       }));
-
+  
     setResultado(inicial);
   };
 
@@ -239,9 +269,11 @@ const VeterinariaEquinosBaixadosList = () => {
   const handleRetorno = async (equino) => {
     if (retornandoId) return;
 
-    const registroBaixa = equinosBaixados.find(
-      (b) => String(b.equino_id) === String(equino.id) && !b.data_retorno
-    );
+    const registroBaixa = equinosBaixados.find((b) => {
+      const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
+      const dataRetorno = b?.data_retorno ?? b?.dataRetorno;
+      return String(equinoId) === String(equino.id) && !dataRetorno;
+    });
 
     if (!registroBaixa) {
       alert('Registro de baixa não encontrado.');
@@ -252,7 +284,7 @@ const VeterinariaEquinosBaixadosList = () => {
       setRetornandoId(equino.id);
 
       await axios.patch(`/equino/${equino.id}`, {
-        situacao: SITUACOES.APTO,
+        situacao: SITUACAO.APTO,
       });
 
       await axios.patch(`/equinosBaixados/${registroBaixa.id}`, {
