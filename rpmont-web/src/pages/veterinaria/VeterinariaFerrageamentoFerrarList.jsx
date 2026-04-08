@@ -63,7 +63,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
       try {
         const [eqRes, ferrarRes] = await Promise.all([
           axios.get('/equino'),
-          axios.get('/ferrageamentoEquino'),
+          axios.get('/ferrageamento_equino'),
         ]);
 
         setEquinos(eqRes.data || []);
@@ -175,7 +175,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
   const excluirItemSelecionado = () => {
     if (!itemSelecionado) return;
 
-    axios.delete(`/ferrageamentoEquino/${itemSelecionado.id}`)
+    axios.delete(`/ferrageamento_equino/${itemSelecionado.id}`)
       .then(() => {
         const atualizados = ferrageamentos.filter(f => f.id !== itemSelecionado.id);
         setFerrageamentos(atualizados);

@@ -23,7 +23,7 @@ const INTERVALOS = {
   ferrageamentoDias: 45,
 };
 
-const SITUACOES = {
+const SITUACAO = {
   APTO: 'APTO',
   APTO_COM_RESTRICAO: 'APTO_COM_RESTRICAO',
   BAIXADO: 'BAIXADO',
@@ -39,11 +39,11 @@ const norm = (s) =>
 
 const formatarSituacao = (situacao) => {
   switch (situacao) {
-    case SITUACOES.APTO:
+    case SITUACAO.APTO:
       return 'Apto';
-    case SITUACOES.APTO_COM_RESTRICAO:
+    case SITUACAO.APTO_COM_RESTRICAO:
       return 'Apto com restrição';
-    case SITUACOES.BAIXADO:
+    case SITUACAO.BAIXADO:
       return 'Baixado';
     default:
       return situacao || '';
@@ -224,12 +224,12 @@ const VeterinariaEquinoList = () => {
             );
 
         if (filtroFinal === 'BAIXADO') {
-          listaEquinos = listaEquinos.filter((e) => e.situacao === SITUACOES.BAIXADO);
+          listaEquinos = listaEquinos.filter((e) => e.situacao === SITUACAO.BAIXADO);
         } else if (filtroFinal === 'APTO') {
           listaEquinos = listaEquinos.filter(
             (e) =>
-              e.situacao === SITUACOES.APTO ||
-              e.situacao === SITUACOES.APTO_COM_RESTRICAO
+              e.situacao === SITUACAO.APTO ||
+              e.situacao === SITUACAO.APTO_COM_RESTRICAO
           );
         }
 
@@ -493,7 +493,7 @@ const VeterinariaEquinoList = () => {
   };
 
   const confirmarBaixaEquino = (equino) => {
-    if (equino.situacao === SITUACOES.BAIXADO) {
+    if (equino.situacao === SITUACAO.BAIXADO) {
       setMensagemAviso(`Atenção! O equino "${equino.nome}" já está com situação Baixado.`);
       setModalAvisoAberto(true);
       return;
@@ -516,9 +516,9 @@ const VeterinariaEquinoList = () => {
     try {
       const dataAlteracao = await buscarDataInternet();
 
-      if (situacaoEscolhida === SITUACOES.BAIXADO) {
+      if (situacaoEscolhida === SITUACAO.BAIXADO) {
         await axios.patch(`/equino/${equinoSelecionado.id}`, {
-          situacao: SITUACOES.BAIXADO,
+          situacao: SITUACAO.BAIXADO,
         });
 
         const novoRegistro = {
@@ -529,9 +529,9 @@ const VeterinariaEquinoList = () => {
         };
 
         await axios.post('/equinosBaixados', novoRegistro);
-      } else if (situacaoEscolhida === SITUACOES.APTO_COM_RESTRICAO) {
+      } else if (situacaoEscolhida === SITUACAO.APTO_COM_RESTRICAO) {
         await axios.patch(`/equino/${equinoSelecionado.id}`, {
-          situacao: SITUACOES.APTO_COM_RESTRICAO,
+          situacao: SITUACAO.APTO_COM_RESTRICAO,
         });
       }
 
@@ -814,8 +814,8 @@ const VeterinariaEquinoList = () => {
               onChange={(e) => setSituacaoEscolhida(e.target.value)}
             >
               <option value="">Selecione</option>
-              <option value={SITUACOES.BAIXADO}>Baixado</option>
-              <option value={SITUACOES.APTO_COM_RESTRICAO}>Apto com restrição</option>
+              <option value={SITUACAO.BAIXADO}>Baixado</option>
+              <option value={SITUACAO.APTO_COM_RESTRICAO}>Apto com restrição</option>
             </select>
           </div>
 

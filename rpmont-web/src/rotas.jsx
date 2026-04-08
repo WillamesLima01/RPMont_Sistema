@@ -73,8 +73,7 @@ const rotas = () => {
         <Route path="/medicamentoEditarEntradaForm/:entradaId" element={<VeterinariaEntradaMedicamentoForm />} />
         <Route path="/medicamentoList" element={<VeterinariaMedicamentoList />} />
         <Route path="/entradaMedicamentoList" element={<VeterinariaEntradaMedicamentoList />} />
-        <Route path="/saidaMedicamentoList" element={<VeterinariaSaidaMedicamentoList />} />
-        
+        <Route path="/saidaMedicamentoList" element={<VeterinariaSaidaMedicamentoList />} />        
         <Route path="/medicamento-relatorio" element={<VeterinariaRelatorioMedicamento />} />
         <Route path="/inicio" element={<Grafico />} />
       </Routes>

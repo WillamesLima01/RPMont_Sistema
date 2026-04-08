@@ -17,7 +17,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
   const [equino, setEquino] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [idFerrageamento, setIdFerrageamento] = useState(null);
+  const [ferrageamentoId, setFerrageamentoId] = useState(null);
 
   function dateOnlyToISO(dateOnlyStr) {
     if (!dateOnlyStr) return null;
@@ -72,15 +72,15 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
         switch (tipo) {
           case 'ferrar':
-            endpoint = `/ferrageamentoEquino/${id}`;
+            endpoint = `/ferrageamento_equino/${id}`;
             procedimento = 'Ferrar';
             break;
           case 'reprego':
-            endpoint = `/ferrageamentoRepregoEquino/${id}`;
+            endpoint = `/ferrageamento_reprego_equino/${id}`;
             procedimento = 'Reprego';
             break;
           case 'curativo':
-            endpoint = `/ferrageamentoCurativoEquino/${id}`;
+            endpoint = `/ferrageamento_curativo_equino/${id}`;
             procedimento = 'Curativo';
             break;
           default:
@@ -92,7 +92,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
         dados = res.data;
 
         setModoEdicao(true);
-        setIdFerrageamento(dados.id);
+        setFerrageamentoId(dados.id);
 
         setFormData(prev => {
           const base = {
@@ -181,16 +181,16 @@ const VeterinariaFerrageamentoEquinoForm = () => {
         };
       
         if (modoEdicao) {
-          await axios.put(`/ferrageamentoEquino/${idFerrageamento}`, dados);
+          await axios.put(`/ferrageamento_equino/${ferrageamentoId}`, dados);
         } else {
-          await axios.post('/ferrageamentoEquino', dados);
+          await axios.post('/ferrageamento_equino', dados);
         }
       }      
 
       if (formData.procedimento === 'Reprego') {
         // Reprego não usa dataProximoProcedimento — mantém seu fluxo com "data"
         const dataAtual = new Date().toISOString();
-        await axios.post('/ferrageamentoRepregoEquino', {
+        await axios.post('/ferrageamento_reprego_equino', {
           equinoId: id,
           patas: formData.patas,
           ferroNovo: formData.ferroNovo,
@@ -203,7 +203,7 @@ const VeterinariaFerrageamentoEquinoForm = () => {
       if (formData.procedimento === 'Curativo') {
         // Curativo sem dataProximoProcedimento — mantém "data"
         const dataAtual = new Date().toISOString();
-        await axios.post('/ferrageamentoCurativoEquino', {
+        await axios.post('/ferrageamento_curativo_equino', {
           equinoId: id,
           tipoCurativo: formData.tipoCurativo,
           observacoes: formData.observacoes,
