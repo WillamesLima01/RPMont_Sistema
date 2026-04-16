@@ -16,7 +16,7 @@ dayjs.extend(isSameOrBefore);
 
 const VeterinariaVermifugacaoList = () => {
   const [equinos, setEquinos] = useState([]);
-  const [vermifugacoes, setVermifugacoes] = useState([]);
+  const [vermifugacao, setVermifugacao] = useState([]);
   const [resultado, setResultado] = useState([]);
   const [filtroNome, setFiltroNome] = useState('');
   const [filtroInicio, setFiltroInicio] = useState('');
@@ -49,10 +49,10 @@ const VeterinariaVermifugacaoList = () => {
     const carregarDados = async () => {
       const [eqRes, vermRes] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/vermifugacoes')
+        axios.get('/vermifugacao')
       ]);
       setEquinos(eqRes.data);
-      setVermifugacoes(vermRes.dataProximoProcedimento);
+      setVermifugacao(vermRes.dataProximoProcedimento);
       setResultado(vermRes.data);
       setBotoes(['editar', 'excluir']);
     };
@@ -67,7 +67,7 @@ const VeterinariaVermifugacaoList = () => {
     new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
   const filtrar = () => {
-    let filtrados = vermifugacoes;
+    let filtrados = vermifugacao;
     if (filtroNome) filtrados = filtrados.filter(t => t.equinoId === filtroNome);
     if (filtroInicio) filtrados = filtrados.filter(t => new Date(t.dataProximoProcedimento) >= new Date(filtroInicio + 'T00:00:00'));
     if (filtroFim) filtrados = filtrados.filter(t => new Date(t.dataProximoProcedimento) <= new Date(filtroFim + 'T23:59:59'));
@@ -79,7 +79,7 @@ const VeterinariaVermifugacaoList = () => {
     setFiltroNome('');
     setFiltroInicio('');
     setFiltroFim('');
-    setResultado(vermifugacoes);
+    setResultado(vermifugacao);
     setCurrentPage(1);
   };
 
@@ -123,10 +123,10 @@ const VeterinariaVermifugacaoList = () => {
   const excluirItemSelecionado = () => {
     if (!itemSelecionado) return;
 
-    axios.delete(`/vermifugacoes/${itemSelecionado.id}`)
+    axios.delete(`/vermifugacao/${itemSelecionado.id}`)
       .then(() => {
-        const atualizados = vermifugacoes.filter(a => a.id !== itemSelecionado.id);
-        setVermifugacoes(atualizados);
+        const atualizados = vermifugacao.filter(a => a.id !== itemSelecionado.id);
+        setVermifugacao(atualizados);
         setResultado(atualizados);
         setModalExcluirAberto(false);
       })

@@ -26,7 +26,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
     const carregarDados = async () => {
       const [eqRes, repRes] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/ferrageamentoRepregoEquino')
+        axios.get('/ferrageamento_reprego_equino')
       ]);
       setEquinos(eqRes.data);
       setRepregos(repRes.data);
@@ -80,7 +80,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
     autoTable(doc, {
       startY: 25,
       head: [[
-        '#', 'Nome', 'Data', 'Patas', 'Ferro Novo?', 'Cravos Usados', 'Obs.'
+        '#', 'Nome', 'Data', 'Patas', 'Ferro Novo', 'Cravos Usados', 'Obs.'
       ]],
       body: dadosTabela,
       styles: { fontSize: 8 },
@@ -103,7 +103,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
   const excluirItemSelecionado = () => {
     if (!itemSelecionado) return;
 
-    axios.delete(`/ferrageamentoRepregoEquino/${itemSelecionado.id}`)
+    axios.delete(`/ferrageamento_reprego_equino/${itemSelecionado.id}`)
       .then(() => {
         const atualizados = repregos.filter(f => f.id !== itemSelecionado.id);
         setRepregos(atualizados);
@@ -208,7 +208,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o reprego do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.name}"?`}
+        subtitulo={`Deseja realmente excluir o reprego do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.nome}"?`}
       >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>

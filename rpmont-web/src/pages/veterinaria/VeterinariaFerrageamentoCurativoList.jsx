@@ -26,7 +26,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
     const carregarDados = async () => {
       const [eqRes, curRes] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/ferrageamentoCurativoEquino')
+        axios.get('/ferrageamento_curativo_equino')
       ]);
       setEquinos(eqRes.data);
       setCurativos(curRes.data);
@@ -98,7 +98,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
 
   const excluirItemSelecionado = () => {
     if (!itemSelecionado) return;
-    axios.delete(`/ferrageamentoCurativoEquino/${itemSelecionado.id}`)
+    axios.delete(`/ferrageamento_curativo_equino/${itemSelecionado.id}`)
       .then(() => {
         const atualizados = curativos.filter(c => c.id !== itemSelecionado.id);
         setCurativos(atualizados);
@@ -200,7 +200,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o curativo do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.name}"?`}
+        subtitulo={`Deseja realmente excluir o curativo do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.nome}"?`}
       >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>

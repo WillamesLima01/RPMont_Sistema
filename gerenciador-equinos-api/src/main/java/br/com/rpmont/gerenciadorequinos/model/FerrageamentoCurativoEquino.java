@@ -35,4 +35,8 @@ public class FerrageamentoCurativoEquino implements Serializable {
     @UpdateTimestamp
     private LocalDateTime atualizadoEm;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "equino_id", nullable = false)
+    private Equino equino;
+
 }

@@ -204,9 +204,9 @@ const VeterinariaEquinoList = () => {
       try {
         const [eq, vac, ver, toa, fer] = await Promise.allSettled([
           axios.get('/equino'),
-          axios.get('/vacinacoes'),
-          axios.get('/vermifugacoes'),
-          axios.get('/toaletes'),
+          axios.get('/vacinacao'),
+          axios.get('/vermifugacao'),
+          axios.get('/toalete'),
           axios.get('/ferrageamentoEquino'),
         ]);
 
@@ -233,25 +233,25 @@ const VeterinariaEquinoList = () => {
           );
         }
 
-        const vacinacoes = (vac.status === 'fulfilled' ? vac.value.data : []) || [];
-        const vermifugacoes = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
-        const toaletes = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
+        const vacinacao = (vac.status === 'fulfilled' ? vac.value.data : []) || [];
+        const vermifugacao = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
+        const toalete = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
 
         const proxVac = proximaPorEquino(
-          vacinacoes,
+          vacinacao,
           (v) => v.id_Eq ?? v.equinoId ?? v.idEquino,
           INTERVALOS.vacinacaoDias
         );
 
         const proxVer = proximaPorEquino(
-          vermifugacoes,
+          vermifugacao,
           (v) => v.equinoId ?? v.idEquino ?? v.id_Eq,
           INTERVALOS.vermifugacaoDias
         );
 
         const proxToa = proximaPorEquino(
-          toaletes,
+          toalete,
           (t) => t.equinoId ?? t.idEquino ?? t.id_Eq,
           INTERVALOS.toaleteDias
         );

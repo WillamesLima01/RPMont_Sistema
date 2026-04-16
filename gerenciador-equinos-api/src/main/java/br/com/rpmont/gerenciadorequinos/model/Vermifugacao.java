@@ -8,35 +8,28 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "ferrageamento_reprego_equino")
+@Table(name = "vermifugacao")
 @Data
 @Entity
-public class FerrageamentoRepregoEquino implements Serializable {
+public class Vermifugacao implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ElementCollection
-    @CollectionTable(name = "ferrageamento_reprego_equino_patas",
-                        joinColumns = @JoinColumn(name = "ferrageamento_reprego_id")
-    )
-    @Column(name = "pata", nullable = false)
-    private List<String> patas;
+    @Column(name = "vermifugo", nullable = false, length = 150)
+    private String vermifugo;
 
-    @Column(name = "ferro_novo", nullable = false, length = 20)
-    private String ferroNovo;
+    @Column(name = "observacao", columnDefinition = "TEXT")
+    private String observacao;
 
-    @Column(name = "cravos_usados", nullable = false)
-    private Integer cravosUsados;
-
-    @Column(name = "observacoes", columnDefinition = "TEXT")
-    private String observacoes;
+    @Column(name = "data_proximo_procedimento")
+    private LocalDate dataProximoProcedimento;
 
     @Column(name = "data_cadastro", nullable = false, updatable = false)
     @CreationTimestamp

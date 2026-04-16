@@ -160,11 +160,11 @@ const VeterinariaFerrageamentoEquinoForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       if (formData.procedimento === 'Ferrar') {
         const proxISO = dateOnlyToISO(formData.dataProximoProcedimento);
-      
+  
         const dados = {
           equinoId: formData.equinoId,
           tipoFerradura: formData.tipoFerradura,
@@ -174,43 +174,46 @@ const VeterinariaFerrageamentoEquinoForm = () => {
           ferros: Number(formData.ferros),
           cravos: Number(formData.cravos),
           observacoes: formData.observacoes,
-          // grava ISO completo se houver; se não houver, deixa undefined para não criar campo vazio
           dataProximoProcedimento: proxISO || undefined,
-          // (opcional, mas recomendado para consistência com Reprego/Curativo)
-          data: new Date().toISOString(),
         };
-      
+  
         if (modoEdicao) {
           await axios.put(`/ferrageamento_equino/${ferrageamentoId}`, dados);
         } else {
           await axios.post('/ferrageamento_equino', dados);
         }
-      }      
-
+      }
+  
       if (formData.procedimento === 'Reprego') {
-        // Reprego não usa dataProximoProcedimento — mantém seu fluxo com "data"
-        const dataAtual = new Date().toISOString();
-        await axios.post('/ferrageamento_reprego_equino', {
-          equinoId: id,
+        const dados = {
+          equinoId: formData.equinoId,
           patas: formData.patas,
           ferroNovo: formData.ferroNovo,
           cravosUsados: Number(formData.cravosUsados),
           observacoes: formData.observacoes,
-          data: dataAtual,
-        });
+        };
+  
+        if (modoEdicao) {
+          await axios.put(`/ferrageamento_reprego_equino/${ferrageamentoId}`, dados);
+        } else {
+          await axios.post('/ferrageamento_reprego_equino', dados);
+        }
       }
-
+  
       if (formData.procedimento === 'Curativo') {
-        // Curativo sem dataProximoProcedimento — mantém "data"
-        const dataAtual = new Date().toISOString();
-        await axios.post('/ferrageamento_curativo_equino', {
-          equinoId: id,
+        const dados = {
+          equinoId: formData.equinoId,
           tipoCurativo: formData.tipoCurativo,
           observacoes: formData.observacoes,
-          data: dataAtual,
-        });
+        };
+  
+        if (modoEdicao) {
+          await axios.put(`/ferrageamento_curativo_equino/${ferrageamentoId}`, dados);
+        } else {
+          await axios.post('/ferrageamento_curativo_equino', dados);
+        }
       }
-
+  
       setModalAberto(true);
       setTimeout(() => {
         setModalAberto(false);

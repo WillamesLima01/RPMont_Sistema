@@ -303,13 +303,13 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       let vermifugacaoSalva;
 
       if (dadosEditar) {
-        await axios.put(`/vermifugacoes/${dadosEditar.id}`, {
+        await axios.put(`/vermifugacao/${dadosEditar.id}`, {
           ...dadosEditar,
           ...payloadVermifugacao,
         });
         vermifugacaoSalva = { ...dadosEditar, ...payloadVermifugacao };
       } else {
-        const response = await axios.post('/vermifugacoes', payloadVermifugacao);
+        const response = await axios.post('/vermifugacao', payloadVermifugacao);
         vermifugacaoSalva = response.data;
       }
 
