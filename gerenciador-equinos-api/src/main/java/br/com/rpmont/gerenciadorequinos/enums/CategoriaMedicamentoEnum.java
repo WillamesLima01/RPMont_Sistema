@@ -1,6 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.enums;
 
-public enum CategoriaMedicamento {
+public enum CategoriaMedicamentoEnum {
     ANTIBIOTICO,
     ANTIINFLAMATORIO,
     ANALGESICO,

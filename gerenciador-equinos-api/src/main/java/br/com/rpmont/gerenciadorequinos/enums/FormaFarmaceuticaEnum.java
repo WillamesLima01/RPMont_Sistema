@@ -1,6 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.enums;
 
-public enum FormaFarmaceutica {
+public enum FormaFarmaceuticaEnum {
     SOLUCAO,
     LIQUIDO,
     INJETAVEL,

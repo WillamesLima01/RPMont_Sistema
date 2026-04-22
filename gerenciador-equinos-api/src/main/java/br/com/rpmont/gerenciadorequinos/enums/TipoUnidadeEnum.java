@@ -1,6 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.enums;
 
-public enum TipoUnidade {
+public enum TipoUnidadeEnum {
     MASSA,
     VOLUME,
     UNIDADE

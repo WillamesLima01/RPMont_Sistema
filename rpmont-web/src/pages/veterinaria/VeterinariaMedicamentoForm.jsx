@@ -263,7 +263,7 @@ const VeterinariaMedicamentoForm = () => {
       quantidadePorApresentacao: Number(medicamento.quantidadePorApresentacao),
       unidadeConteudo: medicamento.unidadeConteudo,
       unidadeBase: medicamento.unidadeBase,
-      tipoUnidade: tipoUnidadeCalculado,
+      tipoUnidadeEnum: tipoUnidadeCalculado,
       ativo: medicamento.ativo
     };
 

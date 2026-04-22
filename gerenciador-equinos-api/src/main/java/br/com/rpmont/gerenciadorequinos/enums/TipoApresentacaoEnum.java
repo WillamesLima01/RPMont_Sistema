@@ -1,6 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.enums;
 
-public enum TipoApresentacao {
+public enum TipoApresentacaoEnum {
     FRASCO,
     AMPOLA,
     BISNAGA,

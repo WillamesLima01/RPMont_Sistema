@@ -1,6 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.enums;
 
-public enum UnidadeMedida {
+public enum UnidadeMedidaEnum {
     MG,
     G,
     KG,
