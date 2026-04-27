@@ -14,7 +14,7 @@ public interface EntradaMedicamentoService {
 
     EntradaMedicamentoResponse buscarEntradaMedicamentoId(Long id);
 
-    List<EntradaMedicamentoResponse> ListarTodasEntradaMedicamento();
+    List<EntradaMedicamentoResponse> ListarTodasEntradasMedicamento();
 
     List<EntradaMedicamentoResponse>buscarEntradaPorMedicamentoId(Long medicamentoId);
 

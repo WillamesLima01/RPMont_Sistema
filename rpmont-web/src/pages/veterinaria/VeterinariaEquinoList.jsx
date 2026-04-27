@@ -246,7 +246,7 @@ const VeterinariaEquinoList = () => {
 
         const proxVer = proximaPorEquino(
           vermifugacao,
-          (v) => v.equinoId ?? v.idEquino ?? v.id_Eq,
+          (v) => v.equinoId ?? v.equino_id ?? v.idEquino ?? v.id_Eq,
           INTERVALOS.vermifugacaoDias
         );
 

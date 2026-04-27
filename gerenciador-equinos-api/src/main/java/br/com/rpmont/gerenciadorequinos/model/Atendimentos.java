@@ -39,7 +39,7 @@ public class Atendimentos implements Serializable {
     @Column(name = "excluido", nullable = false)
     private Boolean exluido = false;
 
-    @Column(name = "data_exclusao", nullable = false)
+    @Column(name = "data_exclusao")
     private LocalDateTime dataExclusao;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

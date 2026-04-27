@@ -6,17 +6,18 @@ import br.com.rpmont.gerenciadorequinos.model.Atendimentos;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.repository.AtendimentosRepository;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AtendimentosServiceImpl implements AtendimentosService{
+public class AtendimentosServiceImpl implements AtendimentosService {
 
     private final AtendimentosRepository atendimentosRepository;
     private final EquinoRepository equinoRepository;
@@ -26,51 +27,123 @@ public class AtendimentosServiceImpl implements AtendimentosService{
     public AtendimentosResponse criarAtendimentos(AtendimentosRequest atendimentosRequest) {
 
         Equino equinoExistente = equinoRepository.findById(atendimentosRequest.equinoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado no banco de dados!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados!"
+                ));
 
         Atendimentos cadastrarAtendimento = new Atendimentos();
-        cadastrarAtendimento.setTextoConsulta(atendimentosRequest.textoConsulta());
-        cadastrarAtendimento.setEnfermidade(atendimentosRequest.enfermidade());
-        cadastrarAtendimento.setEquino(equinoExistente);
 
-        Atendimentos atendimentoSalvar = atendimentosRepository.save(cadastrarAtendimento);
+        preencherDadosAtendimento(cadastrarAtendimento, atendimentosRequest, equinoExistente);
 
-        return  null;
+        Atendimentos atendimentoSalvo = atendimentosRepository.save(cadastrarAtendimento);
 
+        return toResponse(atendimentoSalvo);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<AtendimentosResponse> buscarTodosAtendimentos() {
-        return List.of();
+        return atendimentosRepository.findAll()
+                .stream()
+                .filter(atendimento -> Boolean.FALSE.equals(atendimento.getExluido()))
+                .map(this::toResponse)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public AtendimentosResponse buscarAtendimentoId(Long id) {
-        return null;
+
+        Atendimentos atendimentoExistente = atendimentosRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Atendimento não encontrado no banco de dados!"
+                ));
+
+        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Atendimento não encontrado no banco de dados!"
+            );
+        }
+
+        return toResponse(atendimentoExistente);
     }
 
+    @Transactional
     @Override
     public AtendimentosResponse atualizarAtendimentoId(Long id, AtendimentosRequest atendimentosRequest) {
-        return null;
+
+        Atendimentos atendimentoExistente = atendimentosRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Atendimento não encontrado no banco de dados!"
+                ));
+
+        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Atendimento não encontrado no banco de dados!"
+            );
+        }
+
+        Equino equinoExistente = equinoRepository.findById(atendimentosRequest.equinoId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados!"
+                ));
+
+        preencherDadosAtendimento(atendimentoExistente, atendimentosRequest, equinoExistente);
+
+        Atendimentos atendimentoAtualizado = atendimentosRepository.save(atendimentoExistente);
+
+        return toResponse(atendimentoAtualizado);
     }
 
+    @Transactional
     @Override
     public void deletarAtendimentoId(Long id) {
 
+        Atendimentos atendimentoExistente = atendimentosRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Atendimento não encontrado no banco de dados!"
+                ));
+
+        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Atendimento não encontrado no banco de dados!"
+            );
+        }
+
+        atendimentoExistente.setExluido(true);
+        atendimentoExistente.setDataExclusao(LocalDateTime.now());
+
+        atendimentosRepository.save(atendimentoExistente);
     }
 
-    private AtendimentosResponse toResponse(Atendimentos atendimentos){
+    private void preencherDadosAtendimento(Atendimentos atendimento,
+                                           AtendimentosRequest atendimentosRequest,
+                                           Equino equino) {
 
-        Equino equino = atendimentos.getEquino();
+        atendimento.setTextoConsulta(atendimentosRequest.textoConsulta());
+        atendimento.setEnfermidade(atendimentosRequest.enfermidade());
+        atendimento.setEquino(equino);
 
+        if (atendimento.getExluido() == null) {
+            atendimento.setExluido(false);
+        }
+    }
 
+    private AtendimentosResponse toResponse(Atendimentos atendimento) {
 
         return new AtendimentosResponse(
-                atendimentos.getId(),
-                atendimentos.getTextoConsulta(),
-                atendimentos.getEnfermidade(),
-                atendimentos.getDataAtendimento()
+                atendimento.getId(),
+                atendimento.getTextoConsulta(),
+                atendimento.getEnfermidade(),
+                atendimento.getDataAtendimento()
         );
     }
 }
