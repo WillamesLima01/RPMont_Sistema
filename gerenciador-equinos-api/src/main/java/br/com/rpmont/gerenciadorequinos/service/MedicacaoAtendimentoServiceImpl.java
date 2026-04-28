@@ -11,10 +11,10 @@ import br.com.rpmont.gerenciadorequinos.repository.AtendimentosRepository;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.MedicacaoAtendimentoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.MedicamentoRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -72,6 +72,7 @@ public class MedicacaoAtendimentoServiceImpl implements MedicacaoAtendimentoServ
         return toResponse(medicacaoSalva);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MedicacaoAtendimentoResponse buscarMedicacaoAtendimentoId(Long id) {
         MedicacaoAtendimento medicacao = medicacaoAtendimentoRepository.findById(id)
@@ -81,6 +82,7 @@ public class MedicacaoAtendimentoServiceImpl implements MedicacaoAtendimentoServ
         return toResponse(medicacao);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<MedicacaoAtendimentoResponse> listarTodasMedicacoesAtendimento() {
         return medicacaoAtendimentoRepository.findAll()
@@ -89,6 +91,7 @@ public class MedicacaoAtendimentoServiceImpl implements MedicacaoAtendimentoServ
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<MedicacaoAtendimentoResponse> buscarMedicacoesPorAtendimentoId(Long atendimentoId) {
         return medicacaoAtendimentoRepository.findByAtendimento_Id(atendimentoId)
@@ -97,6 +100,7 @@ public class MedicacaoAtendimentoServiceImpl implements MedicacaoAtendimentoServ
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<MedicacaoAtendimentoResponse> buscarMedicacoesPorEquinoId(Long equinoId) {
         return medicacaoAtendimentoRepository.findByEquino_Id(equinoId)

@@ -8,10 +8,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record SaidaMedicamentoResponse(
+
         Long id,
         Long medicamentoId,
         String medicamentoNome,
         String fabricante,
+        Long atendimentoId,
+        Long equinoId,
+        String equinoNome,
         TipoSaidaMedicamentoEnum tipoSaida,
         BigDecimal quantidadeInformada,
         UnidadeMedidaEnum unidadeInformada,
@@ -19,9 +23,6 @@ public record SaidaMedicamentoResponse(
         UnidadeMedidaEnum unidadeBase,
         LocalDate dataSaida,
         String observacao,
-        Long idEquino,
-        String nomeEquino,
-        String atendimentoId,
         LocalDateTime dataCadastro,
         LocalDateTime atualizadoEm
 ) {

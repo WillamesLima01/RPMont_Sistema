@@ -14,6 +14,12 @@ public record SaidaMedicamentoRequest(
         @NotNull(message = "O medicamento deve ser informado")
         Long medicamentoId,
 
+        @NotNull(message = "O atendimento deve ser informado")
+        Long atendimentoId,
+
+        @NotNull(message = "O equino deve ser informado")
+        Long equinoId,
+
         @NotNull(message = "O tipo de saída deve ser informado")
         TipoSaidaMedicamentoEnum tipoSaida,
 
@@ -28,14 +34,6 @@ public record SaidaMedicamentoRequest(
         LocalDate dataSaida,
 
         @Size(max = 1000, message = "A observação não pode ter mais de 1000 caracteres")
-        String observacao,
-
-        Long EquinoId,
-
-        @Size(max = 150, message = "O nome do equino não pode ter mais de 150 caracteres")
-        String nomeEquino,
-
-        @Size(max = 100, message = "O atendimentoId não pode ter mais de 100 caracteres")
-        String atendimentoId
+        String observacao
 ) {
 }

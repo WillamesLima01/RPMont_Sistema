@@ -11,5 +11,5 @@ public interface SaidaMedicamentoRepository extends JpaRepository<SaidaMedicamen
 
     List<SaidaMedicamento> findByMedicamentoId(Long medicamentoId);
     List<SaidaMedicamento> findByEquinoId(Long equinoId);
-    List<SaidaMedicamento> findByAtendimentoId(String atendimentoId);
+    List<SaidaMedicamento> findByAtendimentoId(Long atendimentoId);
 }

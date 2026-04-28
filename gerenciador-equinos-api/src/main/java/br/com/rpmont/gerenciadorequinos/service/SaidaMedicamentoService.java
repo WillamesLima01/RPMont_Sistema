@@ -15,11 +15,11 @@ public interface SaidaMedicamentoService {
 
     List<SaidaMedicamentoResponse> listarTodasSaidasMedicamentos();
 
-    List<SaidaMedicamentoResponse> buscarSaidasPorMedicamentosId(Long medicamento_id);
+    List<SaidaMedicamentoResponse> buscarSaidasPorMedicamentosId(Long medicamentoId);
 
     List<SaidaMedicamentoResponse> buscarSaidaPorEquinoId(Long equino_id);
 
-    List<SaidaMedicamentoResponse> buscarSaidasPorAtendiemtnosId(String atendimento_id);
+    List<SaidaMedicamentoResponse> buscarSaidasPorAtendimentosId(Long atendimentoId);
 
     SaidaMedicamentoResponse atualizarSaidamedicamentoId(Long id, SaidaMedicamentoRequest saidaMedicamentoRequest);
 
