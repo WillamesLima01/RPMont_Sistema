@@ -40,7 +40,7 @@ const VeterinariaEntradaMedicamentoList = () => {
 
   const carregarEntradas = async () => {
     try {
-      const response = await axios.get('/entradasMedicamento');
+      const response = await axios.get('/entradas_medicamento');
       const lista = Array.isArray(response.data) ? response.data : [];
 
       const ordenada = [...lista].sort((a, b) => {
@@ -136,7 +136,7 @@ const VeterinariaEntradaMedicamentoList = () => {
     if (!entradaSelecionada) return;
 
     try {
-      await axios.delete(`/entradasMedicamento/${entradaSelecionada.id}`);
+      await axios.delete(`/entradaMedicamento/${entradaSelecionada.id}`);
 
       const novaLista = entradas.filter(
         (item) => item.id !== entradaSelecionada.id
@@ -259,7 +259,7 @@ const VeterinariaEntradaMedicamentoList = () => {
                         <th>Fabricante</th>
                         <th>Lote</th>
                         <th>Validade</th>
-                        <th>Quantidade</th>
+                        <th>Qtde Apresentação</th>
                         <th>Qtde Base</th>
                         <th>Data Entrada</th>
                         <th>Fornecedor</th>
@@ -283,7 +283,7 @@ const VeterinariaEntradaMedicamentoList = () => {
                             <td>{formatarData(entrada.validade)}</td>
 
                             <td>
-                              {entrada.quantidadeInformada ?? '-'} {entrada.unidadeInformada || ''}
+                              {entrada.quantidadeApresentacoes ?? '-'} {entrada.tipoApresentacao || ''}
                             </td>
 
                             <td>

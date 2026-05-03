@@ -74,8 +74,8 @@ const VeterinariaMedicamentoList = () => {
     try {
       const [medicamentosResponse, entradasResponse, saidasResponse] = await Promise.all([
         axios.get('/medicamentos'),
-        axios.get('/entradasMedicamento'),
-        axios.get('/saidasMedicamento')
+        axios.get('/entradas_medicamento'),
+        axios.get('/saidas_medicamento')
       ]);
 
       setMedicamentos(Array.isArray(medicamentosResponse.data) ? medicamentosResponse.data : []);

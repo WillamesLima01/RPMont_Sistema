@@ -15,7 +15,7 @@ import autoTable from 'jspdf-autotable';
 Modal.setAppElement('#root');
 
 const VeterinariaAtendimentoList = () => {
-  const [equinos, setEquinos] = useState([]);
+  const [equino, setEquinos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
   const [resultado, setResultado] = useState([]);
   const [filtroNome, setFiltroNome] = useState('');
@@ -39,10 +39,10 @@ const VeterinariaAtendimentoList = () => {
   const obterEquinoAtendimento = (atendimento) => {
     if (!atendimento) return null;
   
-    const idEquino = atendimento.equinoId ?? null;
-    if (!idEquino) return null;
+    const equinoId = atendimento.equinoId ?? null;
+    if (!equinoId) return null;
   
-    return equinos.find((eq) => String(eq.id) === String(idEquino)) || null;
+    return equino.find((eq) => String(eq.id) === String(equinoId)) || null;
   };
 
   const filtrar = () => {
@@ -172,7 +172,7 @@ const VeterinariaAtendimentoList = () => {
 
       <CabecalhoEquinos
         titulo="Lista de Atendimentos"
-        equinos={equinos}
+        equino={equino}
         filtroNome={filtroNome}
         setFiltroNome={setFiltroNome}
         filtroInicio={filtroInicio}
@@ -201,15 +201,15 @@ const VeterinariaAtendimentoList = () => {
             </tr>
           </thead>
           <tbody>
-            {itensPaginados.map((atendimento, idx) => {
+            {itensPaginados.map((atendimento, id) => {
               const equino = obterEquinoAtendimento(atendimento);
 
               return (
-                <tr key={idx}>
-                  <td>{equino?.nome || '-'}</td>
-                  <td>{equino?.raca || '-'}</td>
-                  <td>{equino?.registro || '-'}</td>
-                  <td>{atendimento.data}</td>
+                <tr key={atendimento.id}>
+                  <td>{atendimento.nomeEquino || '-'}</td>
+                  <td>{atendimento.raca || '-'}</td>
+                  <td>{atendimento.numeroRegistro || '-'}</td>
+                  <td>{atendimento.dataAtendimento}</td>
                   <td>{atendimento.textoConsulta}</td>
                   <td className="text-end">
                     <div className="d-flex justify-content-end">

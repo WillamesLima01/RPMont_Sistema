@@ -49,7 +49,7 @@ const VeterinariaEquinosBaixadosList = () => {
     try {
       const [resEquinos, resBaixados] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/equino_baixado'),
+        axios.get('/equino_baixados'),
       ]);
   
       const todosEquinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];

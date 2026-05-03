@@ -73,7 +73,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
 
   useEffect(() => {
     if (entradaId) {
-      axios.get(`/entradasMedicamento/${entradaId}`)
+      axios.get(`/entradas_medicamento/${entradaId}`)
         .then((response) => {
           const d = response.data;
 
@@ -158,31 +158,33 @@ const VeterinariaEntradaMedicamentoForm = () => {
 
   const validarFormulario = () => {
     const erros = [];
-
+  
     if (!entrada.medicamentoId) erros.push('Selecione um medicamento.');
     if (!entrada.lote.trim()) erros.push('O lote é obrigatório.');
     if (!entrada.validade) erros.push('A validade é obrigatória.');
     if (!entrada.quantidadeApresentacoes) erros.push('A quantidade de apresentações é obrigatória.');
     if (!entrada.dataEntrada) erros.push('A data de entrada é obrigatória.');
-
+    if (!entrada.fornecedor.trim()) erros.push('O fornecedor é obrigatório.');
+    if (!entrada.valorUnitario) erros.push('O valor unitário é obrigatório.');
+  
     const quantidade = Number(entrada.quantidadeApresentacoes);
     if (Number.isNaN(quantidade) || quantidade <= 0) {
       erros.push('A quantidade de apresentações deve ser maior que zero.');
     }
-
+  
+    const valorUnitario = Number(entrada.valorUnitario);
+    if (Number.isNaN(valorUnitario) || valorUnitario <= 0) {
+      erros.push('O valor unitário deve ser maior que zero.');
+    }
+  
     if (!medicamentoSelecionado) {
       erros.push('Não foi possível carregar os dados do medicamento.');
     }
-
+  
     if (quantidadeBaseCalculada === null) {
       erros.push('Não foi possível calcular a quantidade base da entrada.');
     }
-
-    const valorUnitario = entrada.valorUnitario ? Number(entrada.valorUnitario) : null;
-    if (entrada.valorUnitario && (Number.isNaN(valorUnitario) || valorUnitario < 0)) {
-      erros.push('O valor unitário deve ser um número válido.');
-    }
-
+  
     return erros;
   };
 
@@ -213,31 +215,21 @@ const VeterinariaEntradaMedicamentoForm = () => {
     }
 
     const payload = {
-      medicamentoId: entrada.medicamentoId,
-      medicamentoNome: medicamentoSelecionado?.nome ?? '',
-      fabricante: medicamentoSelecionado?.fabricante ?? '',
-      forma: medicamentoSelecionado?.forma ?? '',
-      tipoApresentacao: medicamentoSelecionado?.tipoApresentacao ?? '',
-      quantidadePorApresentacao: Number(medicamentoSelecionado?.quantidadePorApresentacao ?? 0),
-      unidadeConteudo: medicamentoSelecionado?.unidadeConteudo ?? '',
-      unidadeBase: medicamentoSelecionado?.unidadeBase ?? '',
-      tipoUnidade: medicamentoSelecionado?.tipoUnidade ?? '',
+      medicamentoId: Number(entrada.medicamentoId),
       lote: entrada.lote.trim(),
       validade: entrada.validade,
       quantidadeApresentacoes: Number(entrada.quantidadeApresentacoes),
-      quantidadeBase: quantidadeBaseCalculada,
       dataEntrada: entrada.dataEntrada,
       fornecedor: entrada.fornecedor.trim(),
-      valorUnitario: entrada.valorUnitario ? Number(entrada.valorUnitario) : null,
-      valorTotal: valorTotalCalculado,
-      observacao: entrada.observacao.trim()
+      valorUnitario: Number(entrada.valorUnitario),
+      observacao: entrada.observacao?.trim() || ''
     };
 
     try {
       if (entradaId) {
-        await axios.put(`/entradasMedicamento/${entradaId}`, payload);
+        await axios.put(`/entradas_medicamento/${entradaId}`, payload);
       } else {
-        await axios.post('/entradasMedicamento', payload);
+        await axios.post('/entradas_medicamento', payload);
       }
 
       document.activeElement?.blur?.();
@@ -246,7 +238,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
         setModalSucesso(true);
         setTimeout(() => {
           setModalSucesso(false);
-          navigate('/entradaMedicamentoList');
+          navigate('/entradas_medicamentoList');
         }, 2500);
       } else {
         setModalConfirmacao(true);
@@ -491,6 +483,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
                           className="form-control"
                           value={entrada.fornecedor}
                           onChange={handleChange}
+                          required
                         />
                       </div>
 
@@ -501,12 +494,14 @@ const VeterinariaEntradaMedicamentoForm = () => {
                         <input
                           type="number"
                           step="0.01"
+                          min="0.01"
                           id="valorUnitario"
                           name="valorUnitario"
                           className="form-control"
                           value={entrada.valorUnitario}
                           onChange={handleChange}
                           placeholder="Ex.: 25.90"
+                          required
                         />
                       </div>
 

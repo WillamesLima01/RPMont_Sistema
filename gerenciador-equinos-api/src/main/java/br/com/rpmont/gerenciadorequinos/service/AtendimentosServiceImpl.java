@@ -139,11 +139,18 @@ public class AtendimentosServiceImpl implements AtendimentosService {
 
     private AtendimentosResponse toResponse(Atendimentos atendimento) {
 
+        Equino equino = atendimento.getEquino();
+
         return new AtendimentosResponse(
                 atendimento.getId(),
                 atendimento.getTextoConsulta(),
                 atendimento.getEnfermidade(),
-                atendimento.getDataAtendimento()
+                atendimento.getDataAtendimento(),
+
+                equino.getId(),
+                equino.getNome(),
+                equino.getRaca(),
+                equino.getRegistro()
         );
     }
 }

@@ -2,7 +2,6 @@ package br.com.rpmont.gerenciadorequinos.service;
 
 import br.com.rpmont.gerenciadorequinos.dtos.EntradaMedicamentoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EntradaMedicamentoResponse;
-import br.com.rpmont.gerenciadorequinos.model.EntradaMedicamento;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

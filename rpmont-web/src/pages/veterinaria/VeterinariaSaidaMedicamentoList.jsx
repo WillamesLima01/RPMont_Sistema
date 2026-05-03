@@ -40,7 +40,7 @@ const VeterinariaSaidaMedicamentoList = () => {
 
   const carregarSaidas = async () => {
     try {
-      const response = await axios.get('/saidasMedicamento');
+      const response = await axios.get('/saidas_medicamento');
       const lista = Array.isArray(response.data) ? response.data : [];
 
       const ordenada = [...lista].sort((a, b) => {
@@ -150,7 +150,7 @@ const VeterinariaSaidaMedicamentoList = () => {
     if (!saidaSelecionada) return;
 
     try {
-      await axios.delete(`/saidasMedicamento/${saidaSelecionada.id}`);
+      await axios.delete(`/saidas_Medicamento/${saidaSelecionada.id}`);
 
       const novaLista = saidas.filter(
         (item) => item.id !== saidaSelecionada.id
@@ -306,7 +306,7 @@ const VeterinariaSaidaMedicamentoList = () => {
                             </td>
 
                             <td>{formatarTipoSaida(saida.tipoSaida)}</td>
-                            <td>{saida.nomeEquino || '-'}</td>
+                            <td>{saida.equinoNome || '-'}</td>
 
                             <td>
                               {saida.quantidadeInformada ?? '-'} {saida.unidadeInformada || ''}
