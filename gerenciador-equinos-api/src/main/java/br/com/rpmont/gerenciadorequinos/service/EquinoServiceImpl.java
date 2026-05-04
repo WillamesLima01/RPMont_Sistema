@@ -2,11 +2,13 @@ package br.com.rpmont.gerenciadorequinos.service;
 
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoResponse;
+import br.com.rpmont.gerenciadorequinos.dtos.EquinoSituacaoRequest;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -18,6 +20,7 @@ public class EquinoServiceImpl implements EquinoService{
 
     private final EquinoRepository equinoRepository;
 
+    @Transactional
     @Override
     public EquinoResponse criarEquino(EquinoRequest equinoRequest) {
 
@@ -49,6 +52,7 @@ public class EquinoServiceImpl implements EquinoService{
         return toResponse(equinoCadastrado);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Equino buscarEquinoId(Long id) {
 
@@ -57,12 +61,29 @@ public class EquinoServiceImpl implements EquinoService{
                         "Equino não encontrado!"));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Equino> buscarTodosEquinos() {
 
         return equinoRepository.findAll();
     }
 
+    @Override
+    @Transactional
+    public Equino atualizarSituacao(Long id, EquinoSituacaoRequest request) {
+
+        Equino equinoExistente = equinoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados."
+                ));
+
+        equinoExistente.setSituacao(request.situacao());
+
+        return equinoRepository.save(equinoExistente);
+    }
+
+    @Transactional
     @Override
     public EquinoResponse atualizarEquino(Long id, EquinoRequest equinoRequest) {
 
@@ -87,6 +108,7 @@ public class EquinoServiceImpl implements EquinoService{
         return toResponse(equinoAtualizado);
     }
 
+    @Transactional
     @Override
     public void deletarEquinoId(Long id) {
         Equino deletarExistente = equinoRepository.findById(id)

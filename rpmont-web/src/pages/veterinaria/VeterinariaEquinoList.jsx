@@ -207,7 +207,7 @@ const VeterinariaEquinoList = () => {
           axios.get('/vacinacao'),
           axios.get('/vermifugacao'),
           axios.get('/toalete'),
-          axios.get('/ferrageamentoEquino'),
+          axios.get('/ferrageamento_equino'),
         ]);
 
         let listaEquinos = (eq.status === 'fulfilled' ? eq.value.data : []) || [];
@@ -506,37 +506,26 @@ const VeterinariaEquinoList = () => {
 
   const salvarSituacaoEquino = async () => {
     if (!equinoSelecionado) return;
-
+  
     if (!situacaoEscolhida) {
       setMensagemAviso('Selecione se o equino ficará como BAIXADO ou APTO COM RESTRIÇÃO.');
       setModalAvisoAberto(true);
       return;
     }
-
+  
     try {
-      const dataAlteracao = await buscarDataInternet();
-
+      const id = equinoSelecionado.id;
+  
       if (situacaoEscolhida === SITUACAO.BAIXADO) {
-        await axios.patch(`/equino/${equinoSelecionado.id}`, {
-          situacao: SITUACAO.BAIXADO,
-        });
-
-        const novoRegistro = {
-          id: uuidv4(),
-          equino_id: String(equinoSelecionado.id),
-          data_baixa: dataAlteracao,
-          data_retorno: null,
-        };
-
-        await axios.post('/equinosBaixados', novoRegistro);
+        await axios.post(`/equino/${id}/baixar`);
       } else if (situacaoEscolhida === SITUACAO.APTO_COM_RESTRICAO) {
-        await axios.patch(`/equino/${equinoSelecionado.id}`, {
+        await axios.patch(`/equino/${id}`, {
           situacao: SITUACAO.APTO_COM_RESTRICAO,
         });
       }
-
+  
       const equinosAtualizados = equinos.map((e) =>
-        e.id === equinoSelecionado.id
+        e.id === id
           ? {
               ...e,
               situacao: situacaoEscolhida,
@@ -544,10 +533,10 @@ const VeterinariaEquinoList = () => {
             }
           : e
       );
-
+  
       setEquinos(equinosAtualizados);
       setEquinosFiltrados(equinosAtualizados);
-
+  
       setModalEscolhaSituacaoAberto(false);
       setModalSucessoSituacaoAberto(true);
     } catch (error) {

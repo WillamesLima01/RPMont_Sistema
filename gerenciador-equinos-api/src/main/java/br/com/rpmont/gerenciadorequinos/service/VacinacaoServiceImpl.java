@@ -60,11 +60,14 @@ public class VacinacaoServiceImpl implements VacinacaoService {
     @Transactional
     @Override
     public VacinacaoResponse atualizarVacinacaoId(Long id, VacinacaoRequest vacinacaoRequest) {
+
         Equino equinoExistente = equinoRepository.findById(vacinacaoRequest.equinoId())
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Equino não encontrado no banco de dados."));
 
-        Vacinacao vacinacaoExistente = new Vacinacao();
+        Vacinacao vacinacaoExistente = vacinacaoRepository.findById(id)
+                        .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Vacinação não encontrada no banco de dados."));
 
         vacinacaoExistente.setEquino(equinoExistente);
         vacinacaoExistente.setNomeVacina(vacinacaoRequest.nomeVacina());

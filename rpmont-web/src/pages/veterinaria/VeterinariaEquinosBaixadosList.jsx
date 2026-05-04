@@ -49,7 +49,7 @@ const VeterinariaEquinosBaixadosList = () => {
     try {
       const [resEquinos, resBaixados] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/equino_baixados'),
+        axios.get('/equino/baixados'),
       ]);
   
       const todosEquinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];
@@ -268,31 +268,21 @@ const VeterinariaEquinosBaixadosList = () => {
 
   const handleRetorno = async (equino) => {
     if (retornandoId) return;
-
-    const registroBaixa = equinosBaixados.find((b) => {
-      const equinoId = b?.equino_id ?? b?.equinoId ?? b?.equino?.id;
-      const dataRetorno = b?.data_retorno ?? b?.dataRetorno;
-      return String(equinoId) === String(equino.id) && !dataRetorno;
-    });
-
-    if (!registroBaixa) {
-      alert('Registro de baixa não encontrado.');
+  
+    const equinoId = equino?.equinoId ?? equino?.equino_id ?? equino?.equino?.id ?? equino?.id;
+  
+    if (!equinoId) {
+      alert('ID do equino não encontrado.');
       return;
     }
-
+  
     try {
-      setRetornandoId(equino.id);
-
-      await axios.patch(`/equino/${equino.id}`, {
-        situacao: SITUACAO.APTO,
-      });
-
-      await axios.patch(`/equinosBaixados/${registroBaixa.id}`, {
-        data_retorno: new Date().toISOString().slice(0, 10),
-      });
-
+      setRetornandoId(equinoId);
+  
+      await axios.post(`/equino/${equinoId}/retornar`);
+  
       setModalAberto(true);
-
+  
       setTimeout(() => {
         setModalAberto(false);
         carregarEquinos();
@@ -371,10 +361,10 @@ const VeterinariaEquinosBaixadosList = () => {
                     <BotaoAcao
                       tipo="button"
                       onClick={() => handleRetorno(eq)}
-                      title={retornandoId === eq.id ? 'Processando...' : 'Retornar às atividades'}
+                      title={retornandoId === (eq.equinoId ?? eq.equino_id ?? eq.id) ? 'Processando...' : 'Retornar às atividades'}
                       className="botao-retorno"
                       icone="bi-arrow-up-circle"
-                      disabled={retornandoId === eq.id}
+                      disabled={retornandoId === (eq.equinoId ?? eq.equino_id ?? eq.id)}
                     />
                   )}
                 </td>

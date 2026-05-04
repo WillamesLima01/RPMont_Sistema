@@ -2,6 +2,7 @@ package br.com.rpmont.gerenciadorequinos.controller;
 
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.EquinoResponse;
+import br.com.rpmont.gerenciadorequinos.dtos.EquinoSituacaoRequest;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.service.EquinoService;
 import jakarta.validation.Valid;
@@ -24,6 +25,14 @@ public class EquinoController {
     public EquinoResponse criarEquino(@Valid @RequestBody EquinoRequest e) {
 
         return equinoService.criarEquino(e);
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Equino atualizarSituacao(@PathVariable Long id,
+                                    @Valid @RequestBody EquinoSituacaoRequest request) {
+
+        return equinoService.atualizarSituacao(id, request);
     }
 
     @GetMapping("/{id}")

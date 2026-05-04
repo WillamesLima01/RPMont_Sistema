@@ -1,5 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.service;
 
+import br.com.rpmont.gerenciadorequinos.dtos.EquinoBaixadoResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.model.EquinoBaixado;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoBaixadoRepository;
@@ -25,18 +26,22 @@ public class EquinoBaixadoServiceImpl implements EquinoBaixadoService {
     public void baixarEquino(Long id) {
 
         Equino equinoExistente = equinoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado no banco de dados!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados!"
+                ));
 
-        if("Baixado".equalsIgnoreCase(equinoExistente.getSituacao())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Equino já está com status Baixado");
+        if ("BAIXADO".equalsIgnoreCase(equinoExistente.getSituacao())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Equino já está com status Baixado"
+            );
         }
 
-        equinoExistente.setSituacao("Baixado");
+        equinoExistente.setSituacao("BAIXADO");
         equinoRepository.save(equinoExistente);
 
         EquinoBaixado novoRegistro = new EquinoBaixado();
-
         novoRegistro.setEquino(equinoExistente);
         novoRegistro.setDataBaixa(LocalDate.now());
         novoRegistro.setDataRetorno(null);
@@ -49,34 +54,58 @@ public class EquinoBaixadoServiceImpl implements EquinoBaixadoService {
     public void retornarEquino(Long equinoId) {
 
         Equino equinoExistente = equinoRepository.findById(equinoId)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado no banco de dados!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados!"
+                ));
 
         EquinoBaixado baixaAberta = baixadoRepository
                 .findFirstByEquinoIdAndDataRetornoIsNullOrderByDataBaixaDesc(equinoId)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Não existe baixa aberta para este equino (não há registro com data de retorno!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Não existe baixa aberta para este equino."
+                ));
 
         baixaAberta.setDataRetorno(LocalDate.now());
         baixadoRepository.save(baixaAberta);
 
-        equinoExistente.setSituacao("Ativo");
+        equinoExistente.setSituacao("APTO");
         equinoRepository.save(equinoExistente);
-
     }
 
     @Override
-    public List<EquinoBaixado> equinoBaixadoId(Long equinoId) {
+    public List<EquinoBaixadoResponse> equinoBaixadoId(Long equinoId) {
 
-        if(!equinoRepository.existsById(equinoId)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Equino não encontrado no banco de dados!");
+        if (!equinoRepository.existsById(equinoId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Equino não encontrado no banco de dados!"
+            );
         }
-        return baixadoRepository.findByEquinoIdOrderByDataBaixaDesc(equinoId);
+
+        return baixadoRepository.findByEquinoIdOrderByDataBaixaDesc(equinoId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
-    public List<EquinoBaixado> listarTodosBaixados() {
-        return baixadoRepository.findAll();
+    @Transactional
+    public List<EquinoBaixadoResponse> listarTodosBaixados() {
+        return baixadoRepository.buscarBaixadosPorSituacaoEquino("BAIXADO")
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private EquinoBaixadoResponse toResponse(EquinoBaixado equinoBaixado) {
+        return new EquinoBaixadoResponse(
+                equinoBaixado.getId(),
+                equinoBaixado.getEquino().getId(),
+                equinoBaixado.getEquino().getNome(),
+                equinoBaixado.getEquino().getSituacao(),
+                equinoBaixado.getDataBaixa(),
+                equinoBaixado.getDataRetorno()
+        );
     }
 }
