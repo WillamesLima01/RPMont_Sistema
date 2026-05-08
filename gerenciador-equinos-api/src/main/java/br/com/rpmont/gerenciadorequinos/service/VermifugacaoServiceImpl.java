@@ -30,12 +30,15 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
 
         Vermifugacao criarVermifugacao = new Vermifugacao();
 
-        criarVermifugacao.setEquino(equinoExistente);
-        criarVermifugacao.setVermifugo(vermifugacaoRequest.vermifugo());
-        criarVermifugacao.setObservacao(vermifugacaoRequest.observacao());
-        criarVermifugacao.setDataProximoProcedimento(vermifugacaoRequest.dataProximoProcedimento());
+        preencherDadosVermifugacao(
+                criarVermifugacao,
+                vermifugacaoRequest,
+                equinoExistente
+        );
 
-        return toResponse(vermifugacaoRepository.save(criarVermifugacao));
+        Vermifugacao vermifugacaoSalva = vermifugacaoRepository.save(criarVermifugacao);
+
+        return toResponse(vermifugacaoSalva);
     }
 
     @Override
@@ -68,12 +71,15 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Vermifugação não encontrada no banco de dados."));
 
-        vermifugacaoExistente.setEquino(equinoExistente);
-        vermifugacaoExistente.setVermifugo(vermifugacaoRequest.vermifugo());
-        vermifugacaoExistente.setObservacao(vermifugacaoRequest.observacao());
-        vermifugacaoExistente.setDataProximoProcedimento(vermifugacaoRequest.dataProximoProcedimento());
+        preencherDadosVermifugacao(
+                vermifugacaoExistente,
+                vermifugacaoRequest,
+                equinoExistente
+        );
 
-        return toResponse(vermifugacaoRepository.save(vermifugacaoExistente));
+        Vermifugacao vermifugacaoAtualizada = vermifugacaoRepository.save(vermifugacaoExistente);
+
+        return toResponse(vermifugacaoAtualizada);
     }
 
     @Override
@@ -86,12 +92,28 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
         vermifugacaoRepository.delete(vermifugacaoExistente);
     }
 
+    private void preencherDadosVermifugacao(
+            Vermifugacao vermifugacao,
+            VermifugacaoRequest request,
+            Equino equino
+    ) {
+        vermifugacao.setEquino(equino);
+        vermifugacao.setVermifugo(request.vermifugo());
+        vermifugacao.setQtdeMedicamento(request.qtdeMedicamento());
+        vermifugacao.setUnidadeMedicamento(request.unidadeMedicamento());
+        vermifugacao.setObservacao(request.observacao());
+        vermifugacao.setDataProximoProcedimento(request.dataProximoProcedimento());
+    }
+
+
     private VermifugacaoResponse toResponse(Vermifugacao vermifugacao) {
         return new VermifugacaoResponse(
                 vermifugacao.getId(),
                 vermifugacao.getEquino().getId(),
                 vermifugacao.getEquino().getNome(),
                 vermifugacao.getVermifugo(),
+                vermifugacao.getQtdeMedicamento(),
+                vermifugacao.getUnidadeMedicamento(),
                 vermifugacao.getObservacao(),
                 vermifugacao.getDataProximoProcedimento(),
                 vermifugacao.getDataCadastro(),

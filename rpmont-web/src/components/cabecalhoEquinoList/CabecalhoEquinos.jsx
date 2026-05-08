@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const CabecalhoEquinoLista = ({
   titulo = 'Lista de Equinos',
-  equinos = [],
+  equino = [],
   filtroNome,
   setFiltroNome,
   onFiltrar,
@@ -16,8 +16,10 @@ const CabecalhoEquinoLista = ({
   mostrarBotoesPDF = true,
   gerarPDF,
   limparFiltros,
-  resultado = []
+  resultado = [],
+  textoTotal = 'Total de registros'
 }) => {
+
   return (
     <div className="container-fluid mb-3">
       <div className="row g-3 align-items-center">
@@ -26,7 +28,7 @@ const CabecalhoEquinoLista = ({
             {titulo}
             {resultado.length > 0 && (
               <span className="total-atendimentos ms-2">
-                Total de equinos: {resultado.length}
+                {textoTotal}: {resultado.length}
               </span>
             )}
           </h2>
@@ -66,7 +68,7 @@ const CabecalhoEquinoLista = ({
             onChange={e => setFiltroNome(e.target.value)}
           >
             <option value="">Todos os equinos</option>
-            {equinos.map(eq => (
+            {equino.map(eq => (
               <option key={eq.id} value={eq.id}>
                 {eq.nome}
               </option>

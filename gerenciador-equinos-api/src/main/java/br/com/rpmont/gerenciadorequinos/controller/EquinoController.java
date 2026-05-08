@@ -60,9 +60,9 @@ public class EquinoController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletarEquinoId(@PathVariable Long id) {
+    public void excluirEquinoId(@PathVariable Long id) {
 
-        equinoService.deletarEquinoId(id);
+        equinoService.excluirEquinoId(id);
 
     }
 

@@ -2,6 +2,7 @@ package br.com.rpmont.gerenciadorequinos.service;
 
 import br.com.rpmont.gerenciadorequinos.dtos.SaidaMedicamentoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.SaidaMedicamentoResponse;
+import br.com.rpmont.gerenciadorequinos.enums.TipoSaidaMedicamentoEnum;
 import br.com.rpmont.gerenciadorequinos.model.Atendimentos;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.model.Medicamento;
@@ -30,30 +31,25 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
 
     @Transactional
     @Override
-    public SaidaMedicamentoResponse salvarSaidaMedicamento(SaidaMedicamentoRequest saidaMedicamentoRequest) {
-        Medicamento medicamentoExistente = medicamentoRepository.findById(saidaMedicamentoRequest.medicamentoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Medicamento não encontrado no banco de dados."));
+    public SaidaMedicamentoResponse salvarSaidaMedicamento(SaidaMedicamentoRequest request) {
 
-        Atendimentos atendimentoExistente = atendimentosRepository.findById(saidaMedicamentoRequest.atendimentoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Atendimento não encontrado no banco de dados."));
+        validarAtendimentoObrigatorio(request);
 
-        Equino equinoExistente = equinoRepository.findById(saidaMedicamentoRequest.equinoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado no banco de dados."));
+        Medicamento medicamentoExistente = buscarMedicamento(request.medicamentoId());
+        Equino equinoExistente = buscarEquino(request.equinoId());
+        Atendimentos atendimentoExistente = buscarAtendimentoSeInformado(request.atendimentoId());
 
-        SaidaMedicamento salvarSaidaMedicamento = new SaidaMedicamento();
+        SaidaMedicamento saidaMedicamento = new SaidaMedicamento();
 
         preencherDadosSaida(
-                salvarSaidaMedicamento,
-                saidaMedicamentoRequest,
+                saidaMedicamento,
+                request,
                 medicamentoExistente,
                 atendimentoExistente,
                 equinoExistente
         );
 
-        SaidaMedicamento saidaMedicamentoSalva = saidaMedicamentoRepository.save(salvarSaidaMedicamento);
+        SaidaMedicamento saidaMedicamentoSalva = saidaMedicamentoRepository.save(saidaMedicamento);
 
         return toResponse(saidaMedicamentoSalva);
     }
@@ -63,8 +59,10 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
     public SaidaMedicamentoResponse buscarSaidaMedicamentoId(Long id) {
 
         SaidaMedicamento saidaMedicamentoExistente = saidaMedicamentoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Saída de medicamento não encontrada no banco de dados."));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Saída de medicamento não encontrada no banco de dados."
+                ));
 
         return toResponse(saidaMedicamentoExistente);
     }
@@ -107,27 +105,23 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
 
     @Transactional
     @Override
-    public SaidaMedicamentoResponse atualizarSaidamedicamentoId(Long id, SaidaMedicamentoRequest saidaMedicamentoRequest) {
+    public SaidaMedicamentoResponse atualizarSaidamedicamentoId(Long id, SaidaMedicamentoRequest request) {
+
+        validarAtendimentoObrigatorio(request);
 
         SaidaMedicamento saidaMedicamentoExistente = saidaMedicamentoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Saída de medicamento não encontrada no banco de dados."));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Saída de medicamento não encontrada no banco de dados."
+                ));
 
-        Medicamento medicamentoExistente = medicamentoRepository.findById(saidaMedicamentoRequest.medicamentoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Medicamento não encontrado no banco de dados."));
-
-        Atendimentos atendimentoExistente = atendimentosRepository.findById(saidaMedicamentoRequest.atendimentoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Atendimento não encontrado no banco de dados."));
-
-        Equino equinoExistente = equinoRepository.findById(saidaMedicamentoRequest.equinoId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado no banco de dados."));
+        Medicamento medicamentoExistente = buscarMedicamento(request.medicamentoId());
+        Equino equinoExistente = buscarEquino(request.equinoId());
+        Atendimentos atendimentoExistente = buscarAtendimentoSeInformado(request.atendimentoId());
 
         preencherDadosSaida(
                 saidaMedicamentoExistente,
-                saidaMedicamentoRequest,
+                request,
                 medicamentoExistente,
                 atendimentoExistente,
                 equinoExistente
@@ -142,16 +136,59 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
     @Override
     public void deletarSaidaMedicamentoId(Long id) {
         SaidaMedicamento saidaMedicamentoExistente = saidaMedicamentoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Saída de medicamento não encontrada no banco de dados."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Saída de medicamento não encontrada no banco de dados."
+                ));
 
         saidaMedicamentoRepository.delete(saidaMedicamentoExistente);
     }
 
-    private void preencherDadosSaida(SaidaMedicamento saidaMedicamento, SaidaMedicamentoRequest saidaMedicamentoRequest,
-                                     Medicamento medicamento, Atendimentos atendimento, Equino equino) {
+    private void validarAtendimentoObrigatorio(SaidaMedicamentoRequest request) {
+        if (request.tipoSaida() == TipoSaidaMedicamentoEnum.ATENDIMENTO
+                && request.atendimentoId() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "O atendimento deve ser informado para saída do tipo ATENDIMENTO."
+            );
+        }
+    }
 
-        BigDecimal quantidadeBase = calcularQuantidadeBase(saidaMedicamentoRequest.quantidadeInformada());
+    private Medicamento buscarMedicamento(Long medicamentoId) {
+        return medicamentoRepository.findById(medicamentoId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Medicamento não encontrado no banco de dados."
+                ));
+    }
+
+    private Equino buscarEquino(Long equinoId) {
+        return equinoRepository.findById(equinoId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados."
+                ));
+    }
+
+    private Atendimentos buscarAtendimentoSeInformado(Long atendimentoId) {
+        if (atendimentoId == null) {
+            return null;
+        }
+
+        return atendimentosRepository.findById(atendimentoId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Atendimento não encontrado no banco de dados."
+                ));
+    }
+
+    private void preencherDadosSaida(
+            SaidaMedicamento saidaMedicamento,
+            SaidaMedicamentoRequest request,
+            Medicamento medicamento,
+            Atendimentos atendimento,
+            Equino equino
+    ) {
+        BigDecimal quantidadeBase = calcularQuantidadeBase(request.quantidadeInformada());
 
         saidaMedicamento.setMedicamento(medicamento);
         saidaMedicamento.setMedicamentoNome(medicamento.getNome());
@@ -162,16 +199,16 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
         saidaMedicamento.setEquino(equino);
         saidaMedicamento.setEquinoNome(equino.getNome());
 
-        saidaMedicamento.setTipoSaida(saidaMedicamentoRequest.tipoSaida());
+        saidaMedicamento.setTipoSaida(request.tipoSaida());
 
-        saidaMedicamento.setQuantidadeInformada(saidaMedicamentoRequest.quantidadeInformada());
-        saidaMedicamento.setUnidadeInformada(saidaMedicamentoRequest.unidadeInformada());
+        saidaMedicamento.setQuantidadeInformada(request.quantidadeInformada());
+        saidaMedicamento.setUnidadeInformada(request.unidadeInformada());
 
         saidaMedicamento.setQuantidadeBase(quantidadeBase);
         saidaMedicamento.setUnidadeBase(medicamento.getUnidadeBase());
 
-        saidaMedicamento.setDataSaida(saidaMedicamentoRequest.dataSaida());
-        saidaMedicamento.setObservacao(saidaMedicamentoRequest.observacao());
+        saidaMedicamento.setDataSaida(request.dataSaida());
+        saidaMedicamento.setObservacao(request.observacao());
     }
 
     private BigDecimal calcularQuantidadeBase(BigDecimal quantidadeInformada) {
@@ -179,6 +216,10 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
     }
 
     private SaidaMedicamentoResponse toResponse(SaidaMedicamento saidaMedicamento) {
+        Long atendimentoId = saidaMedicamento.getAtendimento() != null
+                ? saidaMedicamento.getAtendimento().getId()
+                : null;
+
         return new SaidaMedicamentoResponse(
                 saidaMedicamento.getId(),
 
@@ -186,7 +227,7 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
                 saidaMedicamento.getMedicamentoNome(),
                 saidaMedicamento.getFabricante(),
 
-                saidaMedicamento.getAtendimento().getId(),
+                atendimentoId,
 
                 saidaMedicamento.getEquino().getId(),
                 saidaMedicamento.getEquinoNome(),

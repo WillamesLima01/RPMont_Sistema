@@ -22,6 +22,6 @@ public interface EquinoService {
 
     Equino atualizarSituacao(Long id, EquinoSituacaoRequest request);
 
-    void deletarEquinoId(Long id);
+    void excluirEquinoId(Long id);
 
 }

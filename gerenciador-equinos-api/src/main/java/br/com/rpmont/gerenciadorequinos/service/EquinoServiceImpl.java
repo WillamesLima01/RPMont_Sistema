@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -24,9 +25,9 @@ public class EquinoServiceImpl implements EquinoService{
     @Override
     public EquinoResponse criarEquino(EquinoRequest equinoRequest) {
 
-        if(equinoRepository.existsByNomeAndDataNascimento(
+        if (equinoRepository.existsByNomeAndDataNascimentoAndExcluidoFalse(
                 equinoRequest.nome(),
-                equinoRequest.dataNascimento())){
+                equinoRequest.dataNascimento())) {
 
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Equino já cadastrado no banco de dados!");
@@ -64,8 +65,7 @@ public class EquinoServiceImpl implements EquinoService{
     @Transactional(readOnly = true)
     @Override
     public List<Equino> buscarTodosEquinos() {
-
-        return equinoRepository.findAll();
+        return equinoRepository.findByExcluidoFalseOrderByNomeAsc();
     }
 
     @Override
@@ -78,7 +78,14 @@ public class EquinoServiceImpl implements EquinoService{
                         "Equino não encontrado no banco de dados."
                 ));
 
-        equinoExistente.setSituacao(request.situacao());
+        if (Boolean.TRUE.equals(equinoExistente.getExcluido())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível alterar a situação de um equino excluído."
+            );
+        }
+
+        equinoExistente.setSituacao(request.situacao().trim().toUpperCase());
 
         return equinoRepository.save(equinoExistente);
     }
@@ -110,12 +117,17 @@ public class EquinoServiceImpl implements EquinoService{
 
     @Transactional
     @Override
-    public void deletarEquinoId(Long id) {
-        Equino deletarExistente = equinoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado!"));
+    public void excluirEquinoId(Long id) {
+        Equino equinoExistente = equinoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado no banco de dados."
+                ));
 
-        equinoRepository.delete(deletarExistente);
+        equinoExistente.setExcluido(true);
+        equinoExistente.setDataExclusao(LocalDateTime.now());
+
+        equinoRepository.save(equinoExistente);
     }
 
     private EquinoResponse toResponse(Equino equino) {

@@ -56,7 +56,7 @@ public class SaidaMedicamento implements Serializable {
     private String observacao;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atendimento_id", nullable = false)
+    @JoinColumn(name = "atendimento_id")
     private Atendimentos atendimento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

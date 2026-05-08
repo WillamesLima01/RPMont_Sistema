@@ -54,7 +54,7 @@ const estaDentroDe15Dias = (item) => {
     const carregarDados = async () => {
       const [eqRes, vacRes] = await Promise.all([
         axios.get('/equino'),
-        axios.get('/vacinacoes')
+        axios.get('/vacinacao')
       ]);
       setEquinos(eqRes.data);
       setVacinacoes(vacRes.data);

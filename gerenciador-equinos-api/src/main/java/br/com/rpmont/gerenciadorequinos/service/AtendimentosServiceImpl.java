@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class AtendimentosServiceImpl implements AtendimentosService {
     public List<AtendimentosResponse> buscarTodosAtendimentos() {
         return atendimentosRepository.findAll()
                 .stream()
-                .filter(atendimento -> Boolean.FALSE.equals(atendimento.getExluido()))
+                .filter(atendimento -> Boolean.FALSE.equals(atendimento.getExcluido()))
                 .map(this::toResponse)
                 .toList();
     }
@@ -61,7 +62,7 @@ public class AtendimentosServiceImpl implements AtendimentosService {
                         "Atendimento não encontrado no banco de dados!"
                 ));
 
-        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+        if (Boolean.TRUE.equals(atendimentoExistente.getExcluido())) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Atendimento não encontrado no banco de dados!"
@@ -69,6 +70,19 @@ public class AtendimentosServiceImpl implements AtendimentosService {
         }
 
         return toResponse(atendimentoExistente);
+    }
+
+    @Transactional
+    @Override
+    public List<AtendimentosResponse> filtrarAtendimentos(
+            Long equinoId,
+            LocalDate dataInicio,
+            LocalDate dataFim
+    ) {
+        return atendimentosRepository.filtrarAtendimentos(equinoId, dataInicio, dataFim)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -81,7 +95,7 @@ public class AtendimentosServiceImpl implements AtendimentosService {
                         "Atendimento não encontrado no banco de dados!"
                 ));
 
-        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+        if (Boolean.TRUE.equals(atendimentoExistente.getExcluido())) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Atendimento não encontrado no banco de dados!"
@@ -111,14 +125,14 @@ public class AtendimentosServiceImpl implements AtendimentosService {
                         "Atendimento não encontrado no banco de dados!"
                 ));
 
-        if (Boolean.TRUE.equals(atendimentoExistente.getExluido())) {
+        if (Boolean.TRUE.equals(atendimentoExistente.getExcluido())) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Atendimento não encontrado no banco de dados!"
             );
         }
 
-        atendimentoExistente.setExluido(true);
+        atendimentoExistente.setExcluido(true);
         atendimentoExistente.setDataExclusao(LocalDateTime.now());
 
         atendimentosRepository.save(atendimentoExistente);
@@ -132,8 +146,8 @@ public class AtendimentosServiceImpl implements AtendimentosService {
         atendimento.setEnfermidade(atendimentosRequest.enfermidade());
         atendimento.setEquino(equino);
 
-        if (atendimento.getExluido() == null) {
-            atendimento.setExluido(false);
+        if (atendimento.getExcluido() == null) {
+            atendimento.setExcluido(false);
         }
     }
 

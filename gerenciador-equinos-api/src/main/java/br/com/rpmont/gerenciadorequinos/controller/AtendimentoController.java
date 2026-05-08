@@ -5,9 +5,11 @@ import br.com.rpmont.gerenciadorequinos.dtos.AtendimentosResponse;
 import br.com.rpmont.gerenciadorequinos.service.AtendimentosService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -33,6 +35,22 @@ public class AtendimentoController {
         @ResponseStatus(HttpStatus.OK)
         public AtendimentosResponse buscarAtendimentoId(@PathVariable Long id) {
             return atendimentosService.buscarAtendimentoId(id);
+        }
+
+        @GetMapping("/filtrar")
+        @ResponseStatus(HttpStatus.OK)
+        public List<AtendimentosResponse> filtrarAtendimentos(
+                @RequestParam(required = false) Long equinoId,
+
+                @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                LocalDate dataInicio,
+
+                @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                LocalDate dataFim
+        ) {
+            return atendimentosService.filtrarAtendimentos(equinoId, dataInicio, dataFim);
         }
 
         @PutMapping("/{id}")

@@ -14,7 +14,6 @@ public record SaidaMedicamentoRequest(
         @NotNull(message = "O medicamento deve ser informado")
         Long medicamentoId,
 
-        @NotNull(message = "O atendimento deve ser informado")
         Long atendimentoId,
 
         @NotNull(message = "O equino deve ser informado")

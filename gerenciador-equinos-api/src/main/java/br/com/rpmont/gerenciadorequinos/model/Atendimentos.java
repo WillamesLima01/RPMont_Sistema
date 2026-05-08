@@ -37,7 +37,7 @@ public class Atendimentos implements Serializable {
     private LocalDateTime atualizadoEm;
 
     @Column(name = "excluido", nullable = false)
-    private Boolean exluido = false;
+    private Boolean excluido = false;
 
     @Column(name = "data_exclusao")
     private LocalDateTime dataExclusao;

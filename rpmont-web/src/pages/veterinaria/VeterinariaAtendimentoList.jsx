@@ -45,25 +45,30 @@ const VeterinariaAtendimentoList = () => {
     return equino.find((eq) => String(eq.id) === String(equinoId)) || null;
   };
 
-  const filtrar = () => {
-    let filtrados = [...atendimentos];
+  const filtrar = async () => {
+    try {
+      const params = {};
   
-    if (filtroNome) {
-      filtrados = filtrados.filter(
-        (a) => String(a.equinoId) === String(filtroNome)
-      );
+      if (filtroNome) {
+        params.equinoId = filtroNome;
+      }
+  
+      if (filtroInicio) {
+        params.dataInicio = filtroInicio;
+      }
+  
+      if (filtroFim) {
+        params.dataFim = filtroFim;
+      }
+  
+      const response = await axios.get('/atendimentos/filtrar', { params });
+  
+      setResultado(response.data);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Erro ao filtrar atendimentos:', error);
+      alert('Erro ao filtrar atendimentos.');
     }
-  
-    if (filtroInicio) {
-      filtrados = filtrados.filter((a) => a.data >= filtroInicio);
-    }
-  
-    if (filtroFim) {
-      filtrados = filtrados.filter((a) => a.data <= filtroFim);
-    }
-  
-    setResultado(filtrados);
-    setCurrentPage(1);
   };
 
   const limparFiltros = () => {

@@ -79,8 +79,8 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       try {
         const [medicamentosRes, entradasRes, saidasRes] = await Promise.all([
           axios.get('/medicamentos'),
-          axios.get('/entradasMedicamento'),
-          axios.get('/saidasMedicamento'),
+          axios.get('/entradas_medicamento'),
+          axios.get('/saidas_medicamento'),
         ]);
 
         const medicamentosData = (medicamentosRes.data || []).filter((m) => m.ativo !== false);
@@ -153,16 +153,35 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
               setObservacaoMedicacaoExterna('');
             }
           } else {
-            setUsarMedicacaoExterna(false);
-            setMedicamentoSelecionado(null);
-            setDoseAplicada('');
-            setUnidadeMedicacao('');
-            setObservacaoMedicacao(dadosEditar.observacao || '');
-
-            setNomeMedicacaoExterna(dadosEditar.vermifugo || '');
-            setDoseMedicacaoExterna('');
-            setUnidadeMedicacaoExterna('mL');
-            setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+            const medEncontradoPorNome =
+              medicamentosData.find((m) =>
+                String(getNomeMedicamento(m)).toLowerCase().trim() ===
+                String(dadosEditar.vermifugo || '').toLowerCase().trim()
+              ) || null;
+          
+            if (medEncontradoPorNome) {
+              setUsarMedicacaoExterna(false);
+              setMedicamentoSelecionado(medEncontradoPorNome);
+              setDoseAplicada('');
+              setUnidadeMedicacao(getUnidadeMedicamento(medEncontradoPorNome) || '');
+              setObservacaoMedicacao(dadosEditar.observacao || '');
+          
+              setNomeMedicacaoExterna('');
+              setDoseMedicacaoExterna('');
+              setUnidadeMedicacaoExterna('mL');
+              setObservacaoMedicacaoExterna('');
+            } else {
+              setUsarMedicacaoExterna(true);
+              setMedicamentoSelecionado(null);
+              setDoseAplicada('');
+              setUnidadeMedicacao('');
+              setObservacaoMedicacao('');
+          
+              setNomeMedicacaoExterna(dadosEditar.vermifugo || '');
+              setDoseMedicacaoExterna('');
+              setUnidadeMedicacaoExterna('mL');
+              setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+            }
           }
         } else {
           setProximaData('');
@@ -277,47 +296,65 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const handleSalvar = async () => {
     if (!validarProximaData()) return;
     if (!validarMedicacao()) return;
-
+  
     if (!equino?.id) {
       abrirErro('Equino não identificado.');
       return;
     }
-
+  
     const nomeVermifugo = usarMedicacaoExterna
       ? nomeMedicacaoExterna.trim()
       : getNomeMedicamento(medicamentoSelecionado);
-
+  
     const observacaoFinal = usarMedicacaoExterna
       ? observacaoMedicacaoExterna.trim()
       : observacaoMedicacao.trim();
-
+  
     const payloadVermifugacao = {
-      equinoId: String(equino.id),
+      equinoId: Number(equino.id),
       vermifugo: nomeVermifugo,
       observacao: observacaoFinal,
       data: dadosEditar?.data || new Date().toISOString(),
       dataProximoProcedimento: new Date(`${proximaData}T00:00:00`).toISOString(),
     };
-
+  
     try {
-      let vermifugacaoSalva;
-
-      if (dadosEditar) {
+      /*
+        MODO EDIÇÃO:
+        Atualiza somente o procedimento de vermifugação.
+        Não cria nova saída de medicamento.
+      */
+      if (dadosEditar?.id) {
         await axios.put(`/vermifugacao/${dadosEditar.id}`, {
           ...dadosEditar,
           ...payloadVermifugacao,
         });
-        vermifugacaoSalva = { ...dadosEditar, ...payloadVermifugacao };
-      } else {
-        const response = await axios.post('/vermifugacao', payloadVermifugacao);
-        vermifugacaoSalva = response.data;
+  
+        setModalSucessoAberto(true);
+  
+        setTimeout(() => {
+          setModalSucessoAberto(false);
+          onClose();
+        }, 2000);
+  
+        return;
       }
-
-      if (dadosEditar && saidaExistente) {
-        await axios.delete(`/saidasMedicamento/${saidaExistente.id}`);
-      }
-
+  
+      /*
+        MODO CADASTRO:
+        Primeiro cria a vermifugação.
+        Depois registra a saída do medicamento no estoque.
+      */
+      const response = await axios.post('/vermifugacao', payloadVermifugacao);
+      const vermifugacaoSalva = response.data;
+  
       if (usarMedicacaoExterna) {
+        /*
+          Atenção:
+          Seu SaidaMedicamentoRequest atual exige medicamentoId.
+          Então medicamento externo com medicamentoId: null pode dar erro 400,
+          a menos que você adapte o backend para aceitar saída externa.
+        */
         const payloadSaidaExterna = {
           tipoSaida: 'VERMIFUGACAO',
           medicacaoExterna: true,
@@ -325,58 +362,56 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
           medicamentoNome: nomeMedicacaoExterna.trim(),
           fabricante: 'EXTERNO',
           quantidadeInformada: Number(doseMedicacaoExterna),
-          unidadeInformada: unidadeMedicacaoExterna.trim(),
+          unidadeInformada: unidadeMedicacaoExterna.trim().toUpperCase(),
           quantidadeBase: 0,
-          unidadeBase: unidadeMedicacaoExterna.trim(),
+          unidadeBase: unidadeMedicacaoExterna.trim().toUpperCase(),
           dataSaida: new Date().toISOString().slice(0, 10),
           observacao:
             observacaoMedicacaoExterna.trim() ||
             `Uso de medicamento externo em vermifugação do equino ${equino?.nome || ''}`.trim(),
-          idEquino: String(equino.id),
+          equinoId: Number(equino.id),
           nomeEquino: equino?.nome || '',
           vermifugacaoId: String(vermifugacaoSalva.id),
         };
-
-        await axios.post('/saidasMedicamento', payloadSaidaExterna);
+  
+        await axios.post('/saidas_medicamento', payloadSaidaExterna);
       } else {
         const medAtual = medicamentosEstoque.find(
           (m) => String(m.id) === String(medicamentoSelecionado.id)
         );
-
+  
         if (!medAtual) {
           abrirErro('Medicamento do estoque não encontrado.');
           return;
         }
-
+  
         const payloadSaida = {
-          medicamentoId: String(medAtual.id),
-          medicamentoNome: getNomeMedicamento(medAtual),
-          fabricante: getFabricanteMedicamento(medAtual),
+          medicamentoId: Number(medAtual.id),
+          atendimentoId: null,
+          equinoId: Number(equino.id),
           tipoSaida: 'VERMIFUGACAO',
-          medicacaoExterna: false,
           quantidadeInformada: Number(doseAplicada),
-          unidadeInformada: unidadeMedicacao.trim(),
-          quantidadeBase: Number(doseAplicada),
-          unidadeBase: getUnidadeMedicamento(medAtual) || unidadeMedicacao.trim(),
+          unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
           dataSaida: new Date().toISOString().slice(0, 10),
           observacao:
             observacaoMedicacao.trim() ||
             `Uso em vermifugação do equino ${equino?.nome || ''}`.trim(),
-          idEquino: String(equino.id),
-          nomeEquino: equino?.nome || '',
-          vermifugacaoId: String(vermifugacaoSalva.id),
         };
-
-        await axios.post('/saidasMedicamento', payloadSaida);
+  
+        console.log('Payload enviado para saidas_medicamento:', payloadSaida);
+  
+        await axios.post('/saidas_medicamento', payloadSaida);
       }
-
+  
       setModalSucessoAberto(true);
+  
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
       }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vermifugação:', error);
+      console.log('Erro backend:', error.response?.data);
       abrirErro('Erro ao salvar vermifugação e movimentação de estoque.');
     }
   };
