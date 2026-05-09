@@ -92,7 +92,7 @@ public class EntradaMedicamento implements Serializable {
     private LocalDateTime atualizadoEm;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "medicamentoId", nullable = false, unique = true)
+    @JoinColumn(name = "medicamento_id", nullable = false)
     private Medicamento medicamento;
 
 }

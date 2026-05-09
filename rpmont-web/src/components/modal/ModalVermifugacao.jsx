@@ -310,25 +310,84 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       ? observacaoMedicacaoExterna.trim()
       : observacaoMedicacao.trim();
   
+    const qtdeMedicamento = usarMedicacaoExterna
+      ? Number(doseMedicacaoExterna)
+      : Number(doseAplicada);
+  
+    const unidadeMedicamento = usarMedicacaoExterna
+      ? unidadeMedicacaoExterna.trim().toUpperCase()
+      : unidadeMedicacao.trim().toUpperCase();
+  
     const payloadVermifugacao = {
       equinoId: Number(equino.id),
       vermifugo: nomeVermifugo,
+      qtdeMedicamento,
+      unidadeMedicamento,
       observacao: observacaoFinal,
       data: dadosEditar?.data || new Date().toISOString(),
       dataProximoProcedimento: new Date(`${proximaData}T00:00:00`).toISOString(),
     };
   
     try {
-      /*
-        MODO EDIÇÃO:
-        Atualiza somente o procedimento de vermifugação.
-        Não cria nova saída de medicamento.
-      */
+      // MODO EDIÇÃO
       if (dadosEditar?.id) {
         await axios.put(`/vermifugacao/${dadosEditar.id}`, {
           ...dadosEditar,
           ...payloadVermifugacao,
         });
+  
+        // Se for medicação externa, não mexe em saidas_medicamento
+        if (usarMedicacaoExterna) {
+          setModalSucessoAberto(true);
+  
+          setTimeout(() => {
+            setModalSucessoAberto(false);
+            onClose();
+          }, 2000);
+  
+          return;
+        }
+  
+        if (!saidaExistente?.id) {
+          abrirErro(
+            'Não foi possível localizar a saída de medicamento vinculada a esta vermifugação.'
+          );
+          return;
+        }
+  
+        const medAtual = medicamentosEstoque.find(
+          (m) => String(m.id) === String(medicamentoSelecionado.id)
+        );
+  
+        if (!medAtual) {
+          abrirErro('Medicamento do estoque não encontrado.');
+          return;
+        }
+  
+        const payloadSaidaAtualizada = {
+          medicamentoId: Number(medAtual.id),
+          atendimentoId: null,
+          vermifugacaoId: Number(dadosEditar.id),
+          vacinacaoId: null,
+          equinoId: Number(equino.id),
+          tipoSaida: 'VERMIFUGACAO',
+          quantidadeInformada: Number(doseAplicada),
+          unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
+          dataSaida: new Date().toISOString().slice(0, 10),
+          observacao:
+            observacaoMedicacao.trim() ||
+            `Uso em vermifugação do equino ${equino?.nome || ''}`.trim(),
+        };
+  
+        console.log(
+          'Payload atualizado para saidas_medicamento:',
+          payloadSaidaAtualizada
+        );
+  
+        await axios.put(
+          `/saidas_medicamento/${saidaExistente.id}`,
+          payloadSaidaAtualizada
+        );
   
         setModalSucessoAberto(true);
   
@@ -340,68 +399,49 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
         return;
       }
   
-      /*
-        MODO CADASTRO:
-        Primeiro cria a vermifugação.
-        Depois registra a saída do medicamento no estoque.
-      */
+      // MODO CADASTRO
       const response = await axios.post('/vermifugacao', payloadVermifugacao);
       const vermifugacaoSalva = response.data;
   
+      // Se for medicação externa, não cria saída de medicamento
       if (usarMedicacaoExterna) {
-        /*
-          Atenção:
-          Seu SaidaMedicamentoRequest atual exige medicamentoId.
-          Então medicamento externo com medicamentoId: null pode dar erro 400,
-          a menos que você adapte o backend para aceitar saída externa.
-        */
-        const payloadSaidaExterna = {
-          tipoSaida: 'VERMIFUGACAO',
-          medicacaoExterna: true,
-          medicamentoId: null,
-          medicamentoNome: nomeMedicacaoExterna.trim(),
-          fabricante: 'EXTERNO',
-          quantidadeInformada: Number(doseMedicacaoExterna),
-          unidadeInformada: unidadeMedicacaoExterna.trim().toUpperCase(),
-          quantidadeBase: 0,
-          unidadeBase: unidadeMedicacaoExterna.trim().toUpperCase(),
-          dataSaida: new Date().toISOString().slice(0, 10),
-          observacao:
-            observacaoMedicacaoExterna.trim() ||
-            `Uso de medicamento externo em vermifugação do equino ${equino?.nome || ''}`.trim(),
-          equinoId: Number(equino.id),
-          nomeEquino: equino?.nome || '',
-          vermifugacaoId: String(vermifugacaoSalva.id),
-        };
+        setModalSucessoAberto(true);
   
-        await axios.post('/saidas_medicamento', payloadSaidaExterna);
-      } else {
-        const medAtual = medicamentosEstoque.find(
-          (m) => String(m.id) === String(medicamentoSelecionado.id)
-        );
+        setTimeout(() => {
+          setModalSucessoAberto(false);
+          onClose();
+        }, 2000);
   
-        if (!medAtual) {
-          abrirErro('Medicamento do estoque não encontrado.');
-          return;
-        }
-  
-        const payloadSaida = {
-          medicamentoId: Number(medAtual.id),
-          atendimentoId: null,
-          equinoId: Number(equino.id),
-          tipoSaida: 'VERMIFUGACAO',
-          quantidadeInformada: Number(doseAplicada),
-          unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
-          dataSaida: new Date().toISOString().slice(0, 10),
-          observacao:
-            observacaoMedicacao.trim() ||
-            `Uso em vermifugação do equino ${equino?.nome || ''}`.trim(),
-        };
-  
-        console.log('Payload enviado para saidas_medicamento:', payloadSaida);
-  
-        await axios.post('/saidas_medicamento', payloadSaida);
+        return;
       }
+  
+      const medAtual = medicamentosEstoque.find(
+        (m) => String(m.id) === String(medicamentoSelecionado.id)
+      );
+  
+      if (!medAtual) {
+        abrirErro('Medicamento do estoque não encontrado.');
+        return;
+      }
+  
+      const payloadSaida = {
+        medicamentoId: Number(medAtual.id),
+        atendimentoId: null,
+        vermifugacaoId: Number(vermifugacaoSalva.id),
+        vacinacaoId: null,
+        equinoId: Number(equino.id),
+        tipoSaida: 'VERMIFUGACAO',
+        quantidadeInformada: Number(doseAplicada),
+        unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
+        dataSaida: new Date().toISOString().slice(0, 10),
+        observacao:
+          observacaoMedicacao.trim() ||
+          `Uso em vermifugação do equino ${equino?.nome || ''}`.trim(),
+      };
+  
+      console.log('Payload enviado para saidas_medicamento:', payloadSaida);
+  
+      await axios.post('/saidas_medicamento', payloadSaida);
   
       setModalSucessoAberto(true);
   

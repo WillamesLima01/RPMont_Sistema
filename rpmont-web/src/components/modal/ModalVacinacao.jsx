@@ -96,8 +96,8 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
       try {
         const [medicamentosRes, entradasRes, saidasRes] = await Promise.all([
           axios.get('/medicamentos'),
-          axios.get('/entradasMedicamento'),
-          axios.get('/saidasMedicamento'),
+          axios.get('/entradas_medicamento'),
+          axios.get('/saidas_medicamento'),
         ]);
 
         const medicamentosData = (medicamentosRes.data || []).filter((m) => m.ativo !== false);
@@ -297,108 +297,161 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const handleSalvar = async () => {
     if (!validarProximaData()) return;
     if (!validarMedicacao()) return;
-
+  
     if (!equino?.id) {
       abrirErro('Equino não identificado.');
       return;
     }
-
+  
     const nomeVacinaFinal = usarMedicacaoExterna
       ? nomeMedicacaoExterna.trim()
       : getNomeMedicamento(medicamentoSelecionado);
-
+  
     const observacaoFinal = usarMedicacaoExterna
       ? observacaoMedicacaoExterna.trim()
       : observacaoMedicacao.trim();
-
+  
+    const qtdeMedicamento = usarMedicacaoExterna
+      ? Number(doseMedicacaoExterna)
+      : Number(doseAplicada);
+  
+    const unidadeMedicamento = usarMedicacaoExterna
+      ? unidadeMedicacaoExterna.trim().toUpperCase()
+      : unidadeMedicacao.trim().toUpperCase();
+  
     const payloadVacinacao = {
-      equinoId: String(equino.id),
+      equinoId: Number(equino.id),
       nomeVacina: nomeVacinaFinal,
+      qtdeMedicamento,
+      unidadeMedicamento,
       observacao: observacaoFinal,
       data: dadosEditar?.data || new Date().toISOString(),
       ...(dataProximoProcedimento
         ? { dataProximoProcedimento: isoFromDateOnly(dataProximoProcedimento) }
         : {}),
     };
-
+  
     try {
-      let vacinacaoSalva;
-
-      if (dadosEditar) {
-        await axios.put(`/vacinacoes/${dadosEditar.id}`, {
+      
+      if (dadosEditar?.id) {
+        await axios.put(`/vacinacao/${dadosEditar.id}`, {
           ...dadosEditar,
           ...payloadVacinacao,
         });
-        vacinacaoSalva = { ...dadosEditar, ...payloadVacinacao };
-      } else {
-        const response = await axios.post('/vacinacoes', payloadVacinacao);
-        vacinacaoSalva = response.data;
-      }
-
-      if (dadosEditar && saidaExistente) {
-        await axios.delete(`/saidasMedicamento/${saidaExistente.id}`);
-      }
-
-      if (usarMedicacaoExterna) {
-        const payloadSaidaExterna = {
-          tipoSaida: 'VACINACAO',
-          medicacaoExterna: true,
-          medicamentoId: null,
-          medicamentoNome: nomeMedicacaoExterna.trim(),
-          fabricante: 'EXTERNO',
-          quantidadeInformada: Number(doseMedicacaoExterna),
-          unidadeInformada: unidadeMedicacaoExterna.trim(),
-          quantidadeBase: 0,
-          unidadeBase: unidadeMedicacaoExterna.trim(),
-          dataSaida: new Date().toISOString().slice(0, 10),
-          observacao:
-            observacaoMedicacaoExterna.trim() ||
-            `Uso de vacina externa no equino ${equino?.nome || ''}`.trim(),
-          idEquino: String(equino.id),
-          nomeEquino: equino?.nome || '',
-          vacinacaoId: String(vacinacaoSalva.id),
-        };
-
-        await axios.post('/saidasMedicamento', payloadSaidaExterna);
-      } else {
+  
+        if (usarMedicacaoExterna) {
+          setModalSucessoAberto(true);
+  
+          setTimeout(() => {
+            setModalSucessoAberto(false);
+            onClose();
+          }, 2000);
+  
+          return;
+        }
+  
+        if (!saidaExistente?.id) {
+          abrirErro(
+            'Não foi possível localizar a saída de medicamento vinculada a esta vacinação.'
+          );
+          return;
+        }
+  
         const medAtual = medicamentosEstoque.find(
           (m) => String(m.id) === String(medicamentoSelecionado.id)
         );
-
+  
         if (!medAtual) {
           abrirErro('Vacina do estoque não encontrada.');
           return;
         }
-
-        const payloadSaida = {
-          medicamentoId: String(medAtual.id),
-          medicamentoNome: getNomeMedicamento(medAtual),
-          fabricante: getFabricanteMedicamento(medAtual),
+  
+        const payloadSaidaAtualizada = {
+          medicamentoId: Number(medAtual.id),
+          atendimentoId: null,
+          vermifugacaoId: null,
+          vacinacaoId: Number(dadosEditar.id),
+          equinoId: Number(equino.id),
           tipoSaida: 'VACINACAO',
-          medicacaoExterna: false,
           quantidadeInformada: Number(doseAplicada),
-          unidadeInformada: unidadeMedicacao.trim(),
-          quantidadeBase: Number(doseAplicada),
-          unidadeBase: getUnidadeMedicamento(medAtual) || unidadeMedicacao.trim(),
+          unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
           dataSaida: new Date().toISOString().slice(0, 10),
           observacao:
             observacaoMedicacao.trim() ||
             `Uso em vacinação do equino ${equino?.nome || ''}`.trim(),
-          idEquino: String(equino.id),
-          nomeEquino: equino?.nome || '',
-          vacinacaoId: String(vacinacaoSalva.id),
         };
-
-        await axios.post('/saidasMedicamento', payloadSaida);
+  
+        console.log(
+          'Payload atualizado para saidas_medicamento:',
+          payloadSaidaAtualizada
+        );
+  
+        await axios.put(
+          `/saidas_medicamento/${saidaExistente.id}`,
+          payloadSaidaAtualizada
+        );
+  
+        setModalSucessoAberto(true);
+  
+        setTimeout(() => {
+          setModalSucessoAberto(false);
+          onClose();
+        }, 2000);
+  
+        return;
+      }  
+      
+      const response = await axios.post('/vacinacao', payloadVacinacao);
+      const vacinacaoSalva = response.data;
+  
+      if (usarMedicacaoExterna) {
+        setModalSucessoAberto(true);
+  
+        setTimeout(() => {
+          setModalSucessoAberto(false);
+          onClose();
+        }, 2000);
+  
+        return;
       }
-
+  
+      const medAtual = medicamentosEstoque.find(
+        (m) => String(m.id) === String(medicamentoSelecionado.id)
+      );
+  
+      if (!medAtual) {
+        abrirErro('Vacina do estoque não encontrada.');
+        return;
+      }
+  
+      const payloadSaida = {
+        medicamentoId: Number(medAtual.id),
+        atendimentoId: null,
+        vermifugacaoId: null,
+        vacinacaoId: Number(vacinacaoSalva.id),
+        equinoId: Number(equino.id),
+        tipoSaida: 'VACINACAO',
+        quantidadeInformada: Number(doseAplicada),
+        unidadeInformada: unidadeMedicacao.trim().toUpperCase(),
+        dataSaida: new Date().toISOString().slice(0, 10),
+        observacao:
+          observacaoMedicacao.trim() ||
+          `Uso em vacinação do equino ${equino?.nome || ''}`.trim(),
+      };
+  
+      console.log('Payload enviado para saidas_medicamento:', payloadSaida);
+  
+      await axios.post('/saidas_medicamento', payloadSaida);
+  
       setModalSucessoAberto(true);
+  
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
       }, 2000);
     } catch (error) {
       console.error('Erro ao salvar vacinação:', error);
+      console.log('Erro backend:', error.response?.data);
       abrirErro('Erro ao salvar vacinação e movimentação de estoque.');
     }
   };

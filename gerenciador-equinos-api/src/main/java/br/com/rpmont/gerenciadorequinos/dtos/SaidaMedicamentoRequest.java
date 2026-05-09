@@ -16,6 +16,10 @@ public record SaidaMedicamentoRequest(
 
         Long atendimentoId,
 
+        Long vermifugacaoId,
+
+        Long vacinacaoId,
+
         @NotNull(message = "O equino deve ser informado")
         Long equinoId,
 

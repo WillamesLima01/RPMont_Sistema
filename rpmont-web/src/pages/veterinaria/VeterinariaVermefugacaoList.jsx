@@ -88,6 +88,17 @@ const VeterinariaVermifugacaoList = () => {
     });
   };
 
+  const formatarQuantidade = (item) => {
+    const quantidade = item?.qtdeMedicamento;
+    const unidade = item?.unidadeMedicamento;
+  
+    if (quantidade === null || quantidade === undefined || quantidade === '') {
+      return '-';
+    }
+  
+    return `${quantidade} ${unidade || ''}`.trim();
+  };
+
   const filtrar = () => {
     let filtrados = [...vermifugacao];
 
@@ -135,19 +146,20 @@ const VeterinariaVermifugacaoList = () => {
       const equino = equinos.find(
         (eq) => String(eq.id) === String(v.equinoId)
       );
-
+    
       return [
         i + 1,
-        equino?.nome || '-',
-        formatarData(v.dataProximoProcedimento || v.data),
+        equino?.nome || v.nomeEquino || '-',
         v.vermifugo || '-',
+        formatarQuantidade(v),
+        formatarData(v.dataProximoProcedimento || v.data),
         v.observacao || '-',
       ];
     });
 
     autoTable(doc, {
       startY: 25,
-      head: [['#', 'Nome', 'Data da próxima dose', 'Vermífugo', 'Observações']],
+      head: [['#', 'Nome', 'Vermífugo', 'Quantidade', 'Data da próxima dose', 'Observações']],
       body: dadosTabela,
       styles: { fontSize: 10 },
       headStyles: { fillColor: [40, 167, 69] },
@@ -213,6 +225,7 @@ const VeterinariaVermifugacaoList = () => {
           <tr>
             <th>Nome</th>
             <th>Vermífugo</th>
+            <th>Quantidade</th>
             <th>Data da próxima dose</th>
             <th>Observações</th>
             <th className='text-end'>Ações</th>
@@ -231,6 +244,7 @@ const VeterinariaVermifugacaoList = () => {
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
                 <td>{equino?.nome || item.nomeEquino || '-'}</td>
                 <td>{item.vermifugo}</td>
+                <td>{formatarQuantidade(item)}</td>
                 <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>
 

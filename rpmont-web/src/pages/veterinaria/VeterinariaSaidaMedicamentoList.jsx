@@ -90,7 +90,7 @@ const VeterinariaSaidaMedicamentoList = () => {
     return saidas.filter((saida) => {
       const medicamentoNome = normalizar(saida.medicamentoNome);
       const fabricante = normalizar(saida.fabricante);
-      const nomeEquino = normalizar(saida.nomeEquino);
+      const nomeEquino = normalizar(saida.equinoNome);
       const observacao = normalizar(saida.observacao);
       const tipoSaida = normalizar(saida.tipoSaida);
 
@@ -269,7 +269,7 @@ const VeterinariaSaidaMedicamentoList = () => {
 
                   <div className="col-md-1 text-md-end">
                     <div className="fw-semibold">
-                      {saidasFiltradas.length}
+                      Total : {saidasFiltradas.length}
                     </div>
                   </div>
 
@@ -289,8 +289,7 @@ const VeterinariaSaidaMedicamentoList = () => {
                         <th>Quantidade</th>
                         <th>Origem</th>
                         <th>Data Saída</th>
-                        <th>Observação</th>
-                        <th className="text-center pe-3">Ações</th>
+                        <th>Observação</th>                        
                       </tr>
                     </thead>
 
@@ -314,20 +313,7 @@ const VeterinariaSaidaMedicamentoList = () => {
 
                             <td>{formatarOrigem(saida)}</td>
                             <td>{formatarData(saida.dataSaida)}</td>
-                            <td>{saida.observacao || '-'}</td>
-
-                            <td className="text-center pe-3">
-                              <div className="d-flex justify-content-center gap-2 flex-wrap">
-                                <button
-                                  type="button"
-                                  className="btn btn-sm btn-outline-danger"
-                                  title="Excluir saída"
-                                  onClick={() => abrirModalExcluir(saida)}
-                                >
-                                  <FaTrash />
-                                </button>
-                              </div>
-                            </td>
+                            <td>{saida.observacao || '-'}</td>                            
                           </tr>
                         ))
                       ) : (

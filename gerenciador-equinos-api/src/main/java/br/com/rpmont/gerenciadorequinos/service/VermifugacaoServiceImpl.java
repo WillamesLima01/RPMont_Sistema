@@ -5,6 +5,7 @@ import br.com.rpmont.gerenciadorequinos.dtos.VermifugacaoResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.model.Vermifugacao;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
+import br.com.rpmont.gerenciadorequinos.repository.SaidaMedicamentoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.VermifugacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
 
     private final VermifugacaoRepository vermifugacaoRepository;
     private final EquinoRepository equinoRepository;
+    private final SaidaMedicamentoRepository saidaMedicamentoRepository;
 
     @Override
     @Transactional
@@ -88,6 +90,8 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
         Vermifugacao vermifugacaoExistente = vermifugacaoRepository.findById(id)
                         .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                 "Vermifugação não encontrada no banco de dados."));
+
+        saidaMedicamentoRepository.deleteByVermifugacaoId(id);
 
         vermifugacaoRepository.delete(vermifugacaoExistente);
     }

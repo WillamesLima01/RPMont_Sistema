@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,6 +28,12 @@ public class Vacinacao implements Serializable {
 
     @Column(name = "observacao", columnDefinition = "TEXT")
     private String observacao;
+
+    @Column(name = "qtde_medicamento", precision = 12, scale = 2)
+    private BigDecimal qtdeMedicamento;
+
+    @Column(name = "unidade_medicamento", length = 10)
+    private String unidadeMedicamento;
 
     @Column(name = "data_proximo_procedimento")
     private LocalDate dataProximoProcedimento;

@@ -68,7 +68,13 @@ public class SaidaMedicamento implements Serializable {
     private Equino equino;
 
     @Column(name = "nome_equino", length = 150)
-    private String EquinoNome;
+    private String equinoNome;
+
+    @Column(name = "vermifugacao_id")
+    private Long vermifugacaoId;
+
+    @Column(name = "vacinacao_id")
+    private Long vacinacaoId;
 
     @CreationTimestamp
     @Column(name = "data_cadastro", nullable = false)

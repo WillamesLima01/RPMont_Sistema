@@ -14,6 +14,8 @@ public record SaidaMedicamentoResponse(
         String medicamentoNome,
         String fabricante,
         Long atendimentoId,
+        Long vermifugacaoId,
+        Long vacinacaoId,
         Long equinoId,
         String equinoNome,
         TipoSaidaMedicamentoEnum tipoSaida,

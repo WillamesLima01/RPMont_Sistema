@@ -68,6 +68,17 @@ const estaDentroDe15Dias = (item) => {
   const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
 
+  const formatarQuantidade = (item) => {
+    const quantidade = item?.qtdeMedicamento;
+    const unidade = item?.unidadeMedicamento;
+  
+    if (quantidade === null || quantidade === undefined || quantidade === '') {
+      return '-';
+    }
+  
+    return `${quantidade} ${unidade || ''}`.trim();
+  };
+
   const formatarData = (iso) =>
     new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
@@ -90,28 +101,49 @@ const estaDentroDe15Dias = (item) => {
 
   const exportarPDF = () => {
     const doc = new jsPDF();
+  
     doc.setFontSize(16);
     doc.text('Relatório de Vacinação dos Equinos', 14, 15);
-
+  
     const dadosTabela = resultado.map((v, i) => {
-      const equino = equinos.find(eq => eq.id === v.id_Eq);
+      const equino = equinos.find(
+        (eq) => String(eq.id) === String(v.equinoId)
+      );
+  
+      const quantidade =
+        v.qtdeMedicamento !== null &&
+        v.qtdeMedicamento !== undefined &&
+        v.qtdeMedicamento !== ''
+          ? `${v.qtdeMedicamento} ${v.unidadeMedicamento || ''}`.trim()
+          : '-';
+  
       return [
         i + 1,
-        equino?.nome || '-',
-        formatarData(v.data),
+        equino?.nome || v.nomeEquino || '-',
         v.nomeVacina || '-',
-        v.observacao || '-'
+        quantidade,
+        formatarData(v.dataProximoProcedimento),
+        v.observacao || '-',
       ];
     });
-
+  
     autoTable(doc, {
       startY: 25,
-      head: [['#', 'Nome', 'DataProximoProcedimento', 'Vacina', 'Observações']],
+      head: [
+        [
+          '#',
+          'Nome',
+          'Vacina',
+          'Quantidade',
+          'Data da próxima dose',
+          'Observações',
+        ],
+      ],
       body: dadosTabela,
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [52, 152, 219] }
+      headStyles: { fillColor: [52, 152, 219] },
     });
-
+  
     doc.save('relatorio_vacinacao.pdf');
   };
 
@@ -128,7 +160,7 @@ const estaDentroDe15Dias = (item) => {
   const excluirItemSelecionado = () => {
     if (!itemSelecionado) return;
 
-    axios.delete(`/vacinacoes/${itemSelecionado.id}`)
+    axios.delete(`/vacinacao/${itemSelecionado.id}`)
       .then(() => {
         const atualizados = vacinacoes.filter(a => a.id !== itemSelecionado.id);
         setVacinacoes(atualizados);
@@ -167,36 +199,47 @@ const estaDentroDe15Dias = (item) => {
           <tr>
             <th>Nome</th>
             <th>Vacina</th>
+            <th>Quantidade</th>
             <th>Data da próxima dose</th>
             <th>Observações</th>
-            <th className='text-end'>Ações</th>
+            <th className="text-end">Ações</th>
           </tr>
         </thead>
+
         <tbody>
           {itensPaginados.map(item => {
-            const equino = equinos.find(eq => eq.id === item.equinoId);
+            const equino = equinos.find(
+              (eq) => String(eq.id) === String(item.equinoId)
+            );
+
             const dentro15 = estaDentroDe15Dias(item);
+
             return (
               <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
-                <td>{equino?.nome || '-'}</td>
-                <td>{item.nomeVacina}</td>
+                <td>{equino?.nome || item.nomeEquino || '-'}</td>
+                <td>{item.nomeVacina || '-'}</td>
+                <td>{formatarQuantidade(item)}</td>
                 <td>{formatarData(item.dataProximoProcedimento)}</td>
                 <td>{item.observacao || '-'}</td>
+
                 <td className='text-end'>
                   <div className='d-flex justify-content-end'>
                     {botoes.includes('editar') && (
-                        <BotaoAcaoRows
-                            tipo="button"
-                            onClick={() => {
-                            const equino = equinos.find(eq => eq.id === item.equinoId);
-                            setEquinoSelecionado(equino);
-                            setDadosEditar(item);
-                            setModalAberto(true);
-                            }}
-                            title="Editar Vacinação"
-                            className="botao-editar"
-                            icone="bi-pencil"
-                        />
+                      <BotaoAcaoRows
+                        tipo="button"
+                        onClick={() => {
+                          const equinoEncontrado = equinos.find(
+                            (eq) => String(eq.id) === String(item.equinoId)
+                          );
+
+                          setEquinoSelecionado(equinoEncontrado);
+                          setDadosEditar(item);
+                          setModalAberto(true);
+                        }}
+                        title="Editar Vacinação"
+                        className="botao-editar"
+                        icone="bi-pencil"
+                      />
                     )}
 
                     {botoes.includes('excluir') && (
@@ -237,7 +280,7 @@ const estaDentroDe15Dias = (item) => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir a vacinação do equino "${equinos.find(eq => eq.id === itemSelecionado?.id_Eq)?.name}"?`}
+        subtitulo={`Deseja realmente excluir a vacinação do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.nome}"?`}
       >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>

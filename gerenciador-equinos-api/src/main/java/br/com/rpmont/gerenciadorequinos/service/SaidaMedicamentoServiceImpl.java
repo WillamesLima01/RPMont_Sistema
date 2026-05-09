@@ -3,14 +3,8 @@ package br.com.rpmont.gerenciadorequinos.service;
 import br.com.rpmont.gerenciadorequinos.dtos.SaidaMedicamentoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.SaidaMedicamentoResponse;
 import br.com.rpmont.gerenciadorequinos.enums.TipoSaidaMedicamentoEnum;
-import br.com.rpmont.gerenciadorequinos.model.Atendimentos;
-import br.com.rpmont.gerenciadorequinos.model.Equino;
-import br.com.rpmont.gerenciadorequinos.model.Medicamento;
-import br.com.rpmont.gerenciadorequinos.model.SaidaMedicamento;
-import br.com.rpmont.gerenciadorequinos.repository.AtendimentosRepository;
-import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
-import br.com.rpmont.gerenciadorequinos.repository.MedicamentoRepository;
-import br.com.rpmont.gerenciadorequinos.repository.SaidaMedicamentoRepository;
+import br.com.rpmont.gerenciadorequinos.model.*;
+import br.com.rpmont.gerenciadorequinos.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -195,6 +189,8 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
         saidaMedicamento.setFabricante(medicamento.getFabricante());
 
         saidaMedicamento.setAtendimento(atendimento);
+        saidaMedicamento.setVermifugacaoId(request.vermifugacaoId());
+        saidaMedicamento.setVacinacaoId(request.vacinacaoId());
 
         saidaMedicamento.setEquino(equino);
         saidaMedicamento.setEquinoNome(equino.getNome());
@@ -228,6 +224,8 @@ public class SaidaMedicamentoServiceImpl implements SaidaMedicamentoService {
                 saidaMedicamento.getFabricante(),
 
                 atendimentoId,
+                saidaMedicamento.getVermifugacaoId(),
+                saidaMedicamento.getVacinacaoId(),
 
                 saidaMedicamento.getEquino().getId(),
                 saidaMedicamento.getEquinoNome(),

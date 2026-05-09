@@ -241,7 +241,7 @@ const VeterinariaEntradaMedicamentoList = () => {
 
                   <div className="col-md-1 text-md-end">
                     <div className="fw-semibold">
-                      {entradasFiltradas.length}
+                      Total : {entradasFiltradas.length}
                     </div>
                   </div>
 

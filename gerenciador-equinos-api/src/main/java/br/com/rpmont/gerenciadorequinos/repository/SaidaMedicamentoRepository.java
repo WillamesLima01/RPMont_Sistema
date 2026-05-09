@@ -10,6 +10,16 @@ import java.util.List;
 public interface SaidaMedicamentoRepository extends JpaRepository<SaidaMedicamento, Long> {
 
     List<SaidaMedicamento> findByMedicamentoId(Long medicamentoId);
+
     List<SaidaMedicamento> findByEquinoId(Long equinoId);
+
     List<SaidaMedicamento> findByAtendimentoId(Long atendimentoId);
+
+    List<SaidaMedicamento> findByVermifugacaoId(Long vermifugacaoId);
+
+    List<SaidaMedicamento> findByVacinacaoId(Long vacinacaoId);
+
+    void deleteByVermifugacaoId(Long vermifugacaoId);
+
+    void deleteByVacinacaoId(Long vacinacaoId);
 }

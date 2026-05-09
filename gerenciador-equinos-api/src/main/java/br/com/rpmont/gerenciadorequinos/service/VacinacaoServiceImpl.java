@@ -5,6 +5,7 @@ import br.com.rpmont.gerenciadorequinos.dtos.VacinacaoResponse;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
 import br.com.rpmont.gerenciadorequinos.model.Vacinacao;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
+import br.com.rpmont.gerenciadorequinos.repository.SaidaMedicamentoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.VacinacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -20,6 +22,7 @@ public class VacinacaoServiceImpl implements VacinacaoService {
 
     private final VacinacaoRepository vacinacaoRepository;
     private final EquinoRepository equinoRepository;
+    private final SaidaMedicamentoRepository saidaMedicamentoRepository;
 
     @Transactional
     @Override
@@ -30,10 +33,7 @@ public class VacinacaoServiceImpl implements VacinacaoService {
 
         Vacinacao criarVacinacao = new Vacinacao();
 
-        criarVacinacao.setEquino(equinoExistente);
-        criarVacinacao.setNomeVacina(vacinacaoRequest.nomeVacina());
-        criarVacinacao.setObservacao(vacinacaoRequest.observacao());
-        criarVacinacao.setDataProximoProcedimento(vacinacaoRequest.dataProximoProcedimento());
+        preencherDadosVacinacao(criarVacinacao, vacinacaoRequest, equinoExistente);
 
         return  toResponse(vacinacaoRepository.save(criarVacinacao));
     }
@@ -69,10 +69,7 @@ public class VacinacaoServiceImpl implements VacinacaoService {
                         .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                 "Vacinação não encontrada no banco de dados."));
 
-        vacinacaoExistente.setEquino(equinoExistente);
-        vacinacaoExistente.setNomeVacina(vacinacaoRequest.nomeVacina());
-        vacinacaoExistente.setObservacao(vacinacaoRequest.observacao());
-        vacinacaoExistente.setDataProximoProcedimento(vacinacaoRequest.dataProximoProcedimento());
+       preencherDadosVacinacao(vacinacaoExistente, vacinacaoRequest, equinoExistente);
 
         return toResponse(vacinacaoRepository.save(vacinacaoExistente));
     }
@@ -84,7 +81,23 @@ public class VacinacaoServiceImpl implements VacinacaoService {
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Vacinação não encontrada no banco de dados."));
 
+        saidaMedicamentoRepository.deleteByVacinacaoId(id);
+
         vacinacaoRepository.delete(vacinacaoExistente);
+    }
+
+    private void preencherDadosVacinacao(
+            Vacinacao vacinacao,
+            VacinacaoRequest request,
+            Equino equino
+    ) {
+        vacinacao.setEquino(equino);
+        vacinacao.setNomeVacina(request.nomeVacina());
+        vacinacao.setQtdeMedicamento(request.qtdeMedicamento());
+        vacinacao.setUnidadeMedicamento(request.unidadeMedicamento());
+        vacinacao.setObservacao(request.observacao());
+        vacinacao.setDataProximoProcedimento(request.dataProximoProcedimento());
+
     }
 
     private VacinacaoResponse toResponse(Vacinacao vacinacao) {
@@ -93,6 +106,8 @@ public class VacinacaoServiceImpl implements VacinacaoService {
                 vacinacao.getEquino().getId(),
                 vacinacao.getEquino().getNome(),
                 vacinacao.getNomeVacina(),
+                vacinacao.getQtdeMedicamento(),
+                vacinacao.getUnidadeMedicamento(),
                 vacinacao.getObservacao(),
                 vacinacao.getDataProximoProcedimento(),
                 vacinacao.getDataCadastro(),
