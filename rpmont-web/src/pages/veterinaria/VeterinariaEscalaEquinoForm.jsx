@@ -20,7 +20,7 @@ const VeterinariaEscalaEquino = () => {
   const [observacao, setObservacao] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [idEscala, setIdEscala] = useState(null);
+  const [escalaId, setEscalaId] = useState(null);
 
   useEffect(() => {
     axios.get(`/equino/${id}`)
@@ -30,11 +30,11 @@ const VeterinariaEscalaEquino = () => {
 
   useEffect(() => {
     const estado = location.state;
-    if (estado?.modoEdicao && estado?.idEscala) {
+    if (estado?.modoEdicao && estado?.escalaId) {
       setModoEdicao(true);
-      setIdEscala(estado.idEscala);
+      setEscalaId(estado.escalaId);
 
-      axios.get(`/escala/${estado.idEscala}`).then(resp => {
+      axios.get(`/escala/${estado.escalaId}`).then(resp => {
         const escala = resp.data;
         setLocalTrabalho(escala.localTrabalho);
         const [inicio, fim] = escala.jornadaTrabalho.split(' às ');
@@ -62,7 +62,7 @@ const VeterinariaEscalaEquino = () => {
     e.preventDefault();
     const cargaHoraria = calcularCargaHoraria(jornadaInicio, jornadaFim);
     const data = {
-      idEquino: id,
+      equinoId: id,
       localTrabalho,
       jornadaTrabalho: `${jornadaInicio} às ${jornadaFim}`,
       cavaleiro,
@@ -72,7 +72,7 @@ const VeterinariaEscalaEquino = () => {
     };
 
     const requisicao = modoEdicao
-      ? axios.put(`/escala/${idEscala}`, data)
+      ? axios.put(`/escala/${escalaId}`, data)
       : axios.post('/escala', data);
 
     requisicao.then(() => {

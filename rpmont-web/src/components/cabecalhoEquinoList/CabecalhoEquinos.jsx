@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const CabecalhoEquinoLista = ({
   titulo = 'Lista de Equinos',
-  equino = [],
+  equinos = [],
   filtroNome,
   setFiltroNome,
   onFiltrar,
@@ -68,9 +68,10 @@ const CabecalhoEquinoLista = ({
             onChange={e => setFiltroNome(e.target.value)}
           >
             <option value="">Todos os equinos</option>
-            {equino.map(eq => (
-              <option key={eq.id} value={eq.id}>
-                {eq.nome}
+
+            {(equinos || []).map(equino => (
+              <option key={equino.id} value={equino.id}>
+                {equino.nome}
               </option>
             ))}
           </select>
