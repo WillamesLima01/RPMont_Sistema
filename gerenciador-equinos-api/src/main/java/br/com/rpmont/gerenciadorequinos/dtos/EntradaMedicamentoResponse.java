@@ -23,7 +23,7 @@ public record EntradaMedicamentoResponse(
         TipoUnidadeEnum tipoUnidadeEnum,
         String lote,
         LocalDate validade,
-        Integer quantidadeApresentacoes,
+        BigDecimal quantidadeApresentacoes,
         BigDecimal quantidadeBase,
         LocalDate dataEntrada,
         String fornecedor,

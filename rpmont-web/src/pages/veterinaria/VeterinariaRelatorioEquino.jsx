@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '../../components/navbar/Navbar';
 import axios from '../../api';
-import 'jspdf-autotable';
 import html2pdf from 'html2pdf.js';
-
 import './Veterinaria.css';
 import { useNavigate } from 'react-router-dom';
 
 const VeterinariaRelatorioEquino = () => {
-  const [equino, setEquino] = useState([]);
+  const [equinos, setEquinos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
   const [medicacoesAtendimento, setMedicacoesAtendimento] = useState([]);
   const [vermifugacoes, setVermifugacoes] = useState([]);
@@ -44,43 +42,51 @@ const VeterinariaRelatorioEquino = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const carregar = async () => {
+    const carregarDados = async () => {
       try {
         setCarregandoEnf(true);
 
-        const [eq, at, med, ver, vac, es, bx] = await Promise.all([
+        const [
+          equinoResponse,
+          atendimentoResponse,
+          medicacoesResponse,
+          vermifugacaoResponse,
+          vacinacaoResponse,
+          escalaResponse,
+          baixasResponse
+        ] = await Promise.all([
           axios.get('/equino'),
           axios.get('/atendimentos'),
-          axios.get('/medicacoesAtendimento'),
-          axios.get('/vermifugacoes'),
-          axios.get('/vacinacoes'),
+          axios.get('/medicacoes_atendimento'),
+          axios.get('/vermifugacao'),
+          axios.get('/vacinacao'),
           axios.get('/escala'),
-          axios.get('/equinosBaixados'),
+          axios.get('/equino/baixados'),
         ]);
 
-        const equinoData = eq.data || [];
-        const atendData = at.data || [];
-        const medicData = med.data || [];
-        const vermifData = ver.data || [];
-        const vacinData = vac.data || [];
-        const escalasData = es.data || [];
-        const baixasData = bx.data || [];
+        const equinosData = equinoResponse.data || [];
+        const atendimentosData = atendimentoResponse.data || [];
+        const medicacoesData = medicacoesResponse.data || [];
+        const vermifugacoesData = vermifugacaoResponse.data || [];
+        const vacinacoesData = vacinacaoResponse.data || [];
+        const escalasData = escalaResponse.data || [];
+        const baixasData = baixasResponse.data || [];
 
-        setEquino(equinoData);
-        setAtendimentos(atendData);
-        setMedicacoesAtendimento(medicData);
-        setVermifugacoes(vermifData);
-        setVacinacoes(vacinData);
+        setEquinos(equinosData);
+        setAtendimentos(atendimentosData);
+        setMedicacoesAtendimento(medicacoesData);
+        setVermifugacoes(vermifugacoesData);
+        setVacinacoes(vacinacoesData);
         setEscalas(escalasData);
         setBaixas(baixasData);
 
         const nomesUnicos = Array.from(
           new Set(
-            atendData
+            atendimentosData
               .map((a) => (a?.enfermidade ? String(a.enfermidade).trim() : ''))
               .filter(Boolean)
           )
-        );
+        ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
         setEnfermidades(
           nomesUnicos.map((nome, i) => ({
@@ -88,9 +94,9 @@ const VeterinariaRelatorioEquino = () => {
             nome,
           }))
         );
-      } catch (e) {
-        console.error('Erro ao carregar dados do relatório:', e);
-        setEquino([]);
+      } catch (error) {
+        console.error('Erro ao carregar dados do relatório:', error);
+        setEquinos([]);
         setAtendimentos([]);
         setMedicacoesAtendimento([]);
         setVermifugacoes([]);
@@ -103,12 +109,12 @@ const VeterinariaRelatorioEquino = () => {
       }
     };
 
-    carregar();
+    carregarDados();
   }, []);
 
   useEffect(() => {
-    const handleClickFora = (e) => {
-      if (caixaEnfRef.current && !caixaEnfRef.current.contains(e.target)) {
+    const handleClickFora = (event) => {
+      if (caixaEnfRef.current && !caixaEnfRef.current.contains(event.target)) {
         setAbrirSugestoes(false);
       }
     };
@@ -116,6 +122,45 @@ const VeterinariaRelatorioEquino = () => {
     document.addEventListener('mousedown', handleClickFora);
     return () => document.removeEventListener('mousedown', handleClickFora);
   }, []);
+
+  const obterEquinoId = (item) =>
+    item?.equinoId ?? item?.equino?.id ?? item?.equino_id ?? item?.idEquino ?? null;
+
+  const obterDataAtendimento = (item) =>
+    item?.dataAtendimento ?? item?.data ?? item?.dataCadastro ?? null;
+
+  const obterDataProcedimento = (item) =>
+    item?.dataCadastro ?? item?.data ?? null;
+
+  const obterDataEscala = (item) =>
+    item?.dataCadastro ?? item?.data ?? null;
+
+  const obterDataBaixa = (item) =>
+    item?.dataBaixa ?? item?.data_baixa ?? null;
+
+  const obterDataRetorno = (item) =>
+    item?.dataRetorno ?? item?.data_retorno ?? null;
+
+  const converterParaData = (data, horario = '12:00:00') => {
+    if (!data) return null;
+    const apenasData = String(data).slice(0, 10);
+    const dataConvertida = new Date(`${apenasData}T${horario}`);
+    if (Number.isNaN(dataConvertida.getTime())) return null;
+    return dataConvertida;
+  };
+
+  const estaNoPeriodo = (data, inicioDate, fimDate) => {
+    const dataConvertida = converterParaData(data);
+    if (!dataConvertida) return false;
+    return dataConvertida >= inicioDate && dataConvertida <= fimDate;
+  };
+
+  const formatarData = (data) => {
+    if (!data) return '—';
+    const dataConvertida = converterParaData(data, '00:00:00');
+    if (!dataConvertida) return '—';
+    return dataConvertida.toLocaleDateString('pt-BR');
+  };
 
   const sugestoesEnf = enfTexto.trim()
     ? enfermidades.filter((e) =>
@@ -153,11 +198,6 @@ const VeterinariaRelatorioEquino = () => {
         baixas: true,
       };
 
-  const formatarData = (data) => {
-    if (!data) return '—';
-    return new Date(`${String(data).slice(0, 10)}T00:00:00`).toLocaleDateString('pt-BR');
-  };
-
   const gerarRelatorio = () => {
     const inicioDate = filtroInicio
       ? new Date(`${filtroInicio}T00:00:00`)
@@ -168,126 +208,145 @@ const VeterinariaRelatorioEquino = () => {
       : new Date('9999-12-31T23:59:59');
 
     const equinosSelecionados = filtroEquino
-      ? equino.filter((e) => String(e.id) === String(filtroEquino))
-      : equino;
+      ? equinos.filter((e) => String(e.id) === String(filtroEquino))
+      : equinos;
 
-    const enfFiltro = (enfTexto || '').trim().toLowerCase();
+    const enfermidadeFiltro = enfTexto.trim().toLowerCase();
 
-    const dados = equinosSelecionados.map((eq) => {
-      const atend = atendimentos
-        .filter((a) => {
-          const dataAt = new Date(`${String(a.data).slice(0, 10)}T12:00:00`);
-          const dentro = dataAt >= inicioDate && dataAt <= fimDate;
-          const doEquino = String(a.idEquino) === String(eq.id);
-          const passaEnf = enfFiltro
-            ? String(a.enfermidade || '').toLowerCase().includes(enfFiltro)
+    const dados = equinosSelecionados.map((equinoAtual) => {
+      const atendimentosDoEquino = atendimentos
+        .filter((atendimento) => {
+          const pertenceAoEquino =
+            String(obterEquinoId(atendimento)) === String(equinoAtual.id);
+
+          const dentroDoPeriodo = estaNoPeriodo(
+            obterDataAtendimento(atendimento),
+            inicioDate,
+            fimDate
+          );
+
+          const atendeFiltroEnfermidade = enfermidadeFiltro
+            ? String(atendimento.enfermidade || '')
+                .toLowerCase()
+                .includes(enfermidadeFiltro)
             : true;
 
-          return dentro && doEquino && passaEnf;
+          return pertenceAoEquino && dentroDoPeriodo && atendeFiltroEnfermidade;
         })
-        .map((a) => {
-          const meds = medicacoesAtendimento.filter((m) => {
-            const dataMed = new Date(`${String(m.data).slice(0, 10)}T12:00:00`);
-            const dentroPeriodo = dataMed >= inicioDate && dataMed <= fimDate;
-            return (
-              String(m.atendimentoId) === String(a.id) &&
-              String(m.idEquino) === String(eq.id) &&
-              dentroPeriodo
-            );
+        .map((atendimento) => {
+          const medicacoesDoAtendimento = medicacoesAtendimento.filter((medicacao) => {
+            const pertenceAoAtendimento =
+              String(medicacao.atendimentoId) === String(atendimento.id);
+
+            const pertenceAoEquino =
+              String(obterEquinoId(medicacao)) === String(equinoAtual.id);
+
+            return pertenceAoAtendimento && pertenceAoEquino;
           });
 
           return {
-            ...a,
-            medicacoes: meds,
+            ...atendimento,
+            medicacoes: medicacoesDoAtendimento,
           };
         });
 
-      const vermif = vermifugacoes.filter((v) => {
-        const dataVer = new Date(`${String(v.data).slice(0, 10)}T12:00:00`);
+      const vermifugacoesDoEquino = vermifugacoes.filter((v) => {
         return (
-          String(v.equinoId) === String(eq.id) &&
-          dataVer >= inicioDate &&
-          dataVer <= fimDate
+          String(obterEquinoId(v)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(v), inicioDate, fimDate)
         );
       });
 
-      const vacin = vacinacoes.filter((v) => {
-        const dataVac = new Date(`${String(v.data).slice(0, 10)}T12:00:00`);
+      const vacinacoesDoEquino = vacinacoes.filter((v) => {
         return (
-          (String(v.equinoId) === String(eq.id) || String(v.id_Eq) === String(eq.id)) &&
-          dataVac >= inicioDate &&
-          dataVac <= fimDate
+          String(obterEquinoId(v)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(v), inicioDate, fimDate)
         );
       });
 
-      const esc = escalas.filter((s) => {
-        const dataEsc = new Date(`${String(s.data).slice(0, 10)}T12:00:00`);
+      const escalasDoEquino = escalas.filter((s) => {
         return (
-          String(s.idEquino) === String(eq.id) &&
-          dataEsc >= inicioDate &&
-          dataEsc <= fimDate
+          String(obterEquinoId(s)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataEscala(s), inicioDate, fimDate)
         );
       });
 
-      const baixasEq = baixas.filter((b) => String(b.idEquino) === String(eq.id));
-      let baixasFiltradas = [];
+      const baixasDoEquino = baixas.filter((b) => {
+        return String(obterEquinoId(b)) === String(equinoAtual.id);
+      });
+
+      const baixasFiltradas = [];
       let totalDiasBaixado = 0;
 
-      baixasEq.forEach((b) => {
-        const dataBaixa = new Date(`${String(b.dataBaixa).slice(0, 10)}T12:00:00`);
-        const dataRetorno = b.dataRetorno
-          ? new Date(`${String(b.dataRetorno).slice(0, 10)}T12:00:00`)
-          : null;
+      baixasDoEquino.forEach((baixa) => {
+        const dataBaixa = converterParaData(obterDataBaixa(baixa));
+        const dataRetorno = converterParaData(obterDataRetorno(baixa));
 
-        const sobrepoe =
+        if (!dataBaixa) return;
+
+        const hoje = new Date();
+        hoje.setHours(23, 59, 59, 999);
+
+        const limiteFinalSemRetorno = fimDate < hoje ? fimDate : hoje;
+
+        const sobrepoePeriodo =
           dataBaixa <= fimDate &&
-          (dataRetorno ? dataRetorno >= inicioDate : true);
+          (dataRetorno ? dataRetorno >= inicioDate : limiteFinalSemRetorno >= inicioDate);
 
-        if (sobrepoe) {
-          const inicioPeriodo = dataBaixa < inicioDate ? inicioDate : dataBaixa;
-          const fimPeriodo =
-            dataRetorno && dataRetorno < fimDate ? dataRetorno : fimDate;
+        if (!sobrepoePeriodo) return;
 
-          const dias = Math.max(
-            1,
-            Math.ceil((fimPeriodo - inicioPeriodo) / (1000 * 60 * 60 * 24))
-          );
+        const inicioPeriodo = dataBaixa < inicioDate ? inicioDate : dataBaixa;
 
-          totalDiasBaixado += dias;
+        const fimPeriodo = dataRetorno
+          ? dataRetorno < fimDate
+            ? dataRetorno
+            : fimDate
+          : limiteFinalSemRetorno;
 
-          baixasFiltradas.push({
-            dataBaixa: formatarData(b.dataBaixa),
-            dataRetorno: b.dataRetorno ? formatarData(b.dataRetorno) : '—',
-            dias,
-          });
-        }
+        const dias = Math.max(
+          1,
+          Math.ceil((fimPeriodo - inicioPeriodo) / (1000 * 60 * 60 * 24))
+        );
+
+        totalDiasBaixado += dias;
+
+        baixasFiltradas.push({
+          dataBaixa: formatarData(obterDataBaixa(baixa)),
+          dataRetorno: obterDataRetorno(baixa)
+            ? formatarData(obterDataRetorno(baixa))
+            : '—',
+          dias,
+        });
       });
 
-      const cargaTotal = esc.reduce(
+      const cargaTotal = escalasDoEquino.reduce(
         (acc, item) => acc + (Number(item.cargaHoraria) || 0),
         0
       );
 
-      const totalMedicacoes = atend.reduce(
+      const totalMedicacoes = atendimentosDoEquino.reduce(
         (acc, a) => acc + (a.medicacoes?.length || 0),
         0
       );
 
       return {
-        equino: eq.nome,
-        atendimentos: tiposAtivos.atendimentos ? atend : [],
-        vermifugacoes: tiposAtivos.vermifugacoes ? vermif : [],
-        vacinacoes: tiposAtivos.vacinacoes ? vacin : [],
-        escalas: tiposAtivos.escalas ? esc : [],
+        equino: equinoAtual.nome,
+        atendimentos:
+          tiposAtivos.atendimentos || tiposAtivos.medicacoes
+            ? atendimentosDoEquino
+            : [],
+        vermifugacoes: tiposAtivos.vermifugacoes ? vermifugacoesDoEquino : [],
+        vacinacoes: tiposAtivos.vacinacoes ? vacinacoesDoEquino : [],
+        escalas: tiposAtivos.escalas ? escalasDoEquino : [],
         baixas: tiposAtivos.baixas ? baixasFiltradas : [],
         cargaTotal,
-        totalAtendimentos: atend.length,
+        totalAtendimentos: atendimentosDoEquino.length,
         totalMedicacoes,
-        totalVermifugacoes: vermif.length,
-        totalVacinacoes: vacin.length,
+        totalVermifugacoes: vermifugacoesDoEquino.length,
+        totalVacinacoes: vacinacoesDoEquino.length,
         totalBaixas: baixasFiltradas.length,
         totalDiasBaixado,
-        totalEscalas: esc.length,
+        totalEscalas: escalasDoEquino.length,
       };
     });
 
@@ -302,7 +361,7 @@ const VeterinariaRelatorioEquino = () => {
       return temAtend || temMed || temVerm || temVac || temEsc || temBaixa;
     });
 
-    const totalOcorr = enfFiltro
+    const totalOcorr = enfermidadeFiltro
       ? dadosFiltrados.reduce((acc, d) => acc + d.totalAtendimentos, 0)
       : null;
 
@@ -314,413 +373,418 @@ const VeterinariaRelatorioEquino = () => {
 
   const gerarPDF = () => {
     if (!divRef.current) return;
-
-    const clone = divRef.current.cloneNode(true);
-
-    const cabecalho = document.createElement('div');
-    cabecalho.style.textAlign = 'center';
-    cabecalho.style.marginBottom = '20px';
-
-    const titulo = document.createElement('h2');
-    titulo.innerText = 'Relatório de Equinos';
-    titulo.style.color = '#0d6efd';
-    cabecalho.appendChild(titulo);
-
-    const filtros = document.createElement('p');
-    filtros.style.fontSize = '14px';
-    filtros.style.marginBottom = '10px';
-
-    const periodoTexto = `Período: ${filtroInicio || 'S/D'} até ${filtroFim || 'S/D'}`;
-    const equinoNome = filtroEquino
-      ? equino.find((eq) => String(eq.id) === String(filtroEquino))?.nome || 'Desconhecido'
-      : 'Todos';
-
-    const tiposMarcados = Object.entries(tiposAtivos)
-      .filter(([, ativo]) => ativo)
-      .map(([chave]) => {
-        if (chave === 'atendimentos') return 'Atendimentos';
-        if (chave === 'medicacoes') return 'Medicações';
-        if (chave === 'vermifugacoes') return 'Vermifugações';
-        if (chave === 'vacinacoes') return 'Vacinações';
-        if (chave === 'escalas') return 'Escalas';
-        if (chave === 'baixas') return 'Baixas';
-        return chave;
-      })
-      .join(', ');
-
-    const enfHeader = enfTexto || 'Todas';
-
-    const ocorrHeader =
-      totalOcorrenciasEnf != null
-        ? ` | Ocorrências de "${enfHeader}": ${totalOcorrenciasEnf}`
-        : '';
-
-    filtros.innerText = `${periodoTexto} | Equino: ${equinoNome} | Tipos: ${tiposMarcados} | Enfermidade: ${enfHeader}${ocorrHeader}`;
-    cabecalho.appendChild(filtros);
-
-    clone.prepend(cabecalho);
-
-    const opt = {
-      margin: 0.5,
+  
+    const elementoOriginal = divRef.current;
+  
+    // Clona o relatório para aplicar ajustes exclusivos do PDF
+    const clone = elementoOriginal.cloneNode(true);
+    clone.classList.add('pdf-export');
+  
+    const containerTemporario = document.createElement('div');
+    containerTemporario.className = 'pdf-export-wrapper';
+    containerTemporario.appendChild(clone);
+  
+    document.body.appendChild(containerTemporario);
+  
+    const opcoes = {
+      margin: [0.35, 0.35, 0.60, 0.35],
       filename: 'relatorio_equinos.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+      image: {
+        type: 'jpeg',
+        quality: 0.98,
+      },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: clone.scrollWidth,
+      },
+      jsPDF: {
+        unit: 'in',
+        format: 'a4',
+        orientation: 'portrait',
+      },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        avoid: [
+          '.print-item',
+          '.summary-box',
+          '.print-meta-item',
+          '.nested-item',
+          '.pdf-avoid-break',
+        ],
+      },
     };
-
-    html2pdf().set(opt).from(clone).save();
+  
+    const worker = html2pdf()
+      .set(opcoes)
+      .from(clone)
+      .toPdf();
+  
+    worker
+      .get('pdf')
+      .then((pdf) => {
+        const totalPaginas = pdf.internal.getNumberOfPages();
+        const larguraPagina = pdf.internal.pageSize.getWidth();
+        const alturaPagina = pdf.internal.pageSize.getHeight();
+  
+        for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+          pdf.setPage(pagina);
+  
+          pdf.setFontSize(8);
+          pdf.setTextColor(90);
+  
+          pdf.text(
+            `${pagina}/${totalPaginas}`,
+            larguraPagina - 0.35,
+            alturaPagina - 0.22,
+            { align: 'right' }
+          );
+        }
+      })
+      .then(() => worker.save())
+      .then(() => {
+        document.body.removeChild(containerTemporario);
+      })
+      .catch((error) => {
+        console.error('Erro ao gerar PDF:', error);
+  
+        if (document.body.contains(containerTemporario)) {
+          document.body.removeChild(containerTemporario);
+        }
+      });
   };
 
-  const emptyMsg = 'Nenhum resultado encontrado com os filtros informados.';
+  const dataAtualImpressao = new Date().toLocaleString('pt-BR');
+
+  const nomeEquinoSelecionado = filtroEquino
+    ? equinos.find((eq) => String(eq.id) === String(filtroEquino))?.nome || 'Desconhecido'
+    : 'Todos os equinos';
 
   return (
     <div className="container-fluid mt-page">
       <Navbar />
 
-      <div className="relatorio-card shadow p-4 rounded-4 bg-white">
-        <h2 className="mb-4 text-primary">Relatório de Equinos</h2>
+      <div className="relatorio-page">
+        {/* PAINEL DE FILTROS - NÃO IMPRIME */}
+        <div className="relatorio-card shadow-sm rounded-4 bg-white p-4 no-print">
+          <h2 className="mb-4 text-primary">Relatório de Equinos</h2>
 
-        <div className="row g-2 align-items-end mb-3">
-          <div className="col-6 col-md-2">
-            <label className="form-label fw-bold">Período Inicial:</label>
-            <input
-              type="date"
-              className="form-control"
-              value={filtroInicio}
-              onChange={(e) => setFiltroInicio(e.target.value)}
-            />
-          </div>
-
-          <div className="col-6 col-md-2">
-            <label className="form-label fw-bold">Período Final:</label>
-            <input
-              type="date"
-              className="form-control"
-              value={filtroFim}
-              onChange={(e) => setFiltroFim(e.target.value)}
-            />
-          </div>
-
-          <div className="col-6 col-md-2">
-            <label className="form-label fw-bold">Equino:</label>
-            <select
-              className="form-select"
-              value={filtroEquino}
-              onChange={(e) => setFiltroEquino(e.target.value)}
-            >
-              <option value="">Todos</option>
-              {equino.map((eq) => (
-                <option key={eq.id} value={eq.id}>
-                  {eq.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-12 col-md-6" ref={caixaEnfRef}>
-            <label className="form-label fw-bold">Enfermidade</label>
-            <div className="position-relative">
+          <div className="row g-3 align-items-end mb-3">
+            <div className="col-6 col-md-2">
+              <label className="form-label fw-bold">Período Inicial</label>
               <input
-                type="text"
+                type="date"
                 className="form-control"
-                placeholder={carregandoEnf ? 'Carregando...' : 'Clique ou digite para filtrar'}
-                value={enfTexto}
-                onChange={(e) => {
-                  setEnfTexto(e.target.value);
-                  setAbrirSugestoes(true);
-                }}
-                onFocus={() => setAbrirSugestoes(true)}
-                onBlur={() => {
-                  blurTimer.current = setTimeout(() => setAbrirSugestoes(false), 150);
-                }}
+                value={filtroInicio}
+                onChange={(e) => setFiltroInicio(e.target.value)}
               />
+            </div>
 
-              {enfTexto && (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary position-absolute top-50 translate-middle-y"
-                  style={{ right: 6 }}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={limparEnf}
-                >
-                  Limpar
-                </button>
-              )}
+            <div className="col-6 col-md-2">
+              <label className="form-label fw-bold">Período Final</label>
+              <input
+                type="date"
+                className="form-control"
+                value={filtroFim}
+                onChange={(e) => setFiltroFim(e.target.value)}
+              />
+            </div>
 
-              {abrirSugestoes && sugestoesEnf.length > 0 && (
-                <ul
-                  className="list-group shadow-sm"
-                  style={{
-                    position: 'absolute',
-                    zIndex: 20,
-                    width: '100%',
-                    maxHeight: 220,
-                    overflowY: 'auto',
-                    marginTop: 4,
+            <div className="col-6 col-md-2">
+              <label className="form-label fw-bold">Equino</label>
+              <select
+                className="form-select"
+                value={filtroEquino}
+                onChange={(e) => setFiltroEquino(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {equinos.map((eq) => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-12 col-md-6" ref={caixaEnfRef}>
+              <label className="form-label fw-bold">Enfermidade</label>
+              <div className="position-relative">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={carregandoEnf ? 'Carregando...' : 'Clique ou digite para filtrar'}
+                  value={enfTexto}
+                  onChange={(e) => {
+                    setEnfTexto(e.target.value);
+                    setAbrirSugestoes(true);
                   }}
-                  onMouseDown={(e) => e.preventDefault()}
-                >
-                  {sugestoesEnf.map((s) => (
-                    <li
-                      key={s.id}
-                      className="list-group-item list-group-item-action"
-                      role="button"
-                      onClick={() => selecionarEnf(s)}
-                      title={s.nome}
-                    >
-                      {s.nome}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
+                  onFocus={() => setAbrirSugestoes(true)}
+                  onBlur={() => {
+                    blurTimer.current = setTimeout(() => setAbrirSugestoes(false), 150);
+                  }}
+                />
 
-        <div className="mb-4">
-          <label className="form-label fw-bold d-block">Tipos de relatório:</label>
-          <div className="d-flex flex-wrap gap-4">
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-atendimentos"
-                checked={tiposSelecionados.atendimentos}
-                onChange={() => handleTipoChange('atendimentos')}
-              />
-              <label className="form-check-label" htmlFor="tipo-atendimentos">
-                Atendimentos
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-medicacoes"
-                checked={tiposSelecionados.medicacoes}
-                onChange={() => handleTipoChange('medicacoes')}
-              />
-              <label className="form-check-label" htmlFor="tipo-medicacoes">
-                Medicações
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-vermifugacoes"
-                checked={tiposSelecionados.vermifugacoes}
-                onChange={() => handleTipoChange('vermifugacoes')}
-              />
-              <label className="form-check-label" htmlFor="tipo-vermifugacoes">
-                Vermifugações
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-vacinacoes"
-                checked={tiposSelecionados.vacinacoes}
-                onChange={() => handleTipoChange('vacinacoes')}
-              />
-              <label className="form-check-label" htmlFor="tipo-vacinacoes">
-                Vacinações
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-escalas"
-                checked={tiposSelecionados.escalas}
-                onChange={() => handleTipoChange('escalas')}
-              />
-              <label className="form-check-label" htmlFor="tipo-escalas">
-                Escalas
-              </label>
-            </div>
-
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="tipo-baixas"
-                checked={tiposSelecionados.baixas}
-                onChange={() => handleTipoChange('baixas')}
-              />
-              <label className="form-check-label" htmlFor="tipo-baixas">
-                Baixas
-              </label>
-            </div>
-          </div>
-          {!algumTipoSelecionado && (
-            <small className="text-muted">
-              Nenhuma opção marcada. O sistema considerará todos os tipos.
-            </small>
-          )}
-        </div>
-
-        <div className="d-flex justify-content-end gap-3 mb-3">
-          <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
-            Voltar
-          </button>
-          <button className="btn btn-success" onClick={gerarRelatorio}>
-            Gerar Relatório
-          </button>
-          <button className="btn btn-outline-primary d-print-none" onClick={imprimir}>
-            Imprimir
-          </button>
-          <button className="btn btn-outline-secondary d-print-none" onClick={gerarPDF}>
-            Gerar PDF
-          </button>
-        </div>
-
-        {totalOcorrenciasEnf != null && (
-          <div className="alert alert-info">
-            Ocorrências de <strong>"{enfTexto}"</strong>: <strong>{totalOcorrenciasEnf}</strong>
-          </div>
-        )}
-
-        {resultado && resultado.length > 0 && (
-          <div ref={divRef} className="relatorio-result mt-4">
-            {resultado.map((r, index) => (
-              <div key={index} className="relatorio-bloco mb-5 p-4 border rounded shadow-sm">
-                <h4 className="mb-3">{r.equino}</h4>
-
-                {enfTexto.trim() && (
-                  <p>
-                    <strong>Ocorrências da enfermidade:</strong> {r.totalAtendimentos}
-                  </p>
+                {enfTexto && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary position-absolute top-50 translate-middle-y"
+                    style={{ right: 6 }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={limparEnf}
+                  >
+                    Limpar
+                  </button>
                 )}
 
-                <div className="mb-3">
-                  {tiposAtivos.atendimentos && (
-                    <p><strong>Total de Atendimentos:</strong> {r.totalAtendimentos}</p>
-                  )}
-                  {tiposAtivos.medicacoes && (
-                    <p><strong>Total de Medicações:</strong> {r.totalMedicacoes}</p>
-                  )}
-                  {tiposAtivos.vermifugacoes && (
-                    <p><strong>Total de Vermifugações:</strong> {r.totalVermifugacoes}</p>
-                  )}
-                  {tiposAtivos.vacinacoes && (
-                    <p><strong>Total de Vacinações:</strong> {r.totalVacinacoes}</p>
-                  )}
-                  {tiposAtivos.baixas && (
-                    <>
-                      <p><strong>Total de Baixas:</strong> {r.totalBaixas}</p>
-                      <p><strong>Total de Dias Baixado:</strong> {r.totalDiasBaixado}</p>
-                    </>
-                  )}
-                  {tiposAtivos.escalas && (
-                    <>
-                      <p><strong>Total de Escalas:</strong> {r.totalEscalas}</p>
-                      <p><strong>Total de Carga Horária:</strong> {r.cargaTotal}h</p>
-                    </>
-                  )}
-                </div>
-
-                {r.atendimentos.length > 0 && (
-                  <>
-                    <h5 className="mt-3">Atendimentos</h5>
-                    <ul>
-                      {r.atendimentos.map((a, i) => (
-                        <li key={i} className="mb-2">
-                          <div>
-                            <strong>{formatarData(a.data)}</strong> - {a.textoConsulta}
-                            {a.enfermidade ? ` — Enfermidade: ${a.enfermidade}` : ''}
-                          </div>
-
-                          {tiposAtivos.medicacoes && a.medicacoes?.length > 0 && (
-                            <ul className="mt-1">
-                              {a.medicacoes.map((m, j) => (
-                                <li key={j}>
-                                  <strong>Medicação:</strong> {m.nomeMedicamento || '—'} |{' '}
-                                  <strong>Dose:</strong> {m.doseAplicada ?? '—'} {m.unidade || ''} |{' '}
-                                  <strong>Origem:</strong> {m.origem || '—'}
-                                  {m.observacao ? ` | Obs.: ${m.observacao}` : ''}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {r.vermifugacoes.length > 0 && (
-                  <>
-                    <h5 className="mt-3">Vermifugações</h5>
-                    <ul>
-                      {r.vermifugacoes.map((v, i) => (
-                        <li key={i}>
-                          <strong>{formatarData(v.data)}</strong> - {v.vermifugo || '—'}
-                          {v.dataProximoProcedimento
-                            ? ` | Próximo procedimento: ${formatarData(v.dataProximoProcedimento)}`
-                            : ''}
-                          {v.observacao ? ` | Obs.: ${v.observacao}` : ''}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {r.vacinacoes.length > 0 && (
-                  <>
-                    <h5 className="mt-3">Vacinações</h5>
-                    <ul>
-                      {r.vacinacoes.map((v, i) => (
-                        <li key={i}>
-                          <strong>{formatarData(v.data)}</strong> - {v.nomeVacina || '—'}
-                          {v.dataProximoProcedimento
-                            ? ` | Próxima dose: ${formatarData(v.dataProximoProcedimento)}`
-                            : ''}
-                          {v.observacao ? ` | Obs.: ${v.observacao}` : ''}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {r.baixas.length > 0 && (
-                  <>
-                    <h5 className="mt-3">Baixas</h5>
-                    <ul>
-                      {r.baixas.map((b, i) => (
-                        <li key={i}>
-                          Baixado em {b.dataBaixa}, retornou em {b.dataRetorno} ({b.dias} dias)
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {r.escalas.length > 0 && (
-                  <>
-                    <h5 className="mt-3">Escalas</h5>
-                    <ul>
-                      {r.escalas.map((s, i) => (
-                        <li key={i}>
-                          {formatarData(s.data)} - {s.localTrabalho}, {s.jornadaTrabalho},{' '}
-                          Cavaleiro: {s.cavaleiro}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
+                {abrirSugestoes && sugestoesEnf.length > 0 && (
+                  <ul
+                    className="list-group shadow-sm"
+                    style={{
+                      position: 'absolute',
+                      zIndex: 20,
+                      width: '100%',
+                      maxHeight: 220,
+                      overflowY: 'auto',
+                      marginTop: 4,
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    {sugestoesEnf.map((s) => (
+                      <li
+                        key={s.id}
+                        className="list-group-item list-group-item-action"
+                        role="button"
+                        onClick={() => selecionarEnf(s)}
+                        title={s.nome}
+                      >
+                        {s.nome}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
-            ))}
+            </div>
           </div>
-        )}
 
-        {resultado && resultado.length === 0 && (
-          <div className="alert alert-warning mt-3">{emptyMsg}</div>
+          <div className="mb-4">
+            <label className="form-label fw-bold d-block">Tipos de relatório</label>
+
+            <div className="d-flex flex-wrap gap-4">
+              {Object.keys(tiposSelecionados).map((tipo) => (
+                <div className="form-check" key={tipo}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`tipo-${tipo}`}
+                    checked={tiposSelecionados[tipo]}
+                    onChange={() => handleTipoChange(tipo)}
+                  />
+                  <label className="form-check-label" htmlFor={`tipo-${tipo}`}>
+                    {tipo === 'atendimentos' && 'Atendimentos'}
+                    {tipo === 'medicacoes' && 'Medicações'}
+                    {tipo === 'vermifugacoes' && 'Vermifugações'}
+                    {tipo === 'vacinacoes' && 'Vacinações'}
+                    {tipo === 'escalas' && 'Escalas'}
+                    {tipo === 'baixas' && 'Baixas'}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-end gap-3">
+            <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
+              Voltar
+            </button>
+            <button className="btn btn-success" onClick={gerarRelatorio}>
+              Gerar Relatório
+            </button>
+            <button className="btn btn-outline-primary" onClick={imprimir}>
+              Imprimir
+            </button>
+            <button className="btn btn-outline-secondary" onClick={gerarPDF}>
+              Gerar PDF
+            </button>
+          </div>
+        </div>
+
+        {/* ÁREA PROFISSIONAL DE IMPRESSÃO */}
+        {resultado && (
+          <div ref={divRef} className="relatorio-print-area bg-white rounded-4 shadow-sm p-4 mt-4">
+            <div className="print-header">
+              <div className="print-header-top">
+                <div>
+                  <div className="print-org">Regimento Coronel Calixto</div>
+                  <h1 className="print-title">Relatório de Equinos</h1>
+                </div>
+                <div className="print-date">Emitido em: {dataAtualImpressao}</div>
+              </div>
+
+              <div className="print-meta-grid">
+                <div className="print-meta-item">
+                  <span className="meta-label">Equino</span>
+                  <span className="meta-value">{nomeEquinoSelecionado}</span>
+                </div>
+
+                <div className="print-meta-item">
+                  <span className="meta-label">Período Inicial</span>
+                  <span className="meta-value">{filtroInicio ? formatarData(filtroInicio) : 'Não informado'}</span>
+                </div>
+
+                <div className="print-meta-item">
+                  <span className="meta-label">Período Final</span>
+                  <span className="meta-value">{filtroFim ? formatarData(filtroFim) : 'Não informado'}</span>
+                </div>
+
+                <div className="print-meta-item">
+                  <span className="meta-label">Enfermidade</span>
+                  <span className="meta-value">{enfTexto || 'Todas'}</span>
+                </div>
+              </div>
+            </div>
+
+            {totalOcorrenciasEnf != null && (
+              <div className="alert alert-info mt-3 no-break">
+                Ocorrências de <strong>"{enfTexto}"</strong>: <strong>{totalOcorrenciasEnf}</strong>
+              </div>
+            )}
+
+            {resultado.length > 0 ? (
+              <div className="relatorio-result mt-4">
+                {resultado.map((r, index) => (
+                  <div key={index} className="print-card">
+                    <div className="print-card-header">
+                      <h3>{r.equino}</h3>
+                    </div>
+
+                    <div className="print-summary-grid">
+                      <div className="summary-box">
+                        <span className="summary-label">Atendimentos</span>
+                        <span className="summary-value">{r.totalAtendimentos}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Medicações</span>
+                        <span className="summary-value">{r.totalMedicacoes}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Vermifugações</span>
+                        <span className="summary-value">{r.totalVermifugacoes}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Vacinações</span>
+                        <span className="summary-value">{r.totalVacinacoes}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Baixas</span>
+                        <span className="summary-value">{r.totalBaixas}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Dias Baixado</span>
+                        <span className="summary-value">{r.totalDiasBaixado}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Escalas</span>
+                        <span className="summary-value">{r.totalEscalas}</span>
+                      </div>
+                      <div className="summary-box">
+                        <span className="summary-label">Carga Horária</span>
+                        <span className="summary-value">{r.cargaTotal}h</span>
+                      </div>
+                    </div>
+
+                    {r.atendimentos.length > 0 && (
+                      <section className="print-section">
+                        <h4>Atendimentos</h4>
+                        {r.atendimentos.map((a, i) => (
+                          <div key={i} className="print-item">
+                            <div className="item-title">
+                              <strong>{formatarData(obterDataAtendimento(a))}</strong> — {a.textoConsulta || '—'}
+                            </div>
+                            {a.enfermidade && (
+                              <div className="item-subline">
+                                <strong>Enfermidade:</strong> {a.enfermidade}
+                              </div>
+                            )}
+
+                            {tiposAtivos.medicacoes && a.medicacoes?.length > 0 && (
+                              <div className="nested-block">
+                                {a.medicacoes.map((m, j) => (
+                                  <div key={j} className="nested-item">
+                                    <strong>Medicação:</strong> {m.nomeMedicamento || '—'} |{' '}
+                                    <strong>Dose:</strong> {m.doseAplicada ?? '—'} {m.unidade || ''} |{' '}
+                                    <strong>Origem:</strong> {m.origem || '—'}
+                                    {m.observacao ? ` | Obs.: ${m.observacao}` : ''}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </section>
+                    )}
+
+                    {r.vermifugacoes.length > 0 && (
+                      <section className="print-section">
+                        <h4>Vermifugações</h4>
+                        {r.vermifugacoes.map((v, i) => (
+                          <div key={i} className="print-item">
+                            <strong>{formatarData(obterDataProcedimento(v))}</strong> — {v.vermifugo || '—'}
+                            {v.dataProximoProcedimento
+                              ? ` | Próximo procedimento: ${formatarData(v.dataProximoProcedimento)}`
+                              : ''}
+                            {v.observacao ? ` | Obs.: ${v.observacao}` : ''}
+                          </div>
+                        ))}
+                      </section>
+                    )}
+
+                    {r.vacinacoes.length > 0 && (
+                      <section className="print-section">
+                        <h4>Vacinações</h4>
+                        {r.vacinacoes.map((v, i) => (
+                          <div key={i} className="print-item">
+                            <strong>{formatarData(obterDataProcedimento(v))}</strong> — {v.nomeVacina || '—'}
+                            {v.dataProximoProcedimento
+                              ? ` | Próxima dose: ${formatarData(v.dataProximoProcedimento)}`
+                              : ''}
+                            {v.observacao ? ` | Obs.: ${v.observacao}` : ''}
+                          </div>
+                        ))}
+                      </section>
+                    )}
+
+                    {r.baixas.length > 0 && (
+                      <section className="print-section">
+                        <h4>Baixas</h4>
+                        {r.baixas.map((b, i) => (
+                          <div key={i} className="print-item">
+                            Baixado em <strong>{b.dataBaixa}</strong>, retornou em <strong>{b.dataRetorno}</strong> ({b.dias} dia(s))
+                          </div>
+                        ))}
+                      </section>
+                    )}
+
+                    {r.escalas.length > 0 && (
+                      <section className="print-section">
+                        <h4>Escalas</h4>
+                        {r.escalas.map((s, i) => (
+                          <div key={i} className="print-item">
+                            <strong>{formatarData(obterDataEscala(s))}</strong> — {s.localTrabalho || '—'}, {s.jornadaTrabalho || '—'}, Cavaleiro: {s.cavaleiro || '—'}
+                          </div>
+                        ))}
+                      </section>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="alert alert-warning mt-3">
+                Nenhum resultado encontrado com os filtros informados.
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

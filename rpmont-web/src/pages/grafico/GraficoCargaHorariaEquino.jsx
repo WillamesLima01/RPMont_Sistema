@@ -43,7 +43,9 @@ const GraficoCargaHorariaEquino = () => {
 
         const mesesSet = new Set();
         escalas.forEach((esc) => {
-          const mes = (esc.data || '').slice(0, 7); // YYYY-MM
+          const dataEscala = esc.dataCadastro ?? esc.data ?? null;
+          const mes = dataEscala ? String(dataEscala).slice(0, 7) : '';
+        
           if (mes) mesesSet.add(mes);
         });
 
@@ -89,11 +91,22 @@ const GraficoCargaHorariaEquino = () => {
     if (!chartRef.current) return;
     chartRef.current.innerHTML = '';
 
-    const escalasFiltradas = (escalas || []).filter((esc) =>
-      (esc.data || '').startsWith(mes)
-    );
+    const escalasFiltradas = (escalas || []).filter((esc) => {
+      const dataEscala = esc.dataCadastro ?? esc.data ?? null;
+    
+      return dataEscala
+        ? String(dataEscala).startsWith(mes)
+        : false;
+    });
 
-    const equinoIds = [...new Set(escalasFiltradas.map((esc) => String(esc.idEquino)))];
+    const equinoIds = [
+      ...new Set(
+        escalasFiltradas
+          .map((esc) => esc.equino?.id ?? esc.equinoId ?? esc.idEquino ?? null)
+          .filter((id) => id !== null && id !== undefined)
+          .map((id) => String(id))
+      )
+    ];
 
     const equinosFiltrados = (equinos || []).filter((eq) =>
       equinoIds.includes(String(eq.id))
@@ -110,7 +123,15 @@ const GraficoCargaHorariaEquino = () => {
 
     const dados = equinosFiltrados.map((eq) => {
       const total = escalasFiltradas
-        .filter((esc) => String(esc.idEquino) === String(eq.id))
+        .filter((esc) => {
+          const equinoIdEscala =
+            esc.equino?.id ??
+            esc.equinoId ??
+            esc.idEquino ??
+            null;
+        
+          return String(equinoIdEscala) === String(eq.id);
+        })
         .reduce((acc, esc) => acc + Number(esc.cargaHoraria || 0), 0);
 
       let cor = '#d9edf7';

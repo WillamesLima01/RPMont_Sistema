@@ -38,7 +38,7 @@ const rotas = () => {
   return (
     <BrowserRouter>
       <Routes>        
-        <Route path="/" element={<VeterinariaToaleteForm />} />    
+        <Route path="/" element={<Grafico />} />    
         <Route path="/administrador" element={<UsuariosList />} />
         <Route path="/veterinaria-List" element={<VeterinariaEquinoList />} />
         <Route path="/veterinaria-Form" element={<VeterinariaForm />} />

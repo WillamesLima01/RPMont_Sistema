@@ -78,7 +78,7 @@ const Grafico = () => {
     Promise.all([
       axios.get('/equino'),
       axios.get('/atendimentos'),
-      axios.get('/equino_baixado'),
+      axios.get('/equino/baixados'),
     ])
       .then(([resEquinos, resAtendimentos, resBaixados]) => {
         const equinos = resEquinos.data || [];
@@ -109,14 +109,30 @@ const Grafico = () => {
         });
 
         atendimentos.forEach((at) => {
-          const mesAno = (at.data || '').slice(0, 7);
+          const dataAtendimento =
+            at.dataAtendimento ??
+            at.data ??
+            null;
+        
+          const mesAno = dataAtendimento
+            ? String(dataAtendimento).slice(0, 7)
+            : '';
+        
           if (mapAtendimentos[mesAno] !== undefined) {
             mapAtendimentos[mesAno]++;
           }
         });
-
+        
         equino_baixado.forEach((bx) => {
-          const mesAno = (bx.data_baixa || '').slice(0, 7);
+          const dataBaixa =
+            bx.dataBaixa ??
+            bx.data_baixa ??
+            null;
+        
+          const mesAno = dataBaixa
+            ? String(dataBaixa).slice(0, 7)
+            : '';
+        
           if (mapBaixados[mesAno] !== undefined) {
             mapBaixados[mesAno]++;
           }
@@ -170,8 +186,8 @@ const Grafico = () => {
       try {
         const [respEquinos, respVac, respVer] = await Promise.all([
           axios.get('/equino'),
-          axios.get('/vacinacoes'),
-          axios.get('/vermifugacoes'),
+          axios.get('/vacinacao'),
+          axios.get('/vermifugacao'),
         ]);
 
         const equinos = respEquinos.data || [];

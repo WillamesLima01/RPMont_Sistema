@@ -238,7 +238,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
         setModalSucesso(true);
         setTimeout(() => {
           setModalSucesso(false);
-          navigate('/entradas_medicamentoList');
+          navigate('/entradaMedicamentoList');
         }, 2500);
       } else {
         setModalConfirmacao(true);
@@ -343,7 +343,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
                           <p><strong>Unidade Base:</strong> {medicamentoSelecionado.unidadeBase || '-'}</p>
                         </div>
                         <div className="col-md-4">
-                          <p><strong>Tipo de Unidade:</strong> {medicamentoSelecionado.tipoUnidade || '-'}</p>
+                          <p><strong>Tipo de Unidade:</strong> {medicamentoSelecionado.tipoUnidadeEnum || '-'}</p>
                         </div>
                       </div>
                     </div>

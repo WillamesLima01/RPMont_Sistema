@@ -12,7 +12,7 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
   equinos = [],
   defaultAno = '',
   defaultEquinoId = '',
-  onConfirm, // (anoSelecionado, equinoId) => void
+  onConfirm,
 }) => {
   const [anoSel, setAnoSel] = useState(defaultAno || '');
   const [eqSel, setEqSel] = useState(defaultEquinoId || '');
@@ -24,11 +24,11 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
 
   const handleOk = () => {
     if (!anoSel || !eqSel) return;
+
     onConfirm?.(anoSel, eqSel);
     onClose?.();
   };
 
-  // Enter confirma quando ambos selecionados
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && anoSel && eqSel) {
       e.preventDefault();
@@ -45,48 +45,69 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
       closeTimeoutMS={200}
     >
       <div className="modalContent" onKeyDown={onKeyDown}>
-        <h4 className="mb-1">Ver Carga Horária de um Equino (Anual)</h4>
-        <small className="text-muted">Escolha o ano e o equino para gerar o gráfico.</small>
+        <h4 className="mb-1">
+          Ver Carga Horária de um Equino (Anual)
+        </h4>
+
+        <small className="text-muted">
+          Escolha o ano e o equino para gerar o gráfico.
+        </small>
 
         <div className="row g-3 mt-3">
           <div className="col-md-6">
             <label className="form-label">Ano</label>
+
             <select
               className="form-select"
               value={anoSel}
               onChange={(e) => setAnoSel(e.target.value)}
             >
               <option value="">Selecione o ano...</option>
-              {anos.map((a) => (
-                <option key={a} value={a}>{a}</option>
+
+              {anos.map((ano) => (
+                <option key={ano} value={ano}>
+                  {ano}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="col-md-6">
             <label className="form-label">Equino</label>
+
             <select
               className="form-select"
               value={eqSel}
               onChange={(e) => setEqSel(e.target.value)}
             >
               <option value="">Selecione o equino...</option>
-              {equinos.map((eq) => (
-                <option key={eq.id} value={eq.id}>{eq.name}</option>
+
+              {equinos.map((equino) => (
+                <option key={equino.id} value={equino.id}>
+                  {equino.nome ?? equino.name ?? `#${equino.id}`}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         <div className="footer">
-          <button className="btn btn-outline-secondary" onClick={onClose}>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={onClose}
+          >
             Cancelar
           </button>
+
           <button
             className="btn btn-primary"
             onClick={handleOk}
             disabled={!anoSel || !eqSel}
-            title={!anoSel || !eqSel ? 'Selecione o ano e o equino' : 'Gerar gráfico'}
+            title={
+              !anoSel || !eqSel
+                ? 'Selecione o ano e o equino'
+                : 'Gerar gráfico'
+            }
           >
             OK
           </button>

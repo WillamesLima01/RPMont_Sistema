@@ -100,10 +100,10 @@ public class EntradaMedicamentoServiceImpl implements EntradaMedicamentoService 
                                        Medicamento medicamento) {
 
         BigDecimal quantidadeBase = medicamento.getQuantidadePorApresentacao()
-                .multiply(BigDecimal.valueOf(entradaMedicamentoRequest.quantidadeApresentacoes()));
+                .multiply(entradaMedicamentoRequest.quantidadeApresentacoes());
 
         BigDecimal valorTotal = entradaMedicamentoRequest.valorUnitario()
-                .multiply(BigDecimal.valueOf(entradaMedicamentoRequest.quantidadeApresentacoes()));
+                .multiply(entradaMedicamentoRequest.quantidadeApresentacoes());
 
         entradaMedicamento.setMedicamento(medicamento);
         entradaMedicamento.setMedicamentoNome(medicamento.getNome());

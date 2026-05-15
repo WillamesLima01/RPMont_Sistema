@@ -56,35 +56,68 @@ const GraficoCargaHorariaEquinoAnual = () => {
   /* ===== Helpers ===== */
   const agruparAno = (escalas, byId, ano) => {
     const base = {};
-    for (const m of MESES) base[m.num] = { total: 0, porEquino: new Map() };
-
-    for (const esc of (escalas || [])) {
-      const data = esc.data || '';
-      if (!data.startsWith(ano)) continue;
-      const mes = data.slice(5,7);
-      if (!base[mes]) continue;
-      const horas = Number(esc.cargaHoraria || 0) || 0;
-      base[mes].total += horas;
-
-      const eqId = String(esc.idEquino);
-      base[mes].porEquino.set(eqId, (base[mes].porEquino.get(eqId) || 0) + horas);
+  
+    for (const mes of MESES) {
+      base[mes.num] = {
+        total: 0,
+        porEquino: new Map(),
+      };
     }
-
-    // série final (12 posições)
-    return MESES.map((m, idx) => {
-      const tot = base[m.num].total || 0;
-      const top3 = Array.from(base[m.num].porEquino.entries())
-        .sort((a,b) => b[1]-a[1])
-        .slice(0,3)
-        .map(([idEq, horas]) => ({ nome: byId[idEq] ?? `#${idEq}`, horas }));
-
+  
+    for (const escala of escalas || []) {
+      const dataEscala =
+        escala.dataCadastro ??
+        escala.data ??
+        null;
+  
+      if (!dataEscala) continue;
+  
+      const dataTexto = String(dataEscala);
+  
+      if (!dataTexto.startsWith(ano)) continue;
+  
+      const mes = dataTexto.slice(5, 7);
+  
+      if (!base[mes]) continue;
+  
+      const horas = Number(escala.cargaHoraria || 0) || 0;
+  
+      base[mes].total += horas;
+  
+      const equinoId =
+        escala.equino?.id ??
+        escala.equinoId ??
+        escala.idEquino ??
+        null;
+  
+      if (!equinoId) continue;
+  
+      const equinoIdTexto = String(equinoId);
+  
+      base[mes].porEquino.set(
+        equinoIdTexto,
+        (base[mes].porEquino.get(equinoIdTexto) || 0) + horas
+      );
+    }
+  
+    return MESES.map((mes, index) => {
+      const total = base[mes.num].total || 0;
+  
+      const top3 = Array.from(base[mes.num].porEquino.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([idEquino, horas]) => ({
+          nome: byId[idEquino] ?? `#${idEquino}`,
+          horas,
+        }));
+  
       return {
-        mesNum: m.num,
-        mesNome: m.nome,
-        mesShort: m.short,
-        total: tot,
+        mesNum: mes.num,
+        mesNome: mes.nome,
+        mesShort: mes.short,
+        total,
         top3,
-        cor: MESES_CORES[idx],
+        cor: MESES_CORES[index],
       };
     });
   };
@@ -191,40 +224,99 @@ const GraficoCargaHorariaEquinoAnual = () => {
   /* ===== Effects ===== */
   useEffect(() => {
     (async () => {
-      const [resEscala, resEquinos] = await Promise.all([
-        axios.get('/escala'),
-        axios.get('/equinos'),
-      ]);
-
-      const listaEquinos = resEquinos.data || [];
-      setEquinos(listaEquinos);
-
-      const byId = {};
-      for (const eq of listaEquinos) byId[eq.id] = eq.name || eq.nome || `#${eq.id}`;
-      setEquinosById(byId);
-
-      const anos = Array.from(new Set((resEscala.data || [])
-        .map(e => (e.data || '').slice(0, 4))
-        .filter(Boolean))).sort();
-
-      const anoPadrao = anos[anos.length - 1] || String(new Date().getFullYear());
-      setAnosDisponiveis(anos);
-      setAnoSelecionado(anoPadrao);
-
-      montarGraficoAnual(resEscala.data || [], byId, anoPadrao, modoLinha);
+      try {
+        const [resEscala, resEquinos] = await Promise.all([
+          axios.get('/escala'),
+          axios.get('/equino'),
+        ]);
+  
+        const listaEquinos = resEquinos.data || [];
+        const listaEscalas = resEscala.data || [];
+  
+        setEquinos(listaEquinos);
+  
+        const byId = {};
+  
+        for (const equino of listaEquinos) {
+          byId[equino.id] =
+            equino.name ||
+            equino.nome ||
+            `#${equino.id}`;
+        }
+  
+        setEquinosById(byId);
+  
+        const anos = Array.from(
+          new Set(
+            listaEscalas
+              .map((escala) => {
+                const dataEscala =
+                  escala.dataCadastro ??
+                  escala.data ??
+                  null;
+  
+                return dataEscala
+                  ? String(dataEscala).slice(0, 4)
+                  : '';
+              })
+              .filter(Boolean)
+          )
+        ).sort();
+  
+        const anoPadrao =
+          anos[anos.length - 1] ||
+          String(new Date().getFullYear());
+  
+        setAnosDisponiveis(anos);
+        setAnoSelecionado(anoPadrao);
+  
+        montarGraficoAnual(
+          listaEscalas,
+          byId,
+          anoPadrao,
+          modoLinha
+        );
+      } catch (error) {
+        console.error('Erro ao carregar gráfico anual:', error);
+      }
     })();
+  
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  
   useEffect(() => {
     if (!anoSelecionado) return;
-    Promise.all([axios.get('/escala'), axios.get('/equinos')]).then(([resEscala, resEquinos]) => {
-      const byId = {};
-      for (const eq of (resEquinos.data || [])) byId[eq.id] = eq.name || eq.nome || `#${eq.id}`;
-      setEquinos(resEquinos.data || []);
-      setEquinosById(byId);
-      montarGraficoAnual(resEscala.data || [], byId, anoSelecionado, modoLinha);
-    });
+  
+    Promise.all([
+      axios.get('/escala'),
+      axios.get('/equino'),
+    ])
+      .then(([resEscala, resEquinos]) => {
+        const listaEquinos = resEquinos.data || [];
+        const listaEscalas = resEscala.data || [];
+  
+        const byId = {};
+  
+        for (const equino of listaEquinos) {
+          byId[equino.id] =
+            equino.name ||
+            equino.nome ||
+            `#${equino.id}`;
+        }
+  
+        setEquinos(listaEquinos);
+        setEquinosById(byId);
+  
+        montarGraficoAnual(
+          listaEscalas,
+          byId,
+          anoSelecionado,
+          modoLinha
+        );
+      })
+      .catch((error) => {
+        console.error('Erro ao atualizar gráfico anual:', error);
+      });
   }, [anoSelecionado, modoLinha]);
 
   /* ===== PDF detalhado (com top-3 de cada mês) ===== */

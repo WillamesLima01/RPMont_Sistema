@@ -19,7 +19,7 @@ public record EntradaMedicamentoRequest(
 
         @NotNull(message = "A quantidade de apresentações deve ser informada.")
         @Positive(message = "A quantidade de apresentações deve ser maior que zero.")
-        Integer quantidadeApresentacoes,
+        BigDecimal quantidadeApresentacoes,
 
         @NotNull(message = "A data de entrada deve ser informada.")
         LocalDate dataEntrada,

@@ -62,8 +62,8 @@ public class EntradaMedicamento implements Serializable {
     @Column(name = "validade", nullable = false)
     private LocalDate validade;
 
-    @Column(name = "quantidade_apresentacoes", nullable = false)
-    private Integer quantidadeApresentacoes;
+    @Column(name = "quantidade_apresentacoes", nullable = false, precision = 10, scale = 2)
+    private BigDecimal quantidadeApresentacoes;
 
     @Column(name = "quantidade_base", nullable = false, precision = 12, scale = 2)
     private BigDecimal quantidadeBase;
