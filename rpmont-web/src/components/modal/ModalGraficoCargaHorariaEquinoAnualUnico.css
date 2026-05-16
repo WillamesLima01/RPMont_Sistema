@@ -28,27 +28,23 @@
 
 /* corpo do modal (NOME ÚNICO) */
 .equino-modal{
-  /* tamanho */
   width: 100%;
-  max-width: 520px;              /* <= mais estreito */
+  max-width: 620px;
   max-height: 90vh;
   margin: 0;
-  padding: 18px;                 /* respiro para o cartão interno */
+  padding: 18px;
 
-  /* visual glass */
-  background: rgba(255,255,255,0.55); /* transparência */
-  backdrop-filter: blur(8px);         /* efeito vidro */
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.6);
   border-radius: 18px;
   box-shadow: 0 18px 60px rgba(15, 23, 42, 0.25);
 
-  /* animação */
   transform: translateY(8px) scale(.985);
   opacity: 0;
   transition: all .22s ease;
 
-  /* scroll interno se necessário */
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -105,6 +101,10 @@
   border-top: 1px dashed #e9eef5;
 }
 
+.equino-modal .footer .btn{
+  min-width: 92px;
+}
+
 .equino-modal .btn{
   border-radius: 10px;
   padding: .5rem .9rem;
@@ -127,3 +127,18 @@
 @media (max-width: 480px){
   .equino-modal{ padding: 16px; }
 }
+
+/* Área dos selects Ano e Equino */
+.equino-modal .linha-selects-equino{
+  width: 100%;
+  max-width: 430px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Garante que os selects ocupem toda a largura da coluna */
+.equino-modal .linha-selects-equino .form-select{
+  width: 100%;
+}
+
+

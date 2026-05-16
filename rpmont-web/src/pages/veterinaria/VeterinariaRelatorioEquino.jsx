@@ -61,7 +61,7 @@ const VeterinariaRelatorioEquino = () => {
           axios.get('/vermifugacao'),
           axios.get('/vacinacao'),
           axios.get('/escala'),
-          axios.get('/equino/baixados'),
+          axios.get('/equino/historico'),
         ]);
 
         const equinosData = equinoResponse.data || [];
@@ -640,7 +640,7 @@ const VeterinariaRelatorioEquino = () => {
 
                 <div className="print-meta-item">
                   <span className="meta-label">Enfermidade</span>
-                  <span className="meta-value">{enfTexto || 'Todas'}</span>
+                  <span className="meta-value">{enfTexto || 'Não informada'}</span>
                 </div>
               </div>
             </div>
@@ -760,7 +760,15 @@ const VeterinariaRelatorioEquino = () => {
                         <h4>Baixas</h4>
                         {r.baixas.map((b, i) => (
                           <div key={i} className="print-item">
-                            Baixado em <strong>{b.dataBaixa}</strong>, retornou em <strong>{b.dataRetorno}</strong> ({b.dias} dia(s))
+                            {b.dataRetorno === '—' ? (
+                              <>
+                                Baixado em <strong>{b.dataBaixa}</strong>, ainda não retornou ({b.dias} dia(s) baixado)
+                              </>
+                            ) : (
+                              <>
+                                Baixado em <strong>{b.dataBaixa}</strong>, retornou em <strong>{b.dataRetorno}</strong> ({b.dias} dia(s) baixado)
+                              </>
+                            )}
                           </div>
                         ))}
                       </section>

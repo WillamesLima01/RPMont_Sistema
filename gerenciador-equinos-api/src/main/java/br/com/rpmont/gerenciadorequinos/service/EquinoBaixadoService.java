@@ -13,4 +13,6 @@ public interface EquinoBaixadoService {
     List<EquinoBaixadoResponse> equinoBaixadoId(Long equinoId);
 
     List<EquinoBaixadoResponse> listarTodosBaixados();
+
+    List<EquinoBaixadoResponse> buscarHistoricoCompleto();
 }

@@ -22,4 +22,6 @@ public interface EquinoBaixadoRepository extends JpaRepository<EquinoBaixado, Lo
         ORDER BY eb.dataBaixa DESC
     """)
     List<EquinoBaixado> buscarBaixadosPorSituacaoEquino(@Param("situacao") String situacao);
+
+    List<EquinoBaixado> findAllByOrderByDataBaixaDesc();
 }

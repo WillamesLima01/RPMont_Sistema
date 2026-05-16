@@ -9,18 +9,18 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
   isOpen,
   onClose,
   anos = [],
-  equinos = [],
-  defaultAno = '',
-  defaultEquinoId = '',
+  equinos = [],  
   onConfirm,
 }) => {
-  const [anoSel, setAnoSel] = useState(defaultAno || '');
-  const [eqSel, setEqSel] = useState(defaultEquinoId || '');
+  const [anoSel, setAnoSel] = useState('');
+const [eqSel, setEqSel] = useState('');
 
-  useEffect(() => {
-    setAnoSel(defaultAno || '');
-    setEqSel(defaultEquinoId || '');
-  }, [defaultAno, defaultEquinoId, isOpen]);
+useEffect(() => {
+  if (isOpen) {
+    setAnoSel('');
+    setEqSel('');
+  }
+}, [isOpen]);
 
   const handleOk = () => {
     if (!anoSel || !eqSel) return;
@@ -53,7 +53,7 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
           Escolha o ano e o equino para gerar o gráfico.
         </small>
 
-        <div className="row g-3 mt-3">
+        <div className="row g-3 mt-3 linha-selects-equino">
           <div className="col-md-6">
             <label className="form-label">Ano</label>
 
@@ -62,7 +62,7 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
               value={anoSel}
               onChange={(e) => setAnoSel(e.target.value)}
             >
-              <option value="">Selecione o ano...</option>
+              <option value="">Selecione ano...</option>
 
               {anos.map((ano) => (
                 <option key={ano} value={ano}>
@@ -80,7 +80,7 @@ const ModalGraficoCargaHorariaEquinoAnualUnico = ({
               value={eqSel}
               onChange={(e) => setEqSel(e.target.value)}
             >
-              <option value="">Selecione o equino...</option>
+              <option value="">Selecione equino...</option>
 
               {equinos.map((equino) => (
                 <option key={equino.id} value={equino.id}>

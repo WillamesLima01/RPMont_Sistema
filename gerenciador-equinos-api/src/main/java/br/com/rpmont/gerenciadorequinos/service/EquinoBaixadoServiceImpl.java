@@ -23,9 +23,9 @@ public class EquinoBaixadoServiceImpl implements EquinoBaixadoService {
 
     @Override
     @Transactional
-    public void baixarEquino(Long id) {
+    public void baixarEquino(Long equinoId) {
 
-        Equino equinoExistente = equinoRepository.findById(id)
+        Equino equinoExistente = equinoRepository.findById(equinoId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Equino não encontrado no banco de dados!"
@@ -74,6 +74,7 @@ public class EquinoBaixadoServiceImpl implements EquinoBaixadoService {
     }
 
     @Override
+    @Transactional
     public List<EquinoBaixadoResponse> equinoBaixadoId(Long equinoId) {
 
         if (!equinoRepository.existsById(equinoId)) {
@@ -93,6 +94,15 @@ public class EquinoBaixadoServiceImpl implements EquinoBaixadoService {
     @Transactional
     public List<EquinoBaixadoResponse> listarTodosBaixados() {
         return baixadoRepository.buscarBaixadosPorSituacaoEquino("BAIXADO")
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<EquinoBaixadoResponse> buscarHistoricoCompleto() {
+        return baixadoRepository.findAllByOrderByDataBaixaDesc()
                 .stream()
                 .map(this::toResponse)
                 .toList();

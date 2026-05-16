@@ -4,6 +4,7 @@ import br.com.rpmont.gerenciadorequinos.dtos.EquinoBaixadoResponse;
 import br.com.rpmont.gerenciadorequinos.service.EquinoBaixadoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +32,11 @@ public class EquinoBaixadoController {
     @ResponseStatus(HttpStatus.OK)
     public List<EquinoBaixadoResponse> equinoBaixadoId(@PathVariable Long equinoId) {
         return equinoBaixadoService.equinoBaixadoId(equinoId);
+    }
+
+    @GetMapping("/historico")
+    public ResponseEntity<List<EquinoBaixadoResponse>> buscarHistoricoCompleto() {
+        return ResponseEntity.ok(equinoBaixadoService.buscarHistoricoCompleto());
     }
 
     @GetMapping("/baixados")

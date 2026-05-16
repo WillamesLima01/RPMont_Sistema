@@ -252,6 +252,7 @@ const GraficoCargaHorariaEquino = () => {
         </div>
 
         <div className="legenda-carga mb-3">
+          <span className="badge" style={{ backgroundColor: '#7ec8f8' }}>0-30h</span>
           <span className="badge" style={{ backgroundColor: '#5cb85c' }}>31-60h</span>
           <span className="badge" style={{ backgroundColor: '#9370DB' }}>61-90h</span>
           <span className="badge" style={{ backgroundColor: '#ffa500' }}>91-120h</span>
