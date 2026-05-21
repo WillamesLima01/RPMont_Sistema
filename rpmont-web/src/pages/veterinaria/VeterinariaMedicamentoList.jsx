@@ -21,15 +21,32 @@ const ITENS_POR_PAGINA = 8;
 const CATEGORIAS = {
   ANTIBIOTICO: 'Antibiótico',
   ANTIINFLAMATORIO: 'Anti-inflamatório',
+  ANTI_INFLAMATORIO: 'Anti-inflamatório',
   ANALGESICO: 'Analgésico',
   ANTIPARASITARIO: 'Antiparasitário',
   SEDATIVO: 'Sedativo',
   VITAMINA: 'Vitamina',
   ANESTESICO: 'Anestésico',
   CICATRIZANTE: 'Cicatrizante',
+  IMUNIZACAO: 'Imunização',
   SORO: 'Soro',
   OUTROS: 'Outros'
 };
+
+const CATEGORIAS_FILTRO = [
+  { value: '', label: 'Todas' },
+  { value: 'ANTIBIOTICO', label: 'Antibiótico' },
+  { value: 'ANTIINFLAMATORIO', label: 'Anti-inflamatório' },
+  { value: 'ANALGESICO', label: 'Analgésico' },
+  { value: 'ANTIPARASITARIO', label: 'Antiparasitário' },
+  { value: 'SEDATIVO', label: 'Sedativo' },
+  { value: 'VITAMINA', label: 'Vitamina' },
+  { value: 'ANESTESICO', label: 'Anestésico' },
+  { value: 'CICATRIZANTE', label: 'Cicatrizante' },
+  { value: 'IMUNIZACAO', label: 'Imunização' },
+  { value: 'SORO', label: 'Soro' },
+  { value: 'OUTROS', label: 'Outros' }
+];
 
 const FORMAS = {
   SOLUCAO: 'Solução',
@@ -250,13 +267,15 @@ const VeterinariaMedicamentoList = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={irParaCadastro}
-              >
-                + Novo Medicamento
-              </button>
+              <div className="d-flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={irParaCadastro}
+                >
+                  + Novo Medicamento
+                </button>
+              </div>
             </div>
 
             <div className="card shadow-sm border-0 rounded-4 mb-4">
@@ -286,10 +305,9 @@ const VeterinariaMedicamentoList = () => {
                       value={categoriaFiltro}
                       onChange={(e) => setCategoriaFiltro(e.target.value)}
                     >
-                      <option value="">Todas</option>
-                      {Object.entries(CATEGORIAS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
+                      {CATEGORIAS_FILTRO.map((cat) => (
+                        <option key={cat.value || 'TODAS'} value={cat.value}>
+                          {cat.label}
                         </option>
                       ))}
                     </select>
@@ -457,6 +475,7 @@ const VeterinariaMedicamentoList = () => {
                   >
                     Excluir
                   </button>
+
                   <button
                     onClick={fecharModalExcluir}
                     className="btn btn-cancelar"
@@ -486,10 +505,15 @@ const VeterinariaMedicamentoList = () => {
             >
               <div className="modalContent text-center">
                 <FaExclamationTriangle className="icone-erro" />
+
                 <h2>Ocorreu um erro:</h2>
+
                 {mensagensErro.map((mensagem, index) => (
-                  <h5 key={index} className="text-danger">{mensagem}</h5>
+                  <h5 key={index} className="text-danger">
+                    {mensagem}
+                  </h5>
                 ))}
+
                 <button
                   onClick={fecharModalErro}
                   className="btn btn-outline-secondary mt-3"
