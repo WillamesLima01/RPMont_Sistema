@@ -78,7 +78,7 @@ const VeterinariaVermifugacaoList = () => {
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(resultado.length / itemsPerPage);
+  const totalPages = Math.ceil(resultado.length / itemsPerPage) || 1;
 
   const formatarData = (iso) => {
     if (!iso) return '-';
@@ -91,12 +91,38 @@ const VeterinariaVermifugacaoList = () => {
   const formatarQuantidade = (item) => {
     const quantidade = item?.qtdeMedicamento;
     const unidade = item?.unidadeMedicamento;
-  
+
     if (quantidade === null || quantidade === undefined || quantidade === '') {
       return '-';
     }
-  
+
     return `${quantidade} ${unidade || ''}`.trim();
+  };
+
+  const obterOrigemMedicamento = (item) => {
+    const origem = item?.origemMedicamento;
+
+    if (!origem) return 'NAO_INFORMADO';
+
+    return String(origem).trim().toUpperCase();
+  };
+
+  const textoOrigemMedicamento = (item) => {
+    const origem = obterOrigemMedicamento(item);
+
+    if (origem === 'ESTOQUE') return 'Estoque';
+    if (origem === 'EXTERNO') return 'Externo';
+
+    return 'Não informado';
+  };
+
+  const classeBadgeOrigem = (item) => {
+    const origem = obterOrigemMedicamento(item);
+
+    if (origem === 'ESTOQUE') return 'badge bg-success';
+    if (origem === 'EXTERNO') return 'badge bg-warning text-dark';
+
+    return 'badge bg-secondary';
   };
 
   const filtrar = () => {
@@ -146,11 +172,11 @@ const VeterinariaVermifugacaoList = () => {
       const equino = equinos.find(
         (eq) => String(eq.id) === String(v.equinoId)
       );
-    
+
       return [
         i + 1,
         equino?.nome || v.nomeEquino || '-',
-        v.vermifugo || '-',
+        `${v.vermifugo || '-'} (${textoOrigemMedicamento(v)})`,
         formatarQuantidade(v),
         formatarData(v.dataProximoProcedimento || v.data),
         v.observacao || '-',
@@ -226,6 +252,7 @@ const VeterinariaVermifugacaoList = () => {
             <th>Nome</th>
             <th>Vermífugo</th>
             <th>Quantidade</th>
+            <th>Data da Aplicação</th>
             <th>Data da próxima dose</th>
             <th>Observações</th>
             <th className='text-end'>Ações</th>
@@ -233,79 +260,99 @@ const VeterinariaVermifugacaoList = () => {
         </thead>
 
         <tbody>
-          {itensPaginados.map((item) => {
-            const equino = equinos.find(
-              (eq) => String(eq.id) === String(item.equinoId)
-            );
+          {itensPaginados.length > 0 ? (
+            itensPaginados.map((item) => {
+              const equino = equinos.find(
+                (eq) => String(eq.id) === String(item.equinoId)
+              );
 
-            const dentro15 = estaDentroDe15Dias(item);
+              const dentro15 = estaDentroDe15Dias(item);
 
-            return (
-              <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
-                <td>{equino?.nome || item.nomeEquino || '-'}</td>
-                <td>{item.vermifugo}</td>
-                <td>{formatarQuantidade(item)}</td>
-                <td>{formatarData(item.dataProximoProcedimento)}</td>
-                <td>{item.observacao || '-'}</td>
+              return (
+                <tr key={item.id} className={dentro15 ? 'table-danger' : ''}>
+                  <td>{equino?.nome || item.nomeEquino || '-'}</td>
 
-                <td className='text-end'>
-                  <div className='d-flex justify-content-end'>
-                    {botoes.includes('editar') && (
-                      <BotaoAcaoRows
-                        tipo='button'
-                        onClick={() => {
-                          const equinoEncontrado = equinos.find(
-                            (eq) => String(eq.id) === String(item.equinoId)
-                          );
+                  <td>
+                    <div className='d-flex flex-column align-items-start gap-1'>
+                      <span>{item.vermifugo || '-'}</span>
+                      <span className={classeBadgeOrigem(item)}>
+                        {textoOrigemMedicamento(item)}
+                      </span>
+                    </div>
+                  </td>
 
-                          setEquinoSelecionado(equinoEncontrado);
-                          setDadosEditar(item);
-                          setModalAberto(true);
-                        }}
-                        title='Editar Vermifugação'
-                        className='botao-editar'
-                        icone='bi-pencil'
-                      />
-                    )}
+                  <td>{formatarQuantidade(item)}</td>
+                  <td>{formatarData(item.dataCadastro || item.data)}</td>
+                  <td>{formatarData(item.dataProximoProcedimento)}</td>
+                  <td>{item.observacao || '-'}</td>
 
-                    {botoes.includes('excluir') && (
-                      <BotaoAcaoRows
-                        tipo='button'
-                        onClick={() => confirmarExclusao(item)}
-                        title='Excluir Vermifugação'
-                        className='botao-excluir'
-                        icone='bi-trash'
-                      />
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+                  <td className='text-end'>
+                    <div className='d-flex justify-content-end'>
+                      {botoes.includes('editar') && (
+                        <BotaoAcaoRows
+                          tipo='button'
+                          onClick={() => {
+                            const equinoEncontrado = equinos.find(
+                              (eq) => String(eq.id) === String(item.equinoId)
+                            );
+
+                            setEquinoSelecionado(equinoEncontrado);
+                            setDadosEditar(item);
+                            setModalAberto(true);
+                          }}
+                          title='Editar Vermifugação'
+                          className='botao-editar'
+                          icone='bi-pencil'
+                        />
+                      )}
+
+                      {botoes.includes('excluir') && (
+                        <BotaoAcaoRows
+                          tipo='button'
+                          onClick={() => confirmarExclusao(item)}
+                          title='Excluir Vermifugação'
+                          className='botao-excluir'
+                          icone='bi-trash'
+                        />
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan='6' className='text-center'>
+                Nenhum procedimento de vermifugação encontrado.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
-      <div className='d-flex justify-content-center'>
-        <nav>
-          <ul className='pagination'>
-            {[...Array(totalPages)].map((_, index) => (
-              <li
-                key={index}
-                className={`page-item ${
-                  currentPage === index + 1 ? 'active' : ''
-                }`}
-              >
-                <button
-                  className='page-link'
-                  onClick={() => setCurrentPage(index + 1)}
+      {resultado.length > itemsPerPage && (
+        <div className='d-flex justify-content-center'>
+          <nav>
+            <ul className='pagination'>
+              {[...Array(totalPages)].map((_, index) => (
+                <li
+                  key={index}
+                  className={`page-item ${
+                    currentPage === index + 1 ? 'active' : ''
+                  }`}
                 >
-                  {index + 1}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+                  <button
+                    className='page-link'
+                    onClick={() => setCurrentPage(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
 
       <ModalGenerico
         open={modalExcluirAberto}

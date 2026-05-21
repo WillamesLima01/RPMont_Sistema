@@ -2,9 +2,12 @@ package br.com.rpmont.gerenciadorequinos.service;
 
 import br.com.rpmont.gerenciadorequinos.dtos.VermifugacaoRequest;
 import br.com.rpmont.gerenciadorequinos.dtos.VermifugacaoResponse;
+import br.com.rpmont.gerenciadorequinos.enums.OrigemMedicamentoEnum;
 import br.com.rpmont.gerenciadorequinos.model.Equino;
+import br.com.rpmont.gerenciadorequinos.model.Medicamento;
 import br.com.rpmont.gerenciadorequinos.model.Vermifugacao;
 import br.com.rpmont.gerenciadorequinos.repository.EquinoRepository;
+import br.com.rpmont.gerenciadorequinos.repository.MedicamentoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.SaidaMedicamentoRepository;
 import br.com.rpmont.gerenciadorequinos.repository.VermifugacaoRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
     private final VermifugacaoRepository vermifugacaoRepository;
     private final EquinoRepository equinoRepository;
     private final SaidaMedicamentoRepository saidaMedicamentoRepository;
+    private final MedicamentoRepository medicamentoRepository;
 
     @Override
     @Transactional
@@ -101,10 +105,40 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
             VermifugacaoRequest request,
             Equino equino
     ) {
+        Medicamento medicamento = null;
+
+        if (request.origemMedicamento() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Informe a origem do medicamento: ESTOQUE ou EXTERNO."
+            );
+        }
+
+        if (request.origemMedicamento() == OrigemMedicamentoEnum.ESTOQUE) {
+            if (request.medicamentoId() == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Para medicamento do estoque, informe o medicamentoId."
+                );
+            }
+
+            medicamento = medicamentoRepository.findById(request.medicamentoId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Medicamento não encontrado no banco de dados."
+                    ));
+        }
+
+        if (request.origemMedicamento() == OrigemMedicamentoEnum.EXTERNO) {
+            medicamento = null;
+        }
+
         vermifugacao.setEquino(equino);
+        vermifugacao.setMedicamento(medicamento);
         vermifugacao.setVermifugo(request.vermifugo());
         vermifugacao.setQtdeMedicamento(request.qtdeMedicamento());
         vermifugacao.setUnidadeMedicamento(request.unidadeMedicamento());
+        vermifugacao.setOrigemMedicamento(request.origemMedicamento());
         vermifugacao.setObservacao(request.observacao());
         vermifugacao.setDataProximoProcedimento(request.dataProximoProcedimento());
     }
@@ -118,6 +152,9 @@ public class VermifugacaoServiceImpl implements VermifugacaoService {
                 vermifugacao.getVermifugo(),
                 vermifugacao.getQtdeMedicamento(),
                 vermifugacao.getUnidadeMedicamento(),
+                vermifugacao.getOrigemMedicamento(),
+                vermifugacao.getMedicamento() != null ? vermifugacao.getMedicamento().getId() : null,
+                vermifugacao.getMedicamento() != null ? vermifugacao.getMedicamento().getNome() : null,
                 vermifugacao.getObservacao(),
                 vermifugacao.getDataProximoProcedimento(),
                 vermifugacao.getDataCadastro(),

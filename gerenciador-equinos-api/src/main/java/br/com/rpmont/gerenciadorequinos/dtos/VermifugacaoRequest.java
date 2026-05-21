@@ -1,5 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.dtos;
 
+import br.com.rpmont.gerenciadorequinos.enums.OrigemMedicamentoEnum;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,10 @@ public record VermifugacaoRequest(
 
         @NotBlank(message = "A unidade do medicamento deve ser informada")
         String unidadeMedicamento,
+
+        OrigemMedicamentoEnum origemMedicamento,
+
+        Long medicamentoId,
 
         String observacao,
 

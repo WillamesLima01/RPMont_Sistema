@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
 import Modal from 'react-modal';
@@ -49,13 +49,14 @@ const criarLinhaMedicacao = () => ({
 const VeterinariaAtendimento = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [equino, setEquino] = useState(null);
   const [consulta, setConsulta] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
 
-  // Neste fluxo, o ID da URL é o ID do equino.
-  // A tela abre para cadastrar um novo atendimento.
+  // Na rota de cadastro, o ID da URL é o ID do equino.
+  // Na rota /edit-atendimento/:id, o ID da URL é o ID do atendimento.
   const [modoEdicao, setModoEdicao] = useState(false);
   const [equinoId, setEquinoId] = useState(null);
 
@@ -93,9 +94,33 @@ const VeterinariaAtendimento = () => {
         setCarregando(true);
         setErroTela('');
 
-        const equinoIdEncontrado = id;
+        const emEdicao = location.pathname.startsWith('/edit-atendimento/');
+        let equinoIdEncontrado = id;
+        let atendimentoParaEditar = null;
 
-        setModoEdicao(false);
+        if (emEdicao) {
+          const atendimentoResponse = await axios.get(`/atendimentos/${id}`);
+          atendimentoParaEditar = atendimentoResponse.data;
+
+          equinoIdEncontrado =
+            atendimentoParaEditar?.equinoId ??
+            atendimentoParaEditar?.equino?.id ??
+            null;
+
+          if (!equinoIdEncontrado) {
+            throw new Error('Não foi possível identificar o equino deste atendimento.');
+          }
+
+          setModoEdicao(true);
+          setConsulta(atendimentoParaEditar?.textoConsulta || '');
+          setEnfTexto(atendimentoParaEditar?.enfermidade || '');
+        } else {
+          setModoEdicao(false);
+          setConsulta('');
+          setEnfTexto('');
+          setMedicacoesUtilizadas([criarLinhaMedicacao()]);
+        }
+
         setEquinoId(equinoIdEncontrado);
 
         const [
@@ -190,6 +215,32 @@ const VeterinariaAtendimento = () => {
         setSaidasMedicamento(saidasData);
         setMedicacoesAtendimento(medicacoesData);
 
+        if (emEdicao) {
+          const medicacoesDoAtendimento = medicacoesData.filter(
+            (item) => String(item.atendimentoId) === String(id)
+          );
+
+          if (medicacoesDoAtendimento.length > 0) {
+            setMedicacoesUtilizadas(
+              medicacoesDoAtendimento.map((item) => {
+                const origem = item.origem === 'EXTERNO' ? 'EXTERNO' : 'ESTOQUE';
+
+                return {
+                  idLocal: `med-${item.id ?? Date.now()}-${Math.random()}`,
+                  origem,
+                  medicamentoId: origem === 'ESTOQUE' ? (item.medicamentoId || '') : '',
+                  nomeMedicamentoExterno: origem === 'EXTERNO' ? (item.nomeMedicamento || '') : '',
+                  doseAplicada: item.doseAplicada ?? '',
+                  unidade: item.unidade || '',
+                  observacao: item.observacao || ''
+                };
+              })
+            );
+          } else {
+            setMedicacoesUtilizadas([criarLinhaMedicacao()]);
+          }
+        }
+
         const equinoIdStr = String(equinoIdEncontrado);
 
         const atendimentosDoEquino = atendimentos
@@ -243,7 +294,7 @@ const VeterinariaAtendimento = () => {
     };
 
     carregarTela();
-  }, [id]);
+  }, [id, location.pathname]);
 
   useEffect(() => {
     const handleClickFora = (e) => {

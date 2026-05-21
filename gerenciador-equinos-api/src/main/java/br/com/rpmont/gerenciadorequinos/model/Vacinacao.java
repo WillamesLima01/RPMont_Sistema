@@ -1,5 +1,6 @@
 package br.com.rpmont.gerenciadorequinos.model;
 
+import br.com.rpmont.gerenciadorequinos.enums.OrigemMedicamentoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,4 +50,12 @@ public class Vacinacao implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "equino_id", nullable = false)
     private Equino equino;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origem_medicamento", length = 20)
+    private OrigemMedicamentoEnum origemMedicamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "medicamento_id")
+    private Medicamento medicamento;
 }

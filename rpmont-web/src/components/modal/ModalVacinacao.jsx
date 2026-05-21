@@ -22,7 +22,14 @@ const isoFromDateOnly = (yyyy_mm_dd) => {
 
 const dateOnlyFromIso = (iso) => {
   if (!iso) return '';
+
   const d = new Date(iso);
+
+  if (Number.isNaN(d.getTime())) {
+    const apenasData = String(iso).split('T')[0];
+    return apenasData || '';
+  }
+
   return (
     String(d.getUTCFullYear()) +
     '-' +
@@ -58,10 +65,54 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
   const unidadesMedicacao = ['mL', 'L', 'mg', 'g', 'kg', 'UN'];
 
+  const normalizarUnidadeSelect = (valor) => {
+    if (!valor) return 'mL';
+
+    const unidade = String(valor).trim().toUpperCase();
+
+    const mapa = {
+      ML: 'mL',
+      L: 'L',
+      MG: 'mg',
+      G: 'g',
+      KG: 'kg',
+      UN: 'UN'
+    };
+
+    return mapa[unidade] || String(valor).trim();
+  };
+
+  const obterDoseEdicao = (saidaVinculadaParam = null) => {
+    const valor =
+      saidaVinculadaParam?.quantidadeInformada ??
+      saidaVinculadaParam?.quantidadeBase ??
+      dadosEditar?.qtdeMedicamento ??
+      dadosEditar?.quantidadeMedicamento ??
+      dadosEditar?.quantidadeAplicada ??
+      dadosEditar?.doseAplicada ??
+      dadosEditar?.quantidadeInformada ??
+      '';
+
+    return valor !== null && valor !== undefined
+      ? String(valor).replace(',', '.')
+      : '';
+  };
+
+  const obterUnidadeEdicao = (saidaVinculadaParam = null, fallback = 'mL') => {
+    const valor =
+      saidaVinculadaParam?.unidadeInformada ??
+      saidaVinculadaParam?.unidadeBase ??
+      dadosEditar?.unidadeMedicamento ??
+      dadosEditar?.unidade ??
+      dadosEditar?.unidadeDose ??
+      dadosEditar?.unidadeInformada ??
+      fallback;
+
+    return normalizarUnidadeSelect(valor);
+  };
+
   const getNomeMedicamento = (med) =>
     med?.nomeMedicamento || med?.nome || med?.descricao || 'Sem nome';
-
-  const getFabricanteMedicamento = (med) => med?.fabricante || '';
 
   const getUnidadeMedicamento = (med) =>
     med?.unidadeBase || med?.unidadeConteudo || med?.unidade || '';
@@ -91,6 +142,20 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
     setModalErroAberto(true);
   };
 
+  const limparCamposEstoque = () => {
+    setMedicamentoSelecionado(null);
+    setDoseAplicada('');
+    setUnidadeMedicacao('');
+    setObservacaoMedicacao('');
+  };
+
+  const limparCamposExterno = () => {
+    setNomeMedicacaoExterna('');
+    setDoseMedicacaoExterna('');
+    setUnidadeMedicacaoExterna('mL');
+    setObservacaoMedicacaoExterna('');
+  };
+
   useEffect(() => {
     const carregarDados = async () => {
       try {
@@ -100,7 +165,10 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
           axios.get('/saidas_medicamento'),
         ]);
 
-        const medicamentosData = (medicamentosRes.data || []).filter((m) => m.ativo !== false);
+        const medicamentosData = (medicamentosRes.data || []).filter(
+          (m) => m.ativo !== false
+        );
+
         const entradasData = entradasRes.data || [];
         const saidasData = saidasRes.data || [];
 
@@ -109,7 +177,13 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
         setSaidasMedicamento(saidasData);
 
         if (dadosEditar) {
-          setDataProximoProcedimento(dateOnlyFromIso(dadosEditar.dataProximoProcedimento));
+          setDataProximoProcedimento(
+            dateOnlyFromIso(
+              dadosEditar.dataProximoProcedimento ||
+              dadosEditar.dataProximaDose ||
+              dadosEditar.proximaDose
+            )
+          );
 
           const saidaVinculada =
             saidasData.find(
@@ -120,82 +194,111 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
           setSaidaExistente(saidaVinculada);
 
+          const origemBackend = String(dadosEditar.origemMedicamento || '').toUpperCase();
+
+          const medEncontradoPorId =
+            dadosEditar.medicamentoId
+              ? medicamentosData.find(
+                  (m) => String(m.id) === String(dadosEditar.medicamentoId)
+                ) || null
+              : null;
+
+          const medEncontradoPorSaida =
+            saidaVinculada?.medicamentoId
+              ? medicamentosData.find(
+                  (m) => String(m.id) === String(saidaVinculada.medicamentoId)
+                ) || null
+              : null;
+
+          const medEncontradoPorNome =
+            medicamentosData.find(
+              (m) =>
+                String(getNomeMedicamento(m)).toLowerCase().trim() ===
+                String(dadosEditar.nomeVacina || dadosEditar.vacina || '').toLowerCase().trim()
+            ) || null;
+
           if (saidaVinculada) {
-            const ehExterno = Boolean(saidaVinculada.medicacaoExterna);
+            const ehExterno =
+              Boolean(saidaVinculada.medicacaoExterna) ||
+              origemBackend === 'EXTERNO';
+
             setUsarMedicacaoExterna(ehExterno);
 
             if (ehExterno) {
               setNomeMedicacaoExterna(
-                saidaVinculada.medicamentoNome || dadosEditar.nomeVacina || ''
+                saidaVinculada.medicamentoNome ||
+                dadosEditar.nomeVacina ||
+                dadosEditar.vacina ||
+                ''
               );
-              setDoseMedicacaoExterna(
-                saidaVinculada.quantidadeInformada !== undefined &&
-                  saidaVinculada.quantidadeInformada !== null
-                  ? String(saidaVinculada.quantidadeInformada)
-                  : ''
-              );
-              setUnidadeMedicacaoExterna(saidaVinculada.unidadeInformada || 'mL');
+
+              setDoseMedicacaoExterna(obterDoseEdicao(saidaVinculada));
+              setUnidadeMedicacaoExterna(obterUnidadeEdicao(saidaVinculada, 'mL'));
               setObservacaoMedicacaoExterna(
                 saidaVinculada.observacao || dadosEditar.observacao || ''
               );
 
-              setMedicamentoSelecionado(null);
-              setDoseAplicada('');
-              setUnidadeMedicacao('');
-              setObservacaoMedicacao('');
+              limparCamposEstoque();
             } else {
-              const medEncontrado =
-                medicamentosData.find(
-                  (m) => String(m.id) === String(saidaVinculada.medicamentoId)
-                ) || null;
+              const medEncontrado = medEncontradoPorSaida || medEncontradoPorId || medEncontradoPorNome;
 
               setMedicamentoSelecionado(medEncontrado);
-              setDoseAplicada(
-                saidaVinculada.quantidadeInformada !== undefined &&
-                  saidaVinculada.quantidadeInformada !== null
-                  ? String(saidaVinculada.quantidadeInformada)
-                  : ''
-              );
+              setDoseAplicada(obterDoseEdicao(saidaVinculada));
               setUnidadeMedicacao(
-                saidaVinculada.unidadeInformada ||
-                  getUnidadeMedicamento(medEncontrado) ||
-                  ''
+                obterUnidadeEdicao(
+                  saidaVinculada,
+                  getUnidadeMedicamento(medEncontrado) || 'mL'
+                )
               );
               setObservacaoMedicacao(
                 saidaVinculada.observacao || dadosEditar.observacao || ''
               );
 
-              setNomeMedicacaoExterna('');
-              setDoseMedicacaoExterna('');
-              setUnidadeMedicacaoExterna('mL');
-              setObservacaoMedicacaoExterna('');
+              limparCamposExterno();
             }
           } else {
-            setUsarMedicacaoExterna(false);
-            setMedicamentoSelecionado(null);
-            setDoseAplicada('');
-            setUnidadeMedicacao('');
-            setObservacaoMedicacao(dadosEditar.observacao || '');
+            const deveSerEstoque =
+              origemBackend === 'ESTOQUE' ||
+              Boolean(medEncontradoPorId) ||
+              Boolean(medEncontradoPorNome);
 
-            setNomeMedicacaoExterna(dadosEditar.nomeVacina || '');
-            setDoseMedicacaoExterna('');
-            setUnidadeMedicacaoExterna('mL');
-            setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+            if (deveSerEstoque) {
+              const medEncontrado = medEncontradoPorId || medEncontradoPorNome;
+
+              setUsarMedicacaoExterna(false);
+              setMedicamentoSelecionado(medEncontrado);
+              setDoseAplicada(obterDoseEdicao());
+              setUnidadeMedicacao(
+                obterUnidadeEdicao(
+                  null,
+                  getUnidadeMedicamento(medEncontrado) || 'mL'
+                )
+              );
+              setObservacaoMedicacao(dadosEditar.observacao || '');
+
+              limparCamposExterno();
+            } else {
+              setUsarMedicacaoExterna(true);
+
+              setNomeMedicacaoExterna(
+                dadosEditar.nomeVacina ||
+                dadosEditar.vacina ||
+                ''
+              );
+              setDoseMedicacaoExterna(obterDoseEdicao());
+              setUnidadeMedicacaoExterna(obterUnidadeEdicao(null, 'mL'));
+              setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
+
+              limparCamposEstoque();
+            }
           }
         } else {
           setDataProximoProcedimento('');
           setErroProximaData('');
 
           setUsarMedicacaoExterna(false);
-          setMedicamentoSelecionado(null);
-          setDoseAplicada('');
-          setUnidadeMedicacao('');
-          setObservacaoMedicacao('');
-
-          setNomeMedicacaoExterna('');
-          setDoseMedicacaoExterna('');
-          setUnidadeMedicacaoExterna('mL');
-          setObservacaoMedicacaoExterna('');
+          limparCamposEstoque();
+          limparCamposExterno();
 
           setSaidaExistente(null);
         }
@@ -213,7 +316,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
   useEffect(() => {
     if (medicamentoSelecionado && !saidaExistente && !usarMedicacaoExterna) {
       const unidade = getUnidadeMedicamento(medicamentoSelecionado);
-      if (unidade) setUnidadeMedicacao(unidade);
+      if (unidade) setUnidadeMedicacao(normalizarUnidadeSelect(unidade));
     }
   }, [medicamentoSelecionado, saidaExistente, usarMedicacaoExterna]);
 
@@ -225,9 +328,11 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
     const hoje = new Date();
     const d = new Date(`${dataProximoProcedimento}T00:00:00`);
+
     const hojeSemHora = new Date(
       Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate())
     );
+
     const dataSemHora = new Date(
       Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
     );
@@ -280,6 +385,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
       medicamentoSelecionado,
       saidaExistente?.id || null
     );
+
     const qtdSaida = Number(doseAplicada);
 
     if (qtdSaida > qtdDisponivel) {
@@ -297,75 +403,69 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
   const handleSalvar = async () => {
     if (!validarProximaData()) return;
     if (!validarMedicacao()) return;
-  
+
     if (!equino?.id) {
       abrirErro('Equino não identificado.');
       return;
     }
-  
+
     const nomeVacinaFinal = usarMedicacaoExterna
       ? nomeMedicacaoExterna.trim()
       : getNomeMedicamento(medicamentoSelecionado);
-  
+
     const observacaoFinal = usarMedicacaoExterna
       ? observacaoMedicacaoExterna.trim()
       : observacaoMedicacao.trim();
-  
+
     const qtdeMedicamento = usarMedicacaoExterna
       ? Number(doseMedicacaoExterna)
       : Number(doseAplicada);
-  
+
     const unidadeMedicamento = usarMedicacaoExterna
       ? unidadeMedicacaoExterna.trim().toUpperCase()
       : unidadeMedicacao.trim().toUpperCase();
-  
+
     const payloadVacinacao = {
       equinoId: Number(equino.id),
       nomeVacina: nomeVacinaFinal,
       qtdeMedicamento,
       unidadeMedicamento,
+      origemMedicamento: usarMedicacaoExterna ? 'EXTERNO' : 'ESTOQUE',
+      medicamentoId: usarMedicacaoExterna ? null : Number(medicamentoSelecionado.id),
       observacao: observacaoFinal,
       data: dadosEditar?.data || new Date().toISOString(),
       ...(dataProximoProcedimento
         ? { dataProximoProcedimento: isoFromDateOnly(dataProximoProcedimento) }
         : {}),
     };
-  
+
     try {
-      
       if (dadosEditar?.id) {
         await axios.put(`/vacinacao/${dadosEditar.id}`, {
           ...dadosEditar,
           ...payloadVacinacao,
         });
-  
+
         if (usarMedicacaoExterna) {
           setModalSucessoAberto(true);
-  
+
           setTimeout(() => {
             setModalSucessoAberto(false);
             onClose();
           }, 2000);
-  
+
           return;
         }
-  
-        if (!saidaExistente?.id) {
-          abrirErro(
-            'Não foi possível localizar a saída de medicamento vinculada a esta vacinação.'
-          );
-          return;
-        }
-  
+
         const medAtual = medicamentosEstoque.find(
           (m) => String(m.id) === String(medicamentoSelecionado.id)
         );
-  
+
         if (!medAtual) {
           abrirErro('Vacina do estoque não encontrada.');
           return;
         }
-  
+
         const payloadSaidaAtualizada = {
           medicamentoId: Number(medAtual.id),
           atendimentoId: null,
@@ -380,50 +480,49 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
             observacaoMedicacao.trim() ||
             `Uso em vacinação do equino ${equino?.nome || ''}`.trim(),
         };
-  
-        console.log(
-          'Payload atualizado para saidas_medicamento:',
-          payloadSaidaAtualizada
-        );
-  
-        await axios.put(
-          `/saidas_medicamento/${saidaExistente.id}`,
-          payloadSaidaAtualizada
-        );
-  
+
+        if (saidaExistente?.id) {
+          await axios.put(
+            `/saidas_medicamento/${saidaExistente.id}`,
+            payloadSaidaAtualizada
+          );
+        } else {
+          await axios.post('/saidas_medicamento', payloadSaidaAtualizada);
+        }
+
         setModalSucessoAberto(true);
-  
+
         setTimeout(() => {
           setModalSucessoAberto(false);
           onClose();
         }, 2000);
-  
-        return;
-      }  
-      
-      const response = await axios.post('/vacinacao', payloadVacinacao);
-      const vacinacaoSalva = response.data;
-  
-      if (usarMedicacaoExterna) {
-        setModalSucessoAberto(true);
-  
-        setTimeout(() => {
-          setModalSucessoAberto(false);
-          onClose();
-        }, 2000);
-  
+
         return;
       }
-  
+
+      const response = await axios.post('/vacinacao', payloadVacinacao);
+      const vacinacaoSalva = response.data;
+
+      if (usarMedicacaoExterna) {
+        setModalSucessoAberto(true);
+
+        setTimeout(() => {
+          setModalSucessoAberto(false);
+          onClose();
+        }, 2000);
+
+        return;
+      }
+
       const medAtual = medicamentosEstoque.find(
         (m) => String(m.id) === String(medicamentoSelecionado.id)
       );
-  
+
       if (!medAtual) {
         abrirErro('Vacina do estoque não encontrada.');
         return;
       }
-  
+
       const payloadSaida = {
         medicamentoId: Number(medAtual.id),
         atendimentoId: null,
@@ -438,13 +537,11 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
           observacaoMedicacao.trim() ||
           `Uso em vacinação do equino ${equino?.nome || ''}`.trim(),
       };
-  
-      console.log('Payload enviado para saidas_medicamento:', payloadSaida);
-  
+
       await axios.post('/saidas_medicamento', payloadSaida);
-  
+
       setModalSucessoAberto(true);
-  
+
       setTimeout(() => {
         setModalSucessoAberto(false);
         onClose();
@@ -468,9 +565,11 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
             <Typography variant="subtitle1">
               <strong>Nome:</strong> {equino?.nome}
             </Typography>
+
             <Typography variant="subtitle1">
               <strong>Registro:</strong> {equino?.registro}
             </Typography>
+
             <Typography variant="subtitle1">
               <strong>Raça:</strong> {equino?.raca}
             </Typography>
@@ -508,23 +607,11 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
                         setUsarMedicacaoExterna(checked);
 
                         if (checked) {
-                          setMedicamentoSelecionado(null);
-                          setDoseAplicada('');
-                          setUnidadeMedicacao('');
-                          setObservacaoMedicacao('');
-                          setNomeMedicacaoExterna('');
-                          setDoseMedicacaoExterna('');
-                          setUnidadeMedicacaoExterna('mL');
-                          setObservacaoMedicacaoExterna('');
+                          limparCamposEstoque();
+                          limparCamposExterno();
                         } else {
-                          setNomeMedicacaoExterna('');
-                          setDoseMedicacaoExterna('');
-                          setUnidadeMedicacaoExterna('mL');
-                          setObservacaoMedicacaoExterna('');
-                          setMedicamentoSelecionado(null);
-                          setDoseAplicada('');
-                          setUnidadeMedicacao('');
-                          setObservacaoMedicacao('');
+                          limparCamposExterno();
+                          limparCamposEstoque();
                         }
                       }}
                     />
@@ -551,7 +638,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
                     if (newValue && !saidaExistente) {
                       const unidade = getUnidadeMedicamento(newValue);
-                      if (unidade) setUnidadeMedicacao(unidade);
+                      if (unidade) setUnidadeMedicacao(normalizarUnidadeSelect(unidade));
                     }
                   }}
                   getOptionLabel={(option) =>
@@ -674,6 +761,7 @@ const ModalVacinacao = ({ open, onClose, equino, dadosEditar = null }) => {
             <Button variant="outlined" color="secondary" onClick={onClose}>
               Cancelar
             </Button>
+
             <Button variant="contained" color="success" onClick={handleSalvar}>
               {dadosEditar ? 'Salvar Alterações' : 'Salvar'}
             </Button>

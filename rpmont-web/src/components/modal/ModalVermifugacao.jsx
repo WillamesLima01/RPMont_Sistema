@@ -41,6 +41,62 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
 
   const unidadesMedicacao = ['mL', 'L', 'mg', 'g', 'kg', 'UN'];
 
+  const normalizarUnidadeSelect = (valor) => {
+    if (!valor) return 'mL';
+
+    const unidade = String(valor).trim().toUpperCase();
+
+    const mapa = {
+      ML: 'mL',
+      L: 'L',
+      MG: 'mg',
+      G: 'g',
+      KG: 'kg',
+      UN: 'UN'
+    };
+
+    return mapa[unidade] || String(valor).trim();
+  };
+
+  const obterDoseEdicao = (saidaVinculadaParam = null) => {
+    const valor =
+      saidaVinculadaParam?.quantidadeInformada ??
+      saidaVinculadaParam?.quantidadeBase ??
+      dadosEditar?.qtdeMedicamento ??
+      dadosEditar?.quantidadeMedicamento ??
+      dadosEditar?.quantidadeAplicada ??
+      dadosEditar?.doseAplicada ??
+      dadosEditar?.quantidadeInformada ??
+      '';
+
+    return valor !== null && valor !== undefined
+      ? String(valor).replace(',', '.')
+      : '';
+  };
+
+  const obterUnidadeEdicao = (saidaVinculadaParam = null, fallback = 'mL') => {
+    let valor = null;
+
+    if (saidaVinculadaParam && typeof saidaVinculadaParam === 'object') {
+      valor =
+        saidaVinculadaParam.unidadeInformada ??
+        saidaVinculadaParam.unidadeBase ??
+        null;
+    } else if (saidaVinculadaParam) {
+      valor = saidaVinculadaParam;
+    }
+
+    valor =
+      valor ??
+      dadosEditar?.unidadeMedicamento ??
+      dadosEditar?.unidade ??
+      dadosEditar?.unidadeDose ??
+      dadosEditar?.unidadeInformada ??
+      fallback;
+
+    return normalizarUnidadeSelect(valor);
+  };
+
   const getNomeMedicamento = (med) =>
     med?.nomeMedicamento || med?.nome || med?.descricao || 'Sem nome';
 
@@ -120,7 +176,7 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
                   ? String(saidaVinculada.quantidadeInformada)
                   : ''
               );
-              setUnidadeMedicacaoExterna(saidaVinculada.unidadeInformada || 'mL');
+              setUnidadeMedicacaoExterna(obterUnidadeEdicao(saidaVinculada, 'mL'));
               setObservacaoMedicacaoExterna(saidaVinculada.observacao || dadosEditar.observacao || '');
 
               setMedicamentoSelecionado(null);
@@ -141,9 +197,7 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
                   : ''
               );
               setUnidadeMedicacao(
-                saidaVinculada.unidadeInformada ||
-                  getUnidadeMedicamento(medEncontrado) ||
-                  ''
+                obterUnidadeEdicao(saidaVinculada, getUnidadeMedicamento(medEncontrado) || '')
               );
               setObservacaoMedicacao(saidaVinculada.observacao || dadosEditar.observacao || '');
 
@@ -162,8 +216,10 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
             if (medEncontradoPorNome) {
               setUsarMedicacaoExterna(false);
               setMedicamentoSelecionado(medEncontradoPorNome);
-              setDoseAplicada('');
-              setUnidadeMedicacao(getUnidadeMedicamento(medEncontradoPorNome) || '');
+              setDoseAplicada(obterDoseEdicao());
+              setUnidadeMedicacao(
+                obterUnidadeEdicao(null, getUnidadeMedicamento(medEncontradoPorNome) || 'mL')
+              );
               setObservacaoMedicacao(dadosEditar.observacao || '');
           
               setNomeMedicacaoExterna('');
@@ -178,8 +234,8 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
               setObservacaoMedicacao('');
           
               setNomeMedicacaoExterna(dadosEditar.vermifugo || '');
-              setDoseMedicacaoExterna('');
-              setUnidadeMedicacaoExterna('mL');
+              setDoseMedicacaoExterna(obterDoseEdicao());
+              setUnidadeMedicacaoExterna(obterUnidadeEdicao(null, 'mL'));
               setObservacaoMedicacaoExterna(dadosEditar.observacao || '');
             }
           }
@@ -323,6 +379,8 @@ const ModalVermifugacao = ({ open, onClose, equino, dadosEditar = null }) => {
       vermifugo: nomeVermifugo,
       qtdeMedicamento,
       unidadeMedicamento,
+      origemMedicamento: usarMedicacaoExterna ? 'EXTERNO' : 'ESTOQUE',
+      medicamentoId: usarMedicacaoExterna ? null : Number(medicamentoSelecionado.id),
       observacao: observacaoFinal,
       data: dadosEditar?.data || new Date().toISOString(),
       dataProximoProcedimento: new Date(`${proximaData}T00:00:00`).toISOString(),

@@ -17,6 +17,7 @@ Modal.setAppElement('#root');
 const VeterinariaAtendimentoList = () => {
   const [equinos, setEquinos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
+  const [medicacoesAtendimento, setMedicacoesAtendimento] = useState([]);
   const [resultado, setResultado] = useState([]);
 
   const [filtroNome, setFiltroNome] = useState('');
@@ -34,6 +35,7 @@ const VeterinariaAtendimentoList = () => {
   useEffect(() => {
     carregarEquinos();
     carregarAtendimentos();
+    carregarMedicacoesAtendimento();
     setBotoes(['editar', 'excluir']);
   }, []);
 
@@ -57,6 +59,16 @@ const VeterinariaAtendimentoList = () => {
     }
   };
 
+  const carregarMedicacoesAtendimento = async () => {
+    try {
+      const response = await axios.get('/medicacoes_atendimento');
+      setMedicacoesAtendimento(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Erro ao carregar medicações dos atendimentos:', error);
+      setMedicacoesAtendimento([]);
+    }
+  };
+
   const obterEquinoAtendimento = (atendimento) => {
     if (!atendimento) return null;
 
@@ -68,6 +80,41 @@ const VeterinariaAtendimentoList = () => {
     if (!equinoId) return null;
 
     return equinos.find(eq => String(eq.id) === String(equinoId)) || null;
+  };
+
+  const obterMedicacoesDoAtendimento = (atendimento) => {
+    if (!atendimento?.id) return [];
+
+    return medicacoesAtendimento.filter((medicacao) => {
+      const atendimentoId =
+        medicacao.atendimentoId ??
+        medicacao.atendimento?.id ??
+        null;
+
+      return String(atendimentoId) === String(atendimento.id);
+    });
+  };
+
+  const formatarOrigemMedicamento = (origem) => {
+    if (origem === 'ESTOQUE') return 'Estoque';
+    if (origem === 'EXTERNO') return 'Externo';
+    return origem || '-';
+  };
+
+  const formatarQuantidadeMedicamento = (medicacao) => {
+    if (!medicacao) return '-';
+
+    const quantidade =
+      medicacao.doseAplicada ??
+      medicacao.quantidade ??
+      medicacao.quantidadeInformada ??
+      null;
+
+    const unidade = medicacao.unidade || medicacao.unidadeInformada || medicacao.unidadeBase || '';
+
+    if (quantidade === null || quantidade === undefined || quantidade === '') return '-';
+
+    return `${quantidade} ${unidade}`.trim();
   };
 
   const formatarData = (data) => {
@@ -154,18 +201,46 @@ const VeterinariaAtendimentoList = () => {
       y += 16;
     });
 
-    const head = [['#', 'Nome do Equino', 'Raça', 'Registro', 'Data', 'Consulta']];
+    const head = [[
+      '#',
+      'Nome do Equino',
+      'Raça',
+      'Registro',
+      'Data',
+      'Enfermidade',
+      'Consulta',
+      'Medicamento',
+      'Quantidade'
+    ]];
 
     const body = resultado.map((atendimento, index) => {
       const equinoEncontrado = obterEquinoAtendimento(atendimento);
+      const medicacoes = obterMedicacoesDoAtendimento(atendimento);
+
+      const medicamentosTexto = medicacoes.length > 0
+        ? medicacoes
+            .map((medicacao) => {
+              const nome = medicacao.nomeMedicamento || medicacao.medicamentoNome || medicacao.medicamento?.nome || '-';
+              const origem = formatarOrigemMedicamento(medicacao.origem);
+              return `${nome} (${origem})`;
+            })
+            .join('\n')
+        : '-';
+
+      const quantidadesTexto = medicacoes.length > 0
+        ? medicacoes.map((medicacao) => formatarQuantidadeMedicamento(medicacao)).join('\n')
+        : '-';
 
       return [
         index + 1,
         atendimento.nomeEquino || equinoEncontrado?.nome || '-',
         atendimento.raca || equinoEncontrado?.raca || '-',
         atendimento.numeroRegistro || equinoEncontrado?.registro || '-',
-        formatarData(atendimento.dataAtendimento),
-        atendimento.textoConsulta || '-'
+        formatarData(atendimento.dataAtendimento || atendimento.data),
+        atendimento.enfermidade || '-',
+        atendimento.textoConsulta || '-',
+        medicamentosTexto,
+        quantidadesTexto
       ];
     });
 
@@ -174,9 +249,10 @@ const VeterinariaAtendimentoList = () => {
       body,
       startY: y + 8,
       styles: {
-        fontSize: 9,
-        cellPadding: 5,
-        overflow: 'linebreak'
+        fontSize: 7.5,
+        cellPadding: 4,
+        overflow: 'linebreak',
+        valign: 'top'
       },
       headStyles: {
         fillColor: [22, 160, 133]
@@ -186,12 +262,15 @@ const VeterinariaAtendimentoList = () => {
         right: margem
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 130 },
-        2: { cellWidth: 100 },
-        3: { cellWidth: 120 },
-        4: { cellWidth: 90 },
-        5: { cellWidth: 'auto' }
+        0: { cellWidth: 25 },
+        1: { cellWidth: 80 },
+        2: { cellWidth: 70 },
+        3: { cellWidth: 80 },
+        4: { cellWidth: 60 },
+        5: { cellWidth: 75 },
+        6: { cellWidth: 200 },
+        7: { cellWidth: 110 },
+        8: { cellWidth: 62 }
       },
       didDrawPage: (data) => {
         const totalPaginas = doc.internal.getNumberOfPages();
@@ -272,16 +351,19 @@ const VeterinariaAtendimentoList = () => {
         resultado={resultado}
       />
 
-      <div>
-        <table className="table table-hover">
+      <div className="table-responsive">
+        <table className="table table-hover align-middle">
           <thead>
             <tr>
               <th>Nome do Equino</th>
               <th>Raça</th>
               <th>Número Registro</th>
               <th>Data</th>
+              <th>Enfermidade</th>
               <th>Consulta</th>
-              <th></th>
+              <th>Medicamento utilizado</th>
+              <th>Quantidade</th>
+              <th className="text-end">Ações</th>
             </tr>
           </thead>
 
@@ -289,6 +371,7 @@ const VeterinariaAtendimentoList = () => {
             {itensPaginados.length > 0 ? (
               itensPaginados.map((atendimento) => {
                 const equinoEncontrado = obterEquinoAtendimento(atendimento);
+                const medicacoes = obterMedicacoesDoAtendimento(atendimento);
 
                 return (
                   <tr key={atendimento.id}>
@@ -305,11 +388,54 @@ const VeterinariaAtendimentoList = () => {
                     </td>
 
                     <td>
-                      {formatarData(atendimento.dataAtendimento)}
+                      {formatarData(atendimento.dataAtendimento || atendimento.data)}
                     </td>
 
                     <td>
+                      {atendimento.enfermidade || '-'}
+                    </td>
+
+                    <td style={{ minWidth: '320px' }}>
                       {atendimento.textoConsulta || '-'}
+                    </td>
+
+                    <td style={{ minWidth: '220px' }}>
+                      {medicacoes.length > 0 ? (
+                        medicacoes.map((medicacao) => (
+                          <div key={medicacao.id} className="mb-1">
+                            <span>
+                              {medicacao.nomeMedicamento ||
+                                medicacao.medicamentoNome ||
+                                medicacao.medicamento?.nome ||
+                                '-'}
+                            </span>
+
+                            <span
+                              className={`badge ms-2 ${
+                                medicacao.origem === 'ESTOQUE'
+                                  ? 'bg-success'
+                                  : 'bg-warning text-dark'
+                              }`}
+                            >
+                              {formatarOrigemMedicamento(medicacao.origem)}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+
+                    <td style={{ minWidth: '120px' }}>
+                      {medicacoes.length > 0 ? (
+                        medicacoes.map((medicacao) => (
+                          <div key={`qtd-${medicacao.id}`} className="mb-1">
+                            {formatarQuantidadeMedicamento(medicacao)}
+                          </div>
+                        ))
+                      ) : (
+                        '-'
+                      )}
                     </td>
 
                     <td className="text-end">
@@ -339,7 +465,7 @@ const VeterinariaAtendimentoList = () => {
               })
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="9" className="text-center">
                   Nenhum atendimento encontrado.
                 </td>
               </tr>

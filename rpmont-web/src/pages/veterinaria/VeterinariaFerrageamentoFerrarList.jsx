@@ -92,7 +92,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
     if (filtroInicio) {
       const inicio = dayjs(filtroInicio).startOf('day');
       filtrados = filtrados.filter(a => {
-        const dataItem = parseDataSemFuso(a.data);
+        const dataItem = parseDataSemFuso(a.dataCadastro);
         return dataItem && (dataItem.isSame(inicio, 'day') || dataItem.isAfter(inicio));
       });
     }
@@ -100,7 +100,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
     if (filtroFim) {
       const fim = dayjs(filtroFim).endOf('day');
       filtrados = filtrados.filter(a => {
-        const dataItem = parseDataSemFuso(a.data);
+        const dataItem = parseDataSemFuso(a.dataCadastro);
         return dataItem && (dataItem.isSame(fim, 'day') || dataItem.isBefore(fim));
       });
     }
@@ -127,7 +127,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
       return [
         i + 1,
         equino?.nome || '-',
-        formatarData(f.data),
+        formatarData(f.dataCadastro),
         formatarData(f.dataProximoProcedimento),
         f.tipoFerradura || '-',
         f.tipoCravo || '-',
@@ -235,7 +235,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
             return (
               <tr key={item.id}>
                 <td style={estiloAlerta}>{equino?.nome || '-'}</td>
-                <td style={estiloAlerta}>{formatarData(item.data)}</td>
+                <td style={estiloAlerta}>{formatarData(item.dataCadastro)}</td>
                 <td style={estiloAlerta}>{formatarData(item.dataProximoProcedimento)}</td>
                 <td style={estiloAlerta}>{item.tipoFerradura || '-'}</td>
                 <td style={estiloAlerta}>{item.tipoCravo || '-'}</td>
