@@ -42,11 +42,33 @@ const VeterinariaFerrageamentoRepregoList = () => {
   const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
 
+  const obterEquinoId = (item) => {
+    return item.equinoId;
+  };
+
   const filtrar = () => {
-    let filtrados = repregos;
-    if (filtroNome) filtrados = filtrados.filter(a => a.equinoId === filtroNome);
-    if (filtroInicio) filtrados = filtrados.filter(a => new Date(a.data) >= new Date(filtroInicio + 'T00:00:00'));
-    if (filtroFim) filtrados = filtrados.filter(a => new Date(a.data) <= new Date(filtroFim + 'T23:59:59'));
+    let filtrados = [...repregos];
+
+    if (filtroNome) {
+      filtrados = filtrados.filter((item) => {
+        return String(item.equinoId) === String(filtroNome);
+      });
+    }
+
+    if (filtroInicio) {
+      filtrados = filtrados.filter((item) => {
+        if (!item.dataCadastro) return false;
+        return new Date(item.dataCadastro) >= new Date(`${filtroInicio}T00:00:00`);
+      });
+    }
+
+    if (filtroFim) {
+      filtrados = filtrados.filter((item) => {
+        if (!item.dataCadastro) return false;
+        return new Date(item.dataCadastro) <= new Date(`${filtroFim}T23:59:59`);
+      });
+    }
+
     setResultado(filtrados);
     setCurrentPage(1);
   };
@@ -65,11 +87,13 @@ const VeterinariaFerrageamentoRepregoList = () => {
     doc.text('Relatório de Ferrageamento - Reprego', 14, 15);
 
     const dadosTabela = resultado.map((f, i) => {
-      const equino = equinos.find(eq => eq.id === f.equinoId);
+      const equino = equinos.find(
+        (eq) => String(eq.id) === String(obterEquinoId(f))
+      );
       return [
         i + 1,
         equino?.nome || '-',
-        formatarData(f.data),
+        formatarData(f.dataCadastro),
         (f.patas || []).join(', '),
         f.ferroNovo,
         f.cravosUsados,
@@ -141,9 +165,9 @@ const VeterinariaFerrageamentoRepregoList = () => {
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Data</th>
+            <th>Data Cadastro</th>
             <th>Patas</th>
-            <th>Ferro Novo?</th>
+            <th>Ferro Novo</th>
             <th>Cravos Usados</th>
             <th>Observações</th>
             <th className="text-end">Ações</th>
@@ -151,11 +175,13 @@ const VeterinariaFerrageamentoRepregoList = () => {
         </thead>
         <tbody>
           {itensPaginados.map((item) => {
-            const equino = equinos.find(eq => eq.id === item.equinoId);
+            const equino = equinos.find(
+              (eq) => String(eq.id) === String(obterEquinoId(item))
+            );
             return (
               <tr key={item.id}>
                 <td>{equino?.nome || '-'}</td>
-                <td>{formatarData(item.data)}</td>
+                <td>{formatarData(item.dataCadastro)}</td>
                 <td>{(item.patas || []).join(', ')}</td>
                 <td>{item.ferroNovo}</td>
                 <td>{item.cravosUsados}</td>
@@ -208,7 +234,11 @@ const VeterinariaFerrageamentoRepregoList = () => {
         tamanho='medio'
         icone={<FaExclamationTriangle size={40} color='#f39c12' />}
         titulo='Confirmar Exclusão'
-        subtitulo={`Deseja realmente excluir o reprego do equino "${equinos.find(eq => eq.id === itemSelecionado?.equinoId)?.nome}"?`}
+        subtitulo={`Deseja realmente excluir o reprego do equino "${
+          equinos.find(
+            (eq) => String(eq.id) === String(obterEquinoId(itemSelecionado || {}))
+          )?.nome || ''
+        }"?`}
       >
         <div className='d-flex justify-content-center gap-3 mt-4'>
           <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>

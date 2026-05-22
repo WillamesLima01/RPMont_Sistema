@@ -825,3 +825,11 @@
   .pdf-export .print-item {
     margin-bottom: 8px !important;
   }
+
+  .table tbody tr.linha-procedimento-vencendo > td {
+  background-color: #ffe5e5 !important;
+}
+
+.table-hover tbody tr.linha-procedimento-vencendo:hover > td {
+  background-color: #ffd6d6 !important;
+}

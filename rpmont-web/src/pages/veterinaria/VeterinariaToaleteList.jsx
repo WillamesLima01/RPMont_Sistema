@@ -168,6 +168,54 @@ const VeterinariaToaleteList = () => {
     }
   };
 
+    const DIAS_ALERTA_TOALETE = 15;
+  const DIAS_VALIDADE_TOALETE = 30;
+
+  const normalizarData = (data) => {
+    if (!data) return null;
+
+    const novaData = new Date(data);
+
+    if (Number.isNaN(novaData.getTime())) return null;
+
+    novaData.setHours(0, 0, 0, 0);
+    return novaData;
+  };
+
+  const obterDataVencimentoToalete = (toalete) => {
+    const dataProximoProcedimento =
+      toalete.dataProximoProcedimento ||
+      toalete.proximoProcedimento ||
+      toalete.dataProximoToalete;
+
+    if (dataProximoProcedimento) {
+      return normalizarData(dataProximoProcedimento);
+    }
+
+    const dataCadastro = normalizarData(toalete.dataCadastro);
+
+    if (!dataCadastro) return null;
+
+    const dataVencimento = new Date(dataCadastro);
+    dataVencimento.setDate(dataVencimento.getDate() + DIAS_VALIDADE_TOALETE);
+
+    return dataVencimento;
+  };
+
+  const toaletePertoDeVencer = (toalete) => {
+    const dataVencimento = obterDataVencimentoToalete(toalete);
+
+    if (!dataVencimento) return false;
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const diferencaEmMs = dataVencimento.getTime() - hoje.getTime();
+    const diasRestantes = Math.ceil(diferencaEmMs / (1000 * 60 * 60 * 24));
+
+    return diasRestantes >= 0 && diasRestantes <= DIAS_ALERTA_TOALETE;
+  };
+
   return (
     <div className='container-fluid mt-page'>
       <Navbar />
@@ -211,7 +259,7 @@ const VeterinariaToaleteList = () => {
 
         <tbody>
           {itensPaginados.map((toalete) => (
-            <tr key={toalete.id}>
+            <tr key={toalete.id} className= {toaletePertoDeVencer(toalete) ? 'linha-procedimento-vencendo' : ''}>
               <td>{obterNomeEquino(toalete)}</td>
               <td>{toalete.tosa ? 'Sim' : 'Não'}</td>
               <td>{toalete.banho ? 'Sim' : 'Não'}</td>

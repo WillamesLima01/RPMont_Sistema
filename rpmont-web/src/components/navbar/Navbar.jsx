@@ -62,7 +62,7 @@ const Navbar = () => {
             <li className="nav-item dropdown">
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
-                  '/veterinaria-list',
+                  '/equino-list',
                   '/veterinaria-equinos-aptos-com-restricao',
                   '/veterinaria-equinos-baixados',
                 ])}`}
@@ -73,10 +73,10 @@ const Navbar = () => {
                 Equinos
               </button>
               <ul className="dropdown-menu" aria-labelledby="navbarDropdownEquinos">
-                <li><Link to="/veterinaria-List" className="dropdown-item">Equinos Aptos</Link></li>
+                <li><Link to="/equino-list" className="dropdown-item">Equinos Aptos</Link></li>
                 <li><Link to="/veterinaria-equinos-aptos-com-restricao" className="dropdown-item">Equinos Aptos com Restrição</Link>              </li>
-                <li><Link to="/veterinaria-Equinos-Baixados" className="dropdown-item">Equinos Baixados</Link></li>
-                <li><Link to="/veterinaria-List?filtro=todos" className="dropdown-item">Listar Todos os Equinos</Link></li>
+                <li><Link to="/veterinaria-equinos-baixados" className="dropdown-item">Equinos Baixados</Link></li>
+                <li><Link to="/equino-list?filtro=todos" className="dropdown-item">Listar Todos os Equinos</Link></li>
               </ul>
             </li>
 

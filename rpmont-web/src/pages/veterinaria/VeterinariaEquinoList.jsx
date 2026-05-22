@@ -9,10 +9,8 @@ import ModalVacinacao from '../../components/modal/ModalVacinacao.jsx';
 import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
 import { FaExclamationTriangle, FaQuestionCircle, FaCheckCircle } from 'react-icons/fa';
 import './Veterinaria.css';
-import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
-// >>> PDF
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -29,7 +27,6 @@ const SITUACAO = {
   BAIXADO: 'BAIXADO',
 };
 
-// Normalização (remove acentos) + lowercase
 const norm = (s) =>
   (s ?? '')
     .toString()
@@ -50,7 +47,6 @@ const formatarSituacao = (situacao) => {
   }
 };
 
-/* ===== Helpers ===== */
 const diasAte = (iso) => {
   if (!iso) return Number.POSITIVE_INFINITY;
 
@@ -61,8 +57,13 @@ const diasAte = (iso) => {
 
   const MS_DIA = 24 * 60 * 60 * 1000;
   const alvoLocal = new Date(ano, mes - 1, dia);
+
   const hoje = new Date();
-  const hojeLocal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  const hojeLocal = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate()
+  );
 
   return Math.floor((alvoLocal.getTime() - hojeLocal.getTime()) / MS_DIA);
 };
@@ -72,8 +73,19 @@ const estaNosProximos15Dias = (proximaISO) => {
   return dias >= 0 && dias <= 15;
 };
 
+const obterDataBaseProcedimento = (item) => {
+  return (
+    item?.dataProximoProcedimento ||
+    item?.proximaData ||
+    item?.dataCadastro ||
+    item?.data ||
+    item?.criadoEm ||
+    null
+  );
+};
+
 const proximaPorEquino = (lista, getId, intervaloDias) => {
-  const m = new Map();
+  const mapa = new Map();
 
   const hoje = new Date();
   const hojeLocal = new Date(
@@ -84,23 +96,34 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
 
   for (const item of lista || []) {
     const idBruto = getId(item);
-    if (idBruto === null || idBruto === undefined || idBruto === '') continue;
+
+    if (idBruto === null || idBruto === undefined || idBruto === '') {
+      continue;
+    }
 
     const id = String(idBruto);
 
     let iso = item.dataProximoProcedimento || item.proximaData;
 
-    if (!iso && item.data && intervaloDias) {
-      const baseStr = String(item.data).slice(0, 10);
-      const [anoBase, mesBase, diaBase] = baseStr.split('-').map(Number);
+    if (!iso && intervaloDias) {
+      const dataBase = obterDataBaseProcedimento(item);
 
-      if (anoBase && mesBase && diaBase) {
-        const base = new Date(anoBase, mesBase - 1, diaBase);
-        const calc = new Date(base.getTime() + intervaloDias * 24 * 60 * 60 * 1000);
-        const yyyy = calc.getFullYear();
-        const mm = String(calc.getMonth() + 1).padStart(2, '0');
-        const dd = String(calc.getDate()).padStart(2, '0');
-        iso = `${yyyy}-${mm}-${dd}`;
+      if (dataBase) {
+        const baseStr = String(dataBase).slice(0, 10);
+        const [anoBase, mesBase, diaBase] = baseStr.split('-').map(Number);
+
+        if (anoBase && mesBase && diaBase) {
+          const base = new Date(anoBase, mesBase - 1, diaBase);
+          const calc = new Date(
+            base.getTime() + intervaloDias * 24 * 60 * 60 * 1000
+          );
+
+          const yyyy = calc.getFullYear();
+          const mm = String(calc.getMonth() + 1).padStart(2, '0');
+          const dd = String(calc.getDate()).padStart(2, '0');
+
+          iso = `${yyyy}-${mm}-${dd}`;
+        }
       }
     }
 
@@ -108,48 +131,74 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
 
     const somenteData = String(iso).slice(0, 10);
     const [ano, mes, dia] = somenteData.split('-').map(Number);
+
     if (!ano || !mes || !dia) continue;
 
     const alvoLocal = new Date(ano, mes - 1, dia).getTime();
+
     if (alvoLocal < hojeLocal) continue;
 
-    const atualISO = m.get(id);
+    const atualISO = mapa.get(id);
 
     if (!atualISO) {
-      m.set(id, somenteData);
-    } else {
-      const atualData = String(atualISO).slice(0, 10);
-      const [anoAtual, mesAtual, diaAtual] = atualData.split('-').map(Number);
-      const atualLocal = new Date(anoAtual, mesAtual - 1, diaAtual).getTime();
+      mapa.set(id, somenteData);
+      continue;
+    }
 
-      if (alvoLocal < atualLocal) {
-        m.set(id, somenteData);
-      }
+    const atualData = String(atualISO).slice(0, 10);
+    const [anoAtual, mesAtual, diaAtual] = atualData.split('-').map(Number);
+    const atualLocal = new Date(anoAtual, mesAtual - 1, diaAtual).getTime();
+
+    if (alvoLocal < atualLocal) {
+      mapa.set(id, somenteData);
     }
   }
 
-  return m;
+  return mapa;
 };
 
 const labelProced = (tipo) =>
   tipo === 'vacinacao' ? 'Vacinação' :
   tipo === 'vermifugacao' ? 'Vermifugação' :
   tipo === 'toalete' ? 'Toalete' :
-  tipo === 'ferrageamento' ? 'Ferrageamento' : 'Procedimento';
+  tipo === 'ferrar' ? 'Ferrageamento - Ferrar' :
+  tipo === 'reprego' ? 'Ferrageamento - Reprego' :
+  tipo === 'curativo' ? 'Ferrageamento - Curativo' :
+  tipo === 'ferrageamento' ? 'Ferrageamento' :
+  'Procedimento';
 
-const rotaProced = (tipo, equinoId) => {
+const rotaProced = (tipo) => {
   switch (tipo) {
     case 'vacinacao':
-      return '/vacinacao-equino';
+      return '/veterinaria-vacinacao-list';
+
     case 'vermifugacao':
-      return '/vermifugacao-equino';
+      return '/veterinaria-vermifugacao-list';
+
     case 'toalete':
-      return `/veterinaria-toalete-equino/${equinoId}`;
+      return '/veterinaria-toalete-list';
+
+    case 'ferrar':
     case 'ferrageamento':
-      return `/veterinaria-ferrageamento-equino/${equinoId}`;
+      return '/veterinaria-ferrageamento-ferrar-list';
+
+    case 'reprego':
+      return '/veterinaria-ferrageamento-reprego-list';
+
+    case 'curativo':
+      return '/veterinaria-ferrageamento-curativo-list';
+
     default:
       return '#';
   }
+};
+
+const menorDiaValido = (...dias) => {
+  const validos = dias.filter((d) => d !== null && d !== undefined && Number.isFinite(d));
+
+  if (validos.length === 0) return null;
+
+  return Math.min(...validos);
 };
 
 const buildIndex = (e) => {
@@ -197,30 +246,34 @@ const VeterinariaEquinoList = () => {
   const [searchParams] = useSearchParams();
   const filtroQuery = searchParams.get('filtro');
   const location = useLocation();
+
   const totalPaginas = Math.ceil(equinosFiltrados.length / itensPorPagina);
 
   useEffect(() => {
-    (async () => {
+    const carregarDados = async () => {
       try {
-        const [eq, vac, ver, toa, fer] = await Promise.allSettled([
+        const [eq, vac, ver, toa, fer, rep, cur] = await Promise.allSettled([
           axios.get('/equino'),
           axios.get('/vacinacao'),
           axios.get('/vermifugacao'),
           axios.get('/toalete'),
           axios.get('/ferrageamento_equino'),
+          axios.get('/ferrageamento_reprego_equino'),
+          axios.get('/ferrageamento_curativo_equino'),
         ]);
 
         let listaEquinos = (eq.status === 'fulfilled' ? eq.value.data : []) || [];
 
         const statusValidos = ['BAIXADO', 'APTO', 'todos'];
+
         const filtroFinal = statusValidos.includes(filtroQuery)
           ? filtroQuery
           : (
               location.pathname === '/veterinaria-Equinos-Baixados'
                 ? 'BAIXADO'
-                : location.pathname === '/veterinaria-List'
-                ? 'APTO'
-                : 'todos'
+                : location.pathname === '/equino-list'
+                  ? 'APTO'
+                  : 'todos'
             );
 
         if (filtroFinal === 'BAIXADO') {
@@ -237,62 +290,93 @@ const VeterinariaEquinoList = () => {
         const vermifugacao = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
         const toalete = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
+        const repregos = (rep.status === 'fulfilled' ? rep.value.data : []) || [];
+        const curativos = (cur.status === 'fulfilled' ? cur.value.data : []) || [];
 
         const proxVac = proximaPorEquino(
           vacinacao,
-          (v) => v.id_Eq ?? v.equinoId ?? v.idEquino,
+          (v) => v.equinoId,
           INTERVALOS.vacinacaoDias
         );
 
         const proxVer = proximaPorEquino(
           vermifugacao,
-          (v) => v.equinoId ?? v.equino_id ?? v.idEquino ?? v.id_Eq,
+          (v) => v.equinoId,
           INTERVALOS.vermifugacaoDias
         );
 
         const proxToa = proximaPorEquino(
           toalete,
-          (t) => t.equinoId ?? t.idEquino ?? t.id_Eq,
+          (t) => t.equinoId,
           INTERVALOS.toaleteDias
         );
 
         const proxFer = proximaPorEquino(
           ferrageamentos,
-          (f) => f.equinoId ?? f.idEquino ?? f.id_Eq,
+          (f) => f.equinoId,
+          INTERVALOS.ferrageamentoDias
+        );
+
+        const proxRep = proximaPorEquino(
+          repregos,
+          (r) => r.equinoId,
+          INTERVALOS.ferrageamentoDias
+        );
+
+        const proxCur = proximaPorEquino(
+          curativos,
+          (c) => c.equinoId,
           INTERVALOS.ferrageamentoDias
         );
 
         const comFlags = listaEquinos.map((eqItem) => {
           const id = String(eqItem.id);
+
           const pVac = proxVac.get(id) || null;
           const pVer = proxVer.get(id) || null;
           const pToa = proxToa.get(id) || null;
           const pFer = proxFer.get(id) || null;
+          const pRep = proxRep.get(id) || null;
+          const pCur = proxCur.get(id) || null;
 
           const fVac = estaNosProximos15Dias(pVac);
           const fVer = estaNosProximos15Dias(pVer);
           const fToa = estaNosProximos15Dias(pToa);
           const fFer = estaNosProximos15Dias(pFer);
+          const fRep = estaNosProximos15Dias(pRep);
+          const fCur = estaNosProximos15Dias(pCur);
 
           const diasVac = Number.isFinite(diasAte(pVac)) ? diasAte(pVac) : null;
           const diasVer = Number.isFinite(diasAte(pVer)) ? diasAte(pVer) : null;
           const diasToa = Number.isFinite(diasAte(pToa)) ? diasAte(pToa) : null;
           const diasFer = Number.isFinite(diasAte(pFer)) ? diasAte(pFer) : null;
+          const diasRep = Number.isFinite(diasAte(pRep)) ? diasAte(pRep) : null;
+          const diasCur = Number.isFinite(diasAte(pCur)) ? diasAte(pCur) : null;
 
           let melhor = null;
+
           const pick = (tipo, iso) => {
             if (!iso) return;
+
             const dRest = diasAte(iso);
+
             if (dRest < 0 || dRest > 15) return;
+
             if (!melhor || dRest < melhor.dias) {
-              melhor = { tipo, proxima: iso, dias: dRest };
+              melhor = {
+                tipo,
+                proxima: iso,
+                dias: dRest,
+              };
             }
           };
 
           pick('vacinacao', pVac);
           pick('vermifugacao', pVer);
           pick('toalete', pToa);
-          pick('ferrageamento', pFer);
+          pick('ferrar', pFer);
+          pick('reprego', pRep);
+          pick('curativo', pCur);
 
           return {
             ...eqItem,
@@ -300,13 +384,19 @@ const VeterinariaEquinoList = () => {
               vacinacao: fVac,
               vermifugacao: fVer,
               toalete: fToa,
-              ferrageamento: fFer,
+              ferrageamento: fFer || fRep || fCur,
+              ferrar: fFer,
+              reprego: fRep,
+              curativo: fCur,
             },
             _diasRestantes: {
               vacinacao: diasVac,
               vermifugacao: diasVer,
               toalete: diasToa,
-              ferrageamento: diasFer,
+              ferrageamento: menorDiaValido(diasFer, diasRep, diasCur),
+              ferrar: diasFer,
+              reprego: diasRep,
+              curativo: diasCur,
             },
             _proximoAlerta: melhor,
             _index: buildIndex(eqItem),
@@ -319,20 +409,25 @@ const VeterinariaEquinoList = () => {
       } catch (e) {
         console.error('Erro ao carregar dados:', e);
       }
-    })();
+    };
+
+    carregarDados();
   }, [location.pathname, filtroQuery]);
 
   useEffect(() => {
     switch (location.pathname) {
-      case '/veterinaria-List':
+      case '/equino-list':
         setBotoes(['editar', 'excluir', 'baixar', 'escalas', 'rd']);
         break;
+
       case '/veterinaria-Equinos-Baixados':
         setBotoes(['atendimento', 'retorno']);
         break;
+
       case '/manejo-sanitario-list':
         setBotoes(['toalete', 'ferrageamento', 'vermifugacao', 'vacinacao']);
         break;
+
       default:
         setBotoes([]);
     }
@@ -348,18 +443,21 @@ const VeterinariaEquinoList = () => {
     }
 
     const byId = equinos.find((e) => String(e.id) === termoTrim);
+
     if (byId) {
       setEquinosFiltrados([byId]);
       return;
     }
 
     const exactNameMatches = equinos.filter((e) => e._nameNorm === termoNorm);
+
     if (exactNameMatches.length === 1) {
       setEquinosFiltrados(exactNameMatches);
       return;
     }
 
     const exactReg = equinos.filter((e) => (e.registro || '') === termoTrim);
+
     if (exactReg.length === 1) {
       setEquinosFiltrados(exactReg);
       return;
@@ -378,10 +476,15 @@ const VeterinariaEquinoList = () => {
   useEffect(() => {
     setPaginaAtual(1);
     aplicarFiltro(filtroNome);
-  }, [equinos, filtroNome]); // eslint-disable-line
+  }, [equinos, filtroNome]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const gerarPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: 'a4',
+    });
+
     const margem = 40;
     const titulo = 'Relação de Equinos';
     const dataStr = dayjs().format('DD/MM/YYYY HH:mm');
@@ -390,9 +493,14 @@ const VeterinariaEquinoList = () => {
 
     doc.setFontSize(16);
     doc.text(titulo, margem, 30);
+
     doc.setFontSize(10);
     doc.text(`Gerado em: ${dataStr}`, margem, 48);
-    if (infoFiltro) doc.text(infoFiltro, margem, 64);
+
+    if (infoFiltro) {
+      doc.text(infoFiltro, margem, 64);
+    }
+
     doc.text(totalStr, margem, infoFiltro ? 80 : 64);
 
     const head = [[
@@ -425,15 +533,32 @@ const VeterinariaEquinoList = () => {
       head,
       body,
       startY: infoFiltro ? 100 : 84,
-      styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
-      headStyles: { fillColor: [33, 150, 243] },
-      margin: { left: margem, right: margem },
+      styles: {
+        fontSize: 9,
+        cellPadding: 5,
+        overflow: 'linebreak',
+      },
+      headStyles: {
+        fillColor: [33, 150, 243],
+      },
+      margin: {
+        left: margem,
+        right: margem,
+      },
       didDrawPage: (data) => {
         const pageNumber = doc.internal.getNumberOfPages();
         const str = `Página ${data.pageNumber} de ${pageNumber}`;
+
         doc.setFontSize(9);
+
         const pageWidth = doc.internal.pageSize.getWidth();
-        doc.text(str, pageWidth - margem, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+
+        doc.text(
+          str,
+          pageWidth - margem,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'right' }
+        );
       },
     });
 
@@ -473,23 +598,13 @@ const VeterinariaEquinoList = () => {
       .delete(`/equino/${equinoSelecionado.id}`)
       .then(() => {
         const atualizados = equinos.filter((e) => e.id !== equinoSelecionado.id);
+
         setEquinos(atualizados);
         setEquinosFiltrados(atualizados);
         setModalExcluirAberto(false);
         setEquinoSelecionado(null);
       })
       .catch((error) => console.error('Erro ao excluir equino:', error));
-  };
-
-  const buscarDataInternet = async () => {
-    try {
-      const resposta = await fetch('https://worldtimeapi.org/api/ip');
-      const dados = await resposta.json();
-      const dataUTC = dados.utc_datetime;
-      return new Date(dataUTC).toISOString().split('T')[0];
-    } catch {
-      return new Date().toISOString().split('T')[0];
-    }
   };
 
   const confirmarBaixaEquino = (equino) => {
@@ -506,16 +621,16 @@ const VeterinariaEquinoList = () => {
 
   const salvarSituacaoEquino = async () => {
     if (!equinoSelecionado) return;
-  
+
     if (!situacaoEscolhida) {
       setMensagemAviso('Selecione se o equino ficará como BAIXADO ou APTO COM RESTRIÇÃO.');
       setModalAvisoAberto(true);
       return;
     }
-  
+
     try {
       const id = equinoSelecionado.id;
-  
+
       if (situacaoEscolhida === SITUACAO.BAIXADO) {
         await axios.post(`/equino/${id}/baixar`);
       } else if (situacaoEscolhida === SITUACAO.APTO_COM_RESTRICAO) {
@@ -523,20 +638,23 @@ const VeterinariaEquinoList = () => {
           situacao: SITUACAO.APTO_COM_RESTRICAO,
         });
       }
-  
+
       const equinosAtualizados = equinos.map((e) =>
         e.id === id
           ? {
               ...e,
               situacao: situacaoEscolhida,
-              _index: buildIndex({ ...e, situacao: situacaoEscolhida }),
+              _index: buildIndex({
+                ...e,
+                situacao: situacaoEscolhida,
+              }),
             }
           : e
       );
-  
+
       setEquinos(equinosAtualizados);
       setEquinosFiltrados(equinosAtualizados);
-  
+
       setModalEscolhaSituacaoAberto(false);
       setModalSucessoSituacaoAberto(true);
     } catch (error) {
@@ -559,7 +677,7 @@ const VeterinariaEquinoList = () => {
         setFiltroNome={setFiltroNome}
         onFiltrar={handleFiltrar}
         mostrarAdicionar={
-          location.pathname === '/veterinaria-List' &&
+          location.pathname === '/equino-List' &&
           (!filtroQuery || filtroQuery === 'todos')
         }
         resultado={equinosFiltrados}
@@ -585,6 +703,7 @@ const VeterinariaEquinoList = () => {
               <th className="text-end">Ações</th>
             </tr>
           </thead>
+
           <tbody>
             {equinosFiltrados
               .slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
@@ -605,10 +724,17 @@ const VeterinariaEquinoList = () => {
                     <td>{equino.peso}</td>
                     <td>{equino.sexo}</td>
                     <td>{equino.local}</td>
+
                     <td className="text-end">
                       {mostrarCavalo && (
                         <BotaoAcaoRows
-                          to={rotaProced(proximo.tipo, equino.id)}
+                          to={rotaProced(proximo.tipo)}
+                          state={{
+                            equinoId: equino.id,
+                            equinoNome: equino.nome,
+                            tipoProcedimento: proximo.tipo,
+                            origem: 'manejo-sanitario-list',
+                          }}
                           title={`Pendente em ${proximo.dias}d • ${labelProced(proximo.tipo)}`}
                           className="botao-alerta-cavalo"
                           icone="fas fa-horse"
@@ -645,7 +771,11 @@ const VeterinariaEquinoList = () => {
                         <BotaoAcaoRows
                           tipo="button"
                           onClick={() => abrirModalVermifugacao(equino)}
-                          title="Vermifugação"
+                          title={
+                            alertas.vermifugacao && Number.isFinite(equino._diasRestantes?.vermifugacao)
+                              ? `Vermifugação • vence em ${equino._diasRestantes.vermifugacao}d`
+                              : 'Vermifugação'
+                          }
                           className={clsBtn('botao-vermifugacao', alertas.vermifugacao)}
                           icone="bi-bug"
                         />
@@ -720,7 +850,11 @@ const VeterinariaEquinoList = () => {
                         <BotaoAcaoRows
                           tipo="button"
                           onClick={() => abrirModalVacinacao(equino)}
-                          title="Vacinação"
+                          title={
+                            alertas.vacinacao && Number.isFinite(equino._diasRestantes?.vacinacao)
+                              ? `Vacinação • vence em ${equino._diasRestantes.vacinacao}d`
+                              : 'Vacinação'
+                          }
                           className={clsBtn('botao-vacinacao', alertas.vacinacao)}
                           icone="fas fa-syringe"
                         />
@@ -742,7 +876,9 @@ const VeterinariaEquinoList = () => {
               Anterior
             </button>
 
-            <span> Página {paginaAtual} de {totalPaginas} </span>
+            <span>
+              Página {paginaAtual} de {totalPaginas}
+            </span>
 
             <button
               className="btn btn-outline-secondary ms-2"
@@ -779,6 +915,7 @@ const VeterinariaEquinoList = () => {
           <button className="btn btn-outline-secondary" onClick={cancelarExclusao}>
             Cancelar
           </button>
+
           <button className="btn btn-danger" onClick={excluirEquinoSelecionado}>
             Excluir
           </button>
@@ -797,6 +934,7 @@ const VeterinariaEquinoList = () => {
         <div className="mt-4">
           <div className="mb-3">
             <label className="form-label fw-bold">Nova situação</label>
+
             <select
               className="form-select"
               value={situacaoEscolhida}
@@ -815,6 +953,7 @@ const VeterinariaEquinoList = () => {
             >
               Cancelar
             </button>
+
             <button className="btn btn-danger" onClick={salvarSituacaoEquino}>
               Confirmar
             </button>
@@ -839,7 +978,15 @@ const VeterinariaEquinoList = () => {
         tamanho="medio"
         titulo="Atenção!"
         subtitulo={mensagemAviso || 'Verifique as informações do equino.'}
-        icone={<i className="bi bi-sign-stop" style={{ fontSize: '100px', color: 'red' }}></i>}
+        icone={
+          <i
+            className="bi bi-sign-stop"
+            style={{
+              fontSize: '100px',
+              color: 'red',
+            }}
+          ></i>
+        }
       />
     </div>
   );

@@ -214,7 +214,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Data</th>
+            <th>Data Cadastro</th>
             <th>Próx. procedimento</th>
             <th>Ferradura</th>
             <th>Cravo</th>
