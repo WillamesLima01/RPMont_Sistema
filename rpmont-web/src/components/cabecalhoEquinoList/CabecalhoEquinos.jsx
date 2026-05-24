@@ -34,7 +34,7 @@ const CabecalhoEquinoLista = ({
           </h2>
 
           {mostrarAdicionar && (
-            <Link to="/veterinaria-Form" className="btn btn-outline-primary">
+            <Link to="/equino-Form" className="btn btn-outline-primary">
               Adicionar Equino
             </Link>
           )}

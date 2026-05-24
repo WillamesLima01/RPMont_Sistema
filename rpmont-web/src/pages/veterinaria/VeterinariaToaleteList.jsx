@@ -276,7 +276,7 @@ const VeterinariaToaleteList = () => {
                 <div className='d-flex justify-content-end'>
                   {botoes.includes('editar') && (
                     <BotaoAcaoRows
-                      to={`/veterinaria-toalete-equino/${toalete.equinoId ?? toalete.equino?.id}`}
+                      to={`/toalete-form/${toalete.equinoId ?? toalete.equino?.id}`}
                       state={{ toaleteId: toalete.id }}
                       title='Editar Toalete'
                       className='botao-editar'

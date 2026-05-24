@@ -90,7 +90,7 @@ const VeterinariaForm = () => {
           setModalSucesso(true);
           setTimeout(() => {
             setModalSucesso(false);
-            navigate("/veterinaria-List?filtro=todos");
+            navigate("/equino-list?filtro=todos");
           }, 3000);
         } else {
           setModalConfirmacao(true);
@@ -155,7 +155,7 @@ const VeterinariaForm = () => {
     setModalSucesso(true);
     setTimeout(() => {
       setModalSucesso(false);
-      navigate("/veterinaria-List?filtro=todos");
+      navigate("/equino-list?filtro=todos");
     }, 3000);
   };
 
@@ -320,7 +320,7 @@ const VeterinariaForm = () => {
               </div>
 
               <div className="col-12 text-end mt-4">
-                <Link to="/veterinaria-List?filtro=todos" className="btn btn-outline-danger me-2">
+                <Link to="/equino-list?filtro=todos" className="btn btn-outline-danger me-2">
                   Cancelar
                 </Link>
                 <button type="submit" className="btn btn-primary">

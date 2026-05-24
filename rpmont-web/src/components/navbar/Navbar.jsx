@@ -169,7 +169,7 @@ const Navbar = () => {
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${isActive([
                   '/manejo-sanitario-list',
-                  '/ferrageamento-equino',
+                  '/ferrageamento-ferrar-list',
                   '/toalete-equino',
                   '/vermifugacao-equino',
                   '/vacinacao-equino'
@@ -201,9 +201,9 @@ const Navbar = () => {
                   </button>
                   {submenuFerrageamentoAberto && (
                     <ul className="list-unstyled ps-3">
-                      <li><Link to="/ferrageamento-equino" className="dropdown-item" onClick={fecharMenu}>Ferrar</Link></li>
-                      <li><Link to="/reprego-equino" className="dropdown-item" onClick={fecharMenu}>Reprego</Link></li>
-                      <li><Link to="/curativo-equino" className="dropdown-item" onClick={fecharMenu}>Curativo</Link></li>
+                      <li><Link to="/ferrageamento-ferrar-list" className="dropdown-item" onClick={fecharMenu}>Ferrar</Link></li>
+                      <li><Link to="/ferrageamento-reprego-list" className="dropdown-item" onClick={fecharMenu}>Reprego</Link></li>
+                      <li><Link to="/ferrageamento-curativo-list" className="dropdown-item" onClick={fecharMenu}>Curativo</Link></li>
                     </ul>
                   )}
                 </li>

@@ -156,7 +156,7 @@ const VeterinariaFerrageamentoCurativoList = () => {
                     {botoes.includes('editar') && (
                       <BotaoAcaoRows
                         tipo="link"
-                        to={`/veterinaria-ferrageamento-equino/curativo/${item.id}`}
+                        to={`/ferrageamento-form/curativo/${item.id}`}
                         title="Editar Curativo"
                         className="botao-editar"
                         icone="bi-pencil"

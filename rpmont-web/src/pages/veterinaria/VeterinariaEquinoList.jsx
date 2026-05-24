@@ -677,7 +677,7 @@ const VeterinariaEquinoList = () => {
         setFiltroNome={setFiltroNome}
         onFiltrar={handleFiltrar}
         mostrarAdicionar={
-          location.pathname === '/equino-List' &&
+          location.pathname === '/equino-list' &&
           (!filtroQuery || filtroQuery === 'todos')
         }
         resultado={equinosFiltrados}
@@ -743,7 +743,7 @@ const VeterinariaEquinoList = () => {
 
                       {botoes.includes('toalete') && (
                         <BotaoAcaoRows
-                          to={`/veterinaria-toalete-equino/${equino.id}`}
+                          to={`/toalete-form/${equino.id}`}
                           title={
                             alertas.toalete && Number.isFinite(equino._diasRestantes?.toalete)
                               ? `Toalete • vence em ${equino._diasRestantes.toalete}d`
@@ -756,7 +756,7 @@ const VeterinariaEquinoList = () => {
 
                       {botoes.includes('ferrageamento') && (
                         <BotaoAcaoRows
-                          to={`/veterinaria-ferrageamento-equino/${equino.id}`}
+                          to={`/ferrageamento-form/${equino.id}`}
                           title={
                             alertas.ferrageamento && Number.isFinite(equino._diasRestantes?.ferrageamento)
                               ? `Ferrageamento • vence em ${equino._diasRestantes.ferrageamento}d`
@@ -783,7 +783,7 @@ const VeterinariaEquinoList = () => {
 
                       {botoes.includes('editar') && (
                         <BotaoAcaoRows
-                          to={`/edit-equino/${equino.id}`}
+                          to={`/equino-form/${equino.id}`}
                           title="Editar"
                           className="botao-editar"
                           icone="bi-pencil"

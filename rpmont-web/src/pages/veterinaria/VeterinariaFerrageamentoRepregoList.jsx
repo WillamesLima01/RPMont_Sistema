@@ -190,7 +190,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
                   <div className="d-flex justify-content-end">
                     {botoes.includes('editar') && (
                       <BotaoAcaoRows                        
-                        to={`/veterinaria-ferrageamento-equino/reprego/${item.id}`}
+                        to={`/ferrageamento-form/:reprego/${item.id}`}
                         title="Editar Reprego"
                         className="botao-editar"
                         icone="bi-pencil"

@@ -29,6 +29,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
   const [botoes, setBotoes] = useState(['editar', 'excluir']);
 
   const HOJE = dayjs().startOf('day');
+
   const LIMITE_ALERTA = HOJE.add(10, 'day');
 
   const parseDataSemFuso = (valor) => {
@@ -248,7 +249,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
                   <div className="d-flex justify-content-end">
                     {botoes.includes('editar') && (
                       <BotaoAcaoRows
-                        to={`/veterinaria-ferrageamento-equino/ferrar/${item.id}`}
+                        to={`/ferrageamento-form/ferrar/${item.id}`}
                         title="Editar Ferrageamento"
                         className="botao-editar"
                         icone="bi-pencil"

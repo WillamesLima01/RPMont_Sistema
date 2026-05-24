@@ -126,7 +126,7 @@ const VeterinariaToaleteForm = () => {
 
       setTimeout(() => {
         setModalAberto(false);
-        navigate(modoEdicao ? '/veterinaria-toalete-list' : '/manejo-sanitario-list');
+        navigate(modoEdicao ? '/toalete-list' : '/manejo-sanitario-list');
       }, 2500);
     } catch (error) {
       console.error('Erro ao salvar os dados:', error);
