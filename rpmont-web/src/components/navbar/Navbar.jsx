@@ -82,8 +82,8 @@ const Navbar = () => {
 
             <li className="nav-item">
               <Link
-                to="/escala-equinos-List"
-                className={`nav-link text-white mt-1 me-4 ${isActive('/escala-equinos-List')}`}
+                to="/escala-equinos-list"
+                className={`nav-link text-white mt-1 me-4 ${isActive('/escala-equinos-list')}`}
               >
                 Consultar Escala Equinos
               </Link>
@@ -123,8 +123,8 @@ const Navbar = () => {
             <li className="nav-item dropdown">
               <button
                 className={`nav-link dropdown-toggle mt-1 me-4 btn btn-link text-white ${
-                  isActive('/medicamentoForm') ||
-                  isActive('/medicamentoList') ||
+                  isActive('/medicamento-form') ||
+                  isActive('/medicamento-list') ||
                   isActive('/medicamento-relatorio')
                     ? 'active'
                     : ''
@@ -143,17 +143,17 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/medicamentoList" className="dropdown-item">
+                  <Link to="/medicamento-list" className="dropdown-item">
                     Listar todos Medicamentos
                   </Link>
                 </li>
                 <li>
-                  <Link to="/entradaMedicamentoList" className="dropdown-item">
+                  <Link to="/entrada-medicamento-list" className="dropdown-item">
                     Listar todos as entradas
                   </Link>
                 </li>
                 <li>
-                  <Link to="/saidaMedicamentoList" className="dropdown-item">
+                  <Link to="/saida-medicamento-list" className="dropdown-item">
                     Listar todos as saídas
                   </Link>
                 </li>
@@ -171,8 +171,8 @@ const Navbar = () => {
                   '/manejo-sanitario-list',
                   '/ferrageamento-ferrar-list',
                   '/toalete-equino',
-                  '/vermifugacao-equino',
-                  '/vacinacao-equino'
+                  '/vermifugacao-list',
+                  '/vacinacao-list'
                 ])}`}
                 id="navbarDropdownManejo"
                 data-bs-toggle="dropdown"
@@ -187,8 +187,8 @@ const Navbar = () => {
 
                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
                 <li><Link to="/veterinaria-toalete-list" className="dropdown-item">Toalete</Link></li>
-                <li><Link to="/vermifugacao-equino" className="dropdown-item">Vermifugação</Link></li>
-                <li><Link to="/vacinacao-equino" className="dropdown-item">Vacinação</Link></li>
+                <li><Link to="/vermifugacao-list" className="dropdown-item">Vermifugação</Link></li>
+                <li><Link to="/vacinacao-list" className="dropdown-item">Vacinação</Link></li>
 
                 {/* FERRAGEAMENTO COM SUBMENU CONTROLADO */}
                 <li className="dropdown-submenu">

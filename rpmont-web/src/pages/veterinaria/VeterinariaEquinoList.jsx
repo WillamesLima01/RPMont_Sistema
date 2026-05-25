@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import axios from '../../api';
 import CabecalhoEquinoLista from '../../components/cabecalhoEquinoList/CabecalhoEquinos.jsx';
@@ -34,6 +34,13 @@ const norm = (s) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
+const normalizarTexto = (texto) => {
+  return String(texto || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+};
+
 const formatarSituacao = (situacao) => {
   switch (situacao) {
     case SITUACAO.APTO:
@@ -47,16 +54,36 @@ const formatarSituacao = (situacao) => {
   }
 };
 
+const obterDataBaseProcedimento = (item) => {
+  return (
+    item?.dataCadastro ||
+    item?.data ||
+    item?.criadoEm ||
+    item?.dataProximoProcedimento ||
+    item?.proximaData ||
+    null
+  );
+};
+
+const normalizarDataLocal = (valor) => {
+  if (!valor) return null;
+
+  const somenteData = String(valor).slice(0, 10);
+  const [ano, mes, dia] = somenteData.split('-').map(Number);
+
+  if (!ano || !mes || !dia) return null;
+
+  return new Date(ano, mes - 1, dia);
+};
+
 const diasAte = (iso) => {
   if (!iso) return Number.POSITIVE_INFINITY;
 
-  const somenteData = String(iso).slice(0, 10);
-  const [ano, mes, dia] = somenteData.split('-').map(Number);
+  const alvoLocal = normalizarDataLocal(iso);
 
-  if (!ano || !mes || !dia) return Number.POSITIVE_INFINITY;
+  if (!alvoLocal) return Number.POSITIVE_INFINITY;
 
   const MS_DIA = 24 * 60 * 60 * 1000;
-  const alvoLocal = new Date(ano, mes - 1, dia);
 
   const hoje = new Date();
   const hojeLocal = new Date(
@@ -73,15 +100,32 @@ const estaNosProximos15Dias = (proximaISO) => {
   return dias >= 0 && dias <= 15;
 };
 
-const obterDataBaseProcedimento = (item) => {
-  return (
-    item?.dataProximoProcedimento ||
-    item?.proximaData ||
-    item?.dataCadastro ||
-    item?.data ||
-    item?.criadoEm ||
-    null
+const calcularProximaData = (item, intervaloDias) => {
+  let iso = item?.dataProximoProcedimento || item?.proximaData;
+
+  if (iso) {
+    return String(iso).slice(0, 10);
+  }
+
+  if (!intervaloDias) return null;
+
+  const dataBase = obterDataBaseProcedimento(item);
+
+  if (!dataBase) return null;
+
+  const base = normalizarDataLocal(dataBase);
+
+  if (!base) return null;
+
+  const calc = new Date(
+    base.getTime() + intervaloDias * 24 * 60 * 60 * 1000
   );
+
+  const yyyy = calc.getFullYear();
+  const mm = String(calc.getMonth() + 1).padStart(2, '0');
+  const dd = String(calc.getDate()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd}`;
 };
 
 const proximaPorEquino = (lista, getId, intervaloDias) => {
@@ -102,59 +146,69 @@ const proximaPorEquino = (lista, getId, intervaloDias) => {
     }
 
     const id = String(idBruto);
-
-    let iso = item.dataProximoProcedimento || item.proximaData;
-
-    if (!iso && intervaloDias) {
-      const dataBase = obterDataBaseProcedimento(item);
-
-      if (dataBase) {
-        const baseStr = String(dataBase).slice(0, 10);
-        const [anoBase, mesBase, diaBase] = baseStr.split('-').map(Number);
-
-        if (anoBase && mesBase && diaBase) {
-          const base = new Date(anoBase, mesBase - 1, diaBase);
-          const calc = new Date(
-            base.getTime() + intervaloDias * 24 * 60 * 60 * 1000
-          );
-
-          const yyyy = calc.getFullYear();
-          const mm = String(calc.getMonth() + 1).padStart(2, '0');
-          const dd = String(calc.getDate()).padStart(2, '0');
-
-          iso = `${yyyy}-${mm}-${dd}`;
-        }
-      }
-    }
+    const iso = calcularProximaData(item, intervaloDias);
 
     if (!iso) continue;
 
-    const somenteData = String(iso).slice(0, 10);
-    const [ano, mes, dia] = somenteData.split('-').map(Number);
+    const alvoLocal = normalizarDataLocal(iso);
 
-    if (!ano || !mes || !dia) continue;
+    if (!alvoLocal) continue;
 
-    const alvoLocal = new Date(ano, mes - 1, dia).getTime();
-
-    if (alvoLocal < hojeLocal) continue;
+    if (alvoLocal.getTime() < hojeLocal) continue;
 
     const atualISO = mapa.get(id);
 
     if (!atualISO) {
-      mapa.set(id, somenteData);
+      mapa.set(id, iso);
       continue;
     }
 
-    const atualData = String(atualISO).slice(0, 10);
-    const [anoAtual, mesAtual, diaAtual] = atualData.split('-').map(Number);
-    const atualLocal = new Date(anoAtual, mesAtual - 1, diaAtual).getTime();
+    const atualLocal = normalizarDataLocal(atualISO);
 
-    if (alvoLocal < atualLocal) {
-      mapa.set(id, somenteData);
+    if (!atualLocal || alvoLocal.getTime() < atualLocal.getTime()) {
+      mapa.set(id, iso);
     }
   }
 
   return mapa;
+};
+
+const obterMaisRecentesPorChave = (lista, getChave) => {
+  const mapa = new Map();
+
+  for (const item of lista || []) {
+    const chave = getChave(item);
+
+    if (!chave) continue;
+
+    const dataItem = normalizarDataLocal(obterDataBaseProcedimento(item));
+
+    if (!dataItem) continue;
+
+    const atual = mapa.get(chave);
+
+    if (!atual) {
+      mapa.set(chave, item);
+      continue;
+    }
+
+    const dataAtual = normalizarDataLocal(obterDataBaseProcedimento(atual));
+
+    if (!dataAtual || dataItem.getTime() > dataAtual.getTime()) {
+      mapa.set(chave, item);
+    }
+  }
+
+  return Array.from(mapa.values());
+};
+
+const obterChaveCurativo = (item) => {
+  const equinoId = item?.equinoId;
+  const tipoCurativo = normalizarTexto(item?.tipoCurativo);
+
+  if (!equinoId) return null;
+
+  return `${equinoId}-${tipoCurativo || 'CURATIVO_GERAL'}`;
 };
 
 const labelProced = (tipo) =>
@@ -162,31 +216,27 @@ const labelProced = (tipo) =>
   tipo === 'vermifugacao' ? 'Vermifugação' :
   tipo === 'toalete' ? 'Toalete' :
   tipo === 'ferrar' ? 'Ferrageamento - Ferrar' :
-  tipo === 'reprego' ? 'Ferrageamento - Reprego' :
   tipo === 'curativo' ? 'Ferrageamento - Curativo' :
   tipo === 'ferrageamento' ? 'Ferrageamento' :
   'Procedimento';
 
 const rotaProced = (tipo) => {
   switch (tipo) {
-    case 'vacinacao':
-      return '/veterinaria-vacinacao-list';
-
     case 'vermifugacao':
-      return '/veterinaria-vermifugacao-list';
+      return '/vermifugacao-list';
+
+    case 'vacinacao':
+      return '/vacinacao-list';
 
     case 'toalete':
-      return '/veterinaria-toalete-list';
+      return '/toalete-list';
 
     case 'ferrar':
     case 'ferrageamento':
-      return '/veterinaria-ferrageamento-ferrar-list';
-
-    case 'reprego':
-      return '/veterinaria-ferrageamento-reprego-list';
+      return '/ferrageamento-ferrar-list';
 
     case 'curativo':
-      return '/veterinaria-ferrageamento-curativo-list';
+      return '/ferrageamento-curativo-list';
 
     default:
       return '#';
@@ -194,11 +244,36 @@ const rotaProced = (tipo) => {
 };
 
 const menorDiaValido = (...dias) => {
-  const validos = dias.filter((d) => d !== null && d !== undefined && Number.isFinite(d));
+  const validos = dias.filter(
+    (d) => d !== null && d !== undefined && Number.isFinite(d)
+  );
 
   if (validos.length === 0) return null;
 
   return Math.min(...validos);
+};
+
+const obterIconePendencia = (tipo) => {
+  switch (tipo) {
+    case 'vacinacao':
+      return 'fas fa-syringe';
+
+    case 'vermifugacao':
+      return 'bi bi-bug';
+
+    case 'toalete':
+      return 'bi bi-scissors';
+
+    case 'curativo':
+      return 'bi bi-bandaid';
+
+    case 'ferrar':
+    case 'ferrageamento':
+      return 'bi bi-hammer';
+
+    default:
+      return 'bi bi-exclamation-circle';
+  }
 };
 
 const buildIndex = (e) => {
@@ -242,23 +317,27 @@ const VeterinariaEquinoList = () => {
   const [modalAvisoAberto, setModalAvisoAberto] = useState(false);
   const [mensagemAviso, setMensagemAviso] = useState('');
 
+  const [modalPendenciasAberto, setModalPendenciasAberto] = useState(false);
+  const [equinoPendenciaSelecionado, setEquinoPendenciaSelecionado] = useState(null);
+  const [pendenciasSelecionadas, setPendenciasSelecionadas] = useState([]);
+
   const itensPorPagina = 15;
   const [searchParams] = useSearchParams();
   const filtroQuery = searchParams.get('filtro');
   const location = useLocation();
+  const navigate = useNavigate();
 
   const totalPaginas = Math.ceil(equinosFiltrados.length / itensPorPagina);
 
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const [eq, vac, ver, toa, fer, rep, cur] = await Promise.allSettled([
+        const [eq, vac, ver, toa, fer, cur] = await Promise.allSettled([
           axios.get('/equino'),
           axios.get('/vacinacao'),
           axios.get('/vermifugacao'),
           axios.get('/toalete'),
           axios.get('/ferrageamento_equino'),
-          axios.get('/ferrageamento_reprego_equino'),
           axios.get('/ferrageamento_curativo_equino'),
         ]);
 
@@ -290,8 +369,17 @@ const VeterinariaEquinoList = () => {
         const vermifugacao = (ver.status === 'fulfilled' ? ver.value.data : []) || [];
         const toalete = (toa.status === 'fulfilled' ? toa.value.data : []) || [];
         const ferrageamentos = (fer.status === 'fulfilled' ? fer.value.data : []) || [];
-        const repregos = (rep.status === 'fulfilled' ? rep.value.data : []) || [];
         const curativos = (cur.status === 'fulfilled' ? cur.value.data : []) || [];
+
+        const ferrageamentosAtivos = obterMaisRecentesPorChave(
+          ferrageamentos,
+          (item) => item?.equinoId ? String(item.equinoId) : null
+        );
+
+        const curativosAtivos = obterMaisRecentesPorChave(
+          curativos,
+          obterChaveCurativo
+        );
 
         const proxVac = proximaPorEquino(
           vacinacao,
@@ -312,19 +400,13 @@ const VeterinariaEquinoList = () => {
         );
 
         const proxFer = proximaPorEquino(
-          ferrageamentos,
+          ferrageamentosAtivos,
           (f) => f.equinoId,
           INTERVALOS.ferrageamentoDias
         );
 
-        const proxRep = proximaPorEquino(
-          repregos,
-          (r) => r.equinoId,
-          INTERVALOS.ferrageamentoDias
-        );
-
         const proxCur = proximaPorEquino(
-          curativos,
+          curativosAtivos,
           (c) => c.equinoId,
           INTERVALOS.ferrageamentoDias
         );
@@ -336,24 +418,21 @@ const VeterinariaEquinoList = () => {
           const pVer = proxVer.get(id) || null;
           const pToa = proxToa.get(id) || null;
           const pFer = proxFer.get(id) || null;
-          const pRep = proxRep.get(id) || null;
           const pCur = proxCur.get(id) || null;
 
           const fVac = estaNosProximos15Dias(pVac);
           const fVer = estaNosProximos15Dias(pVer);
           const fToa = estaNosProximos15Dias(pToa);
           const fFer = estaNosProximos15Dias(pFer);
-          const fRep = estaNosProximos15Dias(pRep);
           const fCur = estaNosProximos15Dias(pCur);
 
           const diasVac = Number.isFinite(diasAte(pVac)) ? diasAte(pVac) : null;
           const diasVer = Number.isFinite(diasAte(pVer)) ? diasAte(pVer) : null;
           const diasToa = Number.isFinite(diasAte(pToa)) ? diasAte(pToa) : null;
           const diasFer = Number.isFinite(diasAte(pFer)) ? diasAte(pFer) : null;
-          const diasRep = Number.isFinite(diasAte(pRep)) ? diasAte(pRep) : null;
           const diasCur = Number.isFinite(diasAte(pCur)) ? diasAte(pCur) : null;
 
-          let melhor = null;
+          const pendencias = [];
 
           const pick = (tipo, iso) => {
             if (!iso) return;
@@ -362,21 +441,20 @@ const VeterinariaEquinoList = () => {
 
             if (dRest < 0 || dRest > 15) return;
 
-            if (!melhor || dRest < melhor.dias) {
-              melhor = {
-                tipo,
-                proxima: iso,
-                dias: dRest,
-              };
-            }
+            pendencias.push({
+              tipo,
+              proxima: iso,
+              dias: dRest,
+            });
           };
 
           pick('vacinacao', pVac);
           pick('vermifugacao', pVer);
           pick('toalete', pToa);
           pick('ferrar', pFer);
-          pick('reprego', pRep);
           pick('curativo', pCur);
+
+          pendencias.sort((a, b) => a.dias - b.dias);
 
           return {
             ...eqItem,
@@ -384,21 +462,20 @@ const VeterinariaEquinoList = () => {
               vacinacao: fVac,
               vermifugacao: fVer,
               toalete: fToa,
-              ferrageamento: fFer || fRep || fCur,
+              ferrageamento: fFer || fCur,
               ferrar: fFer,
-              reprego: fRep,
               curativo: fCur,
             },
             _diasRestantes: {
               vacinacao: diasVac,
               vermifugacao: diasVer,
               toalete: diasToa,
-              ferrageamento: menorDiaValido(diasFer, diasRep, diasCur),
+              ferrageamento: menorDiaValido(diasFer, diasCur),
               ferrar: diasFer,
-              reprego: diasRep,
               curativo: diasCur,
             },
-            _proximoAlerta: melhor,
+            _pendencias: pendencias,
+            _proximoAlerta: pendencias[0] || null,
             _index: buildIndex(eqItem),
             _nameNorm: norm(eqItem?.nome || eqItem?.name || ''),
           };
@@ -581,6 +658,33 @@ const VeterinariaEquinoList = () => {
     setModalVacinacaoAberto(true);
   };
 
+  const abrirModalPendencias = (equino, pendencias) => {
+    setEquinoPendenciaSelecionado(equino);
+    setPendenciasSelecionadas(pendencias || []);
+    setModalPendenciasAberto(true);
+  };
+
+  const fecharModalPendencias = () => {
+    setModalPendenciasAberto(false);
+    setEquinoPendenciaSelecionado(null);
+    setPendenciasSelecionadas([]);
+  };
+
+  const irParaPendencia = (pendencia) => {
+    if (!equinoPendenciaSelecionado || !pendencia) return;
+
+    navigate(rotaProced(pendencia.tipo), {
+      state: {
+        equinoId: equinoPendenciaSelecionado.id,
+        equinoNome: equinoPendenciaSelecionado.nome,
+        tipoProcedimento: pendencia.tipo,
+        origem: 'manejo-sanitario-list',
+      },
+    });
+
+    fecharModalPendencias();
+  };
+
   const confirmarExclusao = (equino) => {
     setEquinoSelecionado(equino);
     setModalExcluirAberto(true);
@@ -709,8 +813,8 @@ const VeterinariaEquinoList = () => {
               .slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina)
               .map((equino) => {
                 const alertas = equino._alertas || {};
-                const proximo = equino._proximoAlerta;
-                const mostrarCavalo = !!proximo;
+                const pendencias = equino._pendencias || [];
+                const mostrarCavalo = pendencias.length > 0;
 
                 return (
                   <tr key={equino.id}>
@@ -727,18 +831,18 @@ const VeterinariaEquinoList = () => {
 
                     <td className="text-end">
                       {mostrarCavalo && (
-                        <BotaoAcaoRows
-                          to={rotaProced(proximo.tipo)}
-                          state={{
-                            equinoId: equino.id,
-                            equinoNome: equino.nome,
-                            tipoProcedimento: proximo.tipo,
-                            origem: 'manejo-sanitario-list',
-                          }}
-                          title={`Pendente em ${proximo.dias}d • ${labelProced(proximo.tipo)}`}
-                          className="botao-alerta-cavalo"
-                          icone="fas fa-horse"
-                        />
+                        <button
+                          type="button"
+                          className="botao-pendencia-premium"
+                          title={`${pendencias.length} pendência(s) encontrada(s)`}
+                          onClick={() => abrirModalPendencias(equino, pendencias)}
+                        >
+                          <i className="fas fa-horse"></i>
+
+                          {pendencias.length > 1 && (
+                            <span>{pendencias.length}</span>
+                          )}
+                        </button>
                       )}
 
                       {botoes.includes('toalete') && (
@@ -902,6 +1006,58 @@ const VeterinariaEquinoList = () => {
         onClose={() => setModalVacinacaoAberto(false)}
         equino={equinoSelecionado}
       />
+
+      <ModalGenerico
+        open={modalPendenciasAberto}
+        onClose={fecharModalPendencias}
+        tipo="confirmacao"
+        tamanho="medio"
+        titulo="Pendências do Equino"
+        subtitulo={equinoPendenciaSelecionado?.nome || ''}
+      >
+        <div className="pendencias-modal-lista">
+          {pendenciasSelecionadas.length > 0 ? (
+            pendenciasSelecionadas.map((pendencia) => (
+              <button
+                key={`${equinoPendenciaSelecionado?.id}-${pendencia.tipo}`}
+                type="button"
+                className="pendencias-modal-item"
+                onClick={() => irParaPendencia(pendencia)}
+              >
+                <div className="pendencias-modal-icone">
+                  <i className={obterIconePendencia(pendencia.tipo)}></i>
+                </div>
+
+                <div className="pendencias-modal-info">
+                  <strong>{labelProced(pendencia.tipo)}</strong>
+
+                  <span>
+                    {pendencia.dias === 0
+                      ? 'Vence hoje'
+                      : `Faltam ${pendencia.dias} dia(s)`}
+                  </span>
+                </div>
+
+                <i className="bi bi-arrow-right-short pendencias-modal-seta"></i>
+              </button>
+            ))
+          ) : (
+            <div className="text-center text-muted py-3">
+              Nenhuma pendência encontrada.
+            </div>
+          )}
+        </div>
+
+        <div className="d-flex justify-content-end mt-4">
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={fecharModalPendencias}
+          >
+            Fechar
+          </button>
+        </div>
+      </ModalGenerico>
 
       <ModalGenerico
         open={modalExcluirAberto}

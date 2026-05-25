@@ -207,7 +207,7 @@ const VeterinariaSaidaMedicamentoList = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => navigate('/medicamentoList')}
+                onClick={() => navigate('/medicamento-list')}
               >
                 Voltar para Medicamentos
               </button>

@@ -240,15 +240,15 @@ const VeterinariaMedicamentoList = () => {
   };
 
   const irParaCadastro = () => {
-    navigate('/medicamentoForm');
+    navigate('/medicamento-form');
   };
 
   const editarMedicamento = (id) => {
-    navigate(`/medicamentoForm/${id}`);
+    navigate(`/medicamento-form/${id}`);
   };
 
   const lancarEntrada = (medicamentoId) => {
-    navigate(`/medicamentoEntradaForm/${medicamentoId}`);
+    navigate(`/entrada-medicamento-form/${medicamentoId}`);
   };
 
   return (

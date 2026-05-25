@@ -114,7 +114,7 @@ const VeterinariaEntradaMedicamentoList = () => {
   };
 
   const editarEntrada = (entradaId) => {
-    navigate(`/medicamentoEditarEntradaForm/${entradaId}`);
+    navigate(`/entrada-medicamento-form/editar/${entradaId}`);
   };
 
   const abrirModalExcluir = (entrada) => {
@@ -136,7 +136,7 @@ const VeterinariaEntradaMedicamentoList = () => {
     if (!entradaSelecionada) return;
 
     try {
-      await axios.delete(`/entradaMedicamento/${entradaSelecionada.id}`);
+      await axios.delete(`/entradas_medicamento/${entradaSelecionada.id}`);
 
       const novaLista = entradas.filter(
         (item) => item.id !== entradaSelecionada.id
@@ -193,7 +193,7 @@ const VeterinariaEntradaMedicamentoList = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => navigate('/medicamentoList')}
+                onClick={() => navigate('/medicamento-list')}
               >
                 Voltar para Medicamentos
               </button>

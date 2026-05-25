@@ -238,7 +238,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
         setModalSucesso(true);
         setTimeout(() => {
           setModalSucesso(false);
-          navigate('/entradaMedicamentoList');
+          navigate('/entrada-medicamento-list');
         }, 2500);
       } else {
         setModalConfirmacao(true);
@@ -281,7 +281,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
 
     setTimeout(() => {
       setModalSucesso(false);
-      navigate('/medicamentoList');
+      navigate('/medicamento-list');
     }, 2500);
   };
 
@@ -567,7 +567,7 @@ const VeterinariaEntradaMedicamentoForm = () => {
               )}
 
               <div className="col-12 text-end mt-4">
-                <Link to={entradaId ? "/entradaMedicamentoList" : "/medicamentoList"} className="btn btn-outline-danger me-2">
+                <Link to={entradaId ? "/entrada-medicamento-list" : "/medicamento-list"} className="btn btn-outline-danger me-2">
                   Cancelar
                 </Link>
                 <button type="submit" className="btn btn-primary">

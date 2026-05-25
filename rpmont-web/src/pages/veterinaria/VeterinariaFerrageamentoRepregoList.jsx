@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../../components/navbar/Navbar.jsx';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import './Veterinaria.css';
@@ -10,6 +11,9 @@ import ModalGenerico from '../../components/modal/ModalGenerico.jsx';
 import BotaoAcaoRows from '../../components/botoes/BotaoAcaoRows.jsx';
 
 const VeterinariaFerrageamentoRepregoList = () => {
+  const location = useLocation();
+  const equinoIdRecebido = location.state?.equinoId;
+
   const [equinos, setEquinos] = useState([]);
   const [repregos, setRepregos] = useState([]);
   const [resultado, setResultado] = useState([]);
@@ -24,27 +28,62 @@ const VeterinariaFerrageamentoRepregoList = () => {
 
   useEffect(() => {
     const carregarDados = async () => {
-      const [eqRes, repRes] = await Promise.all([
-        axios.get('/equino'),
-        axios.get('/ferrageamento_reprego_equino')
-      ]);
-      setEquinos(eqRes.data);
-      setRepregos(repRes.data);
-      setResultado(repRes.data);
-      setBotoes(['editar', 'excluir']);
+      try {
+        const [eqRes, repRes] = await Promise.all([
+          axios.get('/equino'),
+          axios.get('/ferrageamento_reprego_equino'),
+        ]);
+
+        setEquinos(eqRes.data || []);
+        setRepregos(repRes.data || []);
+        setResultado(repRes.data || []);
+        setBotoes(['editar', 'excluir']);
+      } catch (error) {
+        console.error('Erro ao carregar dados de reprego:', error);
+      }
     };
+
     carregarDados();
   }, []);
 
-  const formatarData = (iso) => new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  useEffect(() => {
+    if (!equinoIdRecebido || repregos.length === 0) return;
+
+    const filtrados = repregos.filter((item) => {
+      return String(item.equinoId) === String(equinoIdRecebido);
+    });
+
+    setFiltroNome(String(equinoIdRecebido));
+    setResultado(filtrados);
+    setCurrentPage(1);
+  }, [equinoIdRecebido, repregos]);
+
+  const normalizarData = (data) => {
+    if (!data) return null;
+
+    const somenteData = String(data).slice(0, 10);
+    const [ano, mes, dia] = somenteData.split('-').map(Number);
+
+    if (!ano || !mes || !dia) return null;
+
+    return new Date(ano, mes - 1, dia);
+  };
+
+  const formatarData = (data) => {
+    const dataNormalizada = normalizarData(data);
+
+    if (!dataNormalizada) return '-';
+
+    return dataNormalizada.toLocaleDateString('pt-BR');
+  };
+
+  const obterEquinoId = (item) => {
+    return item?.equinoId;
+  };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const itensPaginados = resultado.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(resultado.length / itemsPerPage);
-
-  const obterEquinoId = (item) => {
-    return item.equinoId;
-  };
 
   const filtrar = () => {
     let filtrados = [...repregos];
@@ -58,6 +97,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
     if (filtroInicio) {
       filtrados = filtrados.filter((item) => {
         if (!item.dataCadastro) return false;
+
         return new Date(item.dataCadastro) >= new Date(`${filtroInicio}T00:00:00`);
       });
     }
@@ -65,6 +105,7 @@ const VeterinariaFerrageamentoRepregoList = () => {
     if (filtroFim) {
       filtrados = filtrados.filter((item) => {
         if (!item.dataCadastro) return false;
+
         return new Date(item.dataCadastro) <= new Date(`${filtroFim}T23:59:59`);
       });
     }
@@ -83,32 +124,40 @@ const VeterinariaFerrageamentoRepregoList = () => {
 
   const exportarPDF = () => {
     const doc = new jsPDF();
+
     doc.setFontSize(16);
     doc.text('Relatório de Ferrageamento - Reprego', 14, 15);
 
-    const dadosTabela = resultado.map((f, i) => {
+    const dadosTabela = resultado.map((item, i) => {
       const equino = equinos.find(
-        (eq) => String(eq.id) === String(obterEquinoId(f))
+        (eq) => String(eq.id) === String(obterEquinoId(item))
       );
+
       return [
         i + 1,
         equino?.nome || '-',
-        formatarData(f.dataCadastro),
-        (f.patas || []).join(', '),
-        f.ferroNovo,
-        f.cravosUsados,
-        f.observacoes || '-'
+        formatarData(item.dataCadastro),
+        (item.patas || []).join(', '),
+        item.ferroNovo ? 'Sim' : 'Não',
+        item.cravosUsados ?? '-',
+        item.observacoes || '-',
       ];
     });
 
     autoTable(doc, {
       startY: 25,
       head: [[
-        '#', 'Nome', 'Data', 'Patas', 'Ferro Novo', 'Cravos Usados', 'Obs.'
+        '#',
+        'Nome',
+        'Data',
+        'Patas',
+        'Ferro Novo',
+        'Cravos Usados',
+        'Obs.',
       ]],
       body: dadosTabela,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [52, 152, 219] }
+      headStyles: { fillColor: [52, 152, 219] },
     });
 
     doc.save('relatorio_reprego.pdf');
@@ -129,13 +178,15 @@ const VeterinariaFerrageamentoRepregoList = () => {
 
     axios.delete(`/ferrageamento_reprego_equino/${itemSelecionado.id}`)
       .then(() => {
-        const atualizados = repregos.filter(f => f.id !== itemSelecionado.id);
+        const atualizados = repregos.filter((f) => f.id !== itemSelecionado.id);
+
         setRepregos(atualizados);
         setResultado(atualizados);
         setModalExcluirAberto(false);
+        setItemSelecionado(null);
       })
-      .catch(error => {
-        console.error("Erro ao excluir reprego:", error);
+      .catch((error) => {
+        console.error('Erro ao excluir reprego:', error);
       });
   };
 
@@ -173,29 +224,33 @@ const VeterinariaFerrageamentoRepregoList = () => {
             <th className="text-end">Ações</th>
           </tr>
         </thead>
+
         <tbody>
           {itensPaginados.map((item) => {
             const equino = equinos.find(
               (eq) => String(eq.id) === String(obterEquinoId(item))
             );
+
             return (
               <tr key={item.id}>
                 <td>{equino?.nome || '-'}</td>
                 <td>{formatarData(item.dataCadastro)}</td>
                 <td>{(item.patas || []).join(', ')}</td>
-                <td>{item.ferroNovo}</td>
-                <td>{item.cravosUsados}</td>
+                <td>{item.ferroNovo ? 'Sim' : 'Não'}</td>
+                <td>{item.cravosUsados ?? '-'}</td>
                 <td>{item.observacoes || '-'}</td>
+
                 <td className="text-end">
                   <div className="d-flex justify-content-end">
                     {botoes.includes('editar') && (
-                      <BotaoAcaoRows                        
-                        to={`/ferrageamento-form/:reprego/${item.id}`}
+                      <BotaoAcaoRows
+                        to={`/ferrageamento-form/reprego/${item.id}`}
                         title="Editar Reprego"
                         className="botao-editar"
                         icone="bi-pencil"
                       />
                     )}
+
                     {botoes.includes('excluir') && (
                       <BotaoAcaoRows
                         tipo="button"
@@ -217,8 +272,14 @@ const VeterinariaFerrageamentoRepregoList = () => {
         <nav>
           <ul className="pagination">
             {[...Array(totalPages)].map((_, index) => (
-              <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                <button className="page-link" onClick={() => setCurrentPage(index + 1)}>
+              <li
+                key={index}
+                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => setCurrentPage(index + 1)}
+                >
                   {index + 1}
                 </button>
               </li>
@@ -230,19 +291,31 @@ const VeterinariaFerrageamentoRepregoList = () => {
       <ModalGenerico
         open={modalExcluirAberto}
         onClose={cancelarExclusao}
-        tipo='confirmacao'
-        tamanho='medio'
-        icone={<FaExclamationTriangle size={40} color='#f39c12' />}
-        titulo='Confirmar Exclusão'
+        tipo="confirmacao"
+        tamanho="medio"
+        icone={<FaExclamationTriangle size={40} color="#f39c12" />}
+        titulo="Confirmar Exclusão"
         subtitulo={`Deseja realmente excluir o reprego do equino "${
           equinos.find(
             (eq) => String(eq.id) === String(obterEquinoId(itemSelecionado || {}))
           )?.nome || ''
         }"?`}
       >
-        <div className='d-flex justify-content-center gap-3 mt-4'>
-          <button className='btn btn-outline-secondary' onClick={cancelarExclusao}>Cancelar</button>
-          <button className='btn btn-danger' onClick={excluirItemSelecionado} data-modal-focus>Excluir</button>
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={cancelarExclusao}
+          >
+            Cancelar
+          </button>
+
+          <button
+            className="btn btn-danger"
+            onClick={excluirItemSelecionado}
+            data-modal-focus
+          >
+            Excluir
+          </button>
         </div>
       </ModalGenerico>
     </div>
