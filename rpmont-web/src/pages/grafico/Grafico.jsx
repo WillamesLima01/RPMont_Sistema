@@ -41,6 +41,78 @@ const Grafico = () => {
 
   const normalizaData = (d) => (d ? dayjs(d) : null);
 
+  const obterIdEquinoBaixado = (baixa) => {
+    return (
+      baixa.equinoId ??
+      baixa.equino_id ??
+      baixa.idEquino ??
+      baixa.id_equino ??
+      baixa.idEq ??
+      baixa.id_Eq ??
+      baixa.equino?.id ??
+      baixa.equino?.idEquino ??
+      null
+    );
+  };
+
+  const obterDataBaixa = (baixa) => {
+    return (
+      baixa.dataBaixa ??
+      baixa.data_baixa ??
+      baixa.dataBaixado ??
+      baixa.data_baixado ??
+      baixa.data ??
+      null
+    );
+  };
+
+  const obterDataRetorno = (baixa) => {
+    return (
+      baixa.dataRetorno ??
+      baixa.data_retorno ??
+      baixa.dataRetornoBaixa ??
+      baixa.data_retorno_baixa ??
+      null
+    );
+  };
+
+  /*
+    Converte a data para chave ANO-MÊS no formato yyyy-mm.
+
+    Exemplos:
+    2026-05-10       -> 2026-05
+    2026-05-10T00... -> 2026-05
+    10-05-2026       -> 2026-05
+    10/05/2026       -> 2026-05
+
+    Isso garante que cada linha da tabela equino_baixado
+    seja contada no mês correto pela coluna data_baixa.
+  */
+  const obterChaveMesAno = (data) => {
+    if (!data) return null;
+
+    const texto = String(data).trim();
+
+    // yyyy-mm-dd ou yyyy-mm-ddTHH:mm:ss
+    if (/^\d{4}-\d{2}-\d{2}/.test(texto)) {
+      return texto.slice(0, 7);
+    }
+
+    // dd-mm-yyyy
+    if (/^\d{2}-\d{2}-\d{4}$/.test(texto)) {
+      const [, mes, ano] = texto.split('-');
+      return `${ano}-${mes}`;
+    }
+
+    // dd/mm/yyyy
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) {
+      const [, mes, ano] = texto.split('/');
+      return `${ano}-${mes}`;
+    }
+
+    return null;
+  };
+
   useEffect(() => {
     const meses = [
       'Janeiro',
@@ -56,90 +128,121 @@ const Grafico = () => {
       'Novembro',
       'Dezembro',
     ];
-
+  
     const hoje = new Date();
-
+  
     const dataMesMenos2 = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
     const dataMesMenos1 = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
     const dataMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-
+  
     const datasGrafico = [dataMesMenos2, dataMesMenos1, dataMesAtual];
-
+  
     const labels = datasGrafico.map(
       (data) => `${meses[data.getMonth()]} / ${data.getFullYear()}`
     );
-
+  
     const chavesMeses = datasGrafico.map(
       (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`
     );
-
+  
     setLabelsMeses(labels);
-
+  
     Promise.all([
       axios.get('/equino'),
       axios.get('/atendimentos'),
+  
+      // Card: baixados ativos
       axios.get('/equino/baixados'),
+  
+      // Gráfico: histórico completo da tabela equino_baixado
+      axios.get('/equino/historico'),
     ])
-      .then(([resEquinos, resAtendimentos, resBaixados]) => {
-        const equinos = resEquinos.data || [];
-        const atendimentos = resAtendimentos.data || [];
-        const equino_baixado = resBaixados.data || [];
-
+      .then(([resEquinos, resAtendimentos, resBaixadosAtivos, resHistoricoBaixados]) => {
+        const equinos = Array.isArray(resEquinos.data) ? resEquinos.data : [];
+  
+        const atendimentos = Array.isArray(resAtendimentos.data)
+          ? resAtendimentos.data
+          : [];
+  
+        const baixadosAtivos = Array.isArray(resBaixadosAtivos.data)
+          ? resBaixadosAtivos.data
+          : [];
+  
+        const historicoBaixados = Array.isArray(resHistoricoBaixados.data)
+          ? resHistoricoBaixados.data
+          : [];
+  
         setQtdEquinos(equinos.length);
         setQtdAtendimentos(atendimentos.length);
-
-        // Equinos com baixa ativa = sem dataRetorno
-        // Equinos com baixa ativa = sem dataRetorno
+  
+        /*
+          CARD DE BAIXADOS:
+          usa /equino/baixados, pois aqui queremos somente os baixados atualmente.
+        */
         const idsBaixadosAtivos = new Set(
-          equino_baixado
-            .filter((b) => !b.data_retorno || String(b.data_retorno).trim() === '')
-            .map((b) => b.equino_id ?? b.equinoId ?? b.idEquino ?? null)
+          baixadosAtivos
+            .filter((baixa) => {
+              const dataRetorno = obterDataRetorno(baixa);
+              return !dataRetorno || String(dataRetorno).trim() === '';
+            })
+            .map((baixa) => obterIdEquinoBaixado(baixa))
             .filter((id) => id !== null && id !== undefined && id !== '')
             .map((id) => String(id))
         );
-
+  
         setQtdBaixados(idsBaixadosAtivos.size);
         setQtdAptos(Math.max(0, equinos.length - idsBaixadosAtivos.size));
+  
         const mapAtendimentos = {};
         const mapBaixados = {};
-
+  
         chavesMeses.forEach((key) => {
           mapAtendimentos[key] = 0;
           mapBaixados[key] = 0;
         });
-
-        atendimentos.forEach((at) => {
+  
+        /*
+          GRÁFICO DE ATENDIMENTOS
+        */
+        atendimentos.forEach((atendimento) => {
           const dataAtendimento =
-            at.dataAtendimento ??
-            at.data ??
+            atendimento.dataAtendimento ??
+            atendimento.data_atendimento ??
+            atendimento.data ??
             null;
-        
-          const mesAno = dataAtendimento
-            ? String(dataAtendimento).slice(0, 7)
-            : '';
-        
+  
+          if (!dataAtendimento) return;
+  
+          const mesAno = String(dataAtendimento).slice(0, 7);
+  
           if (mapAtendimentos[mesAno] !== undefined) {
             mapAtendimentos[mesAno]++;
           }
         });
-        
-        equino_baixado.forEach((bx) => {
-          const dataBaixa =
-            bx.dataBaixa ??
-            bx.data_baixa ??
-            null;
-        
-          const mesAno = dataBaixa
-            ? String(dataBaixa).slice(0, 7)
-            : '';
-        
+  
+        /*
+          GRÁFICO DE EQUINOS BAIXADOS:
+          usa /equino/historico.
+          Cada registro do histórico conta como 1 baixa no mês da dataBaixa.
+        */
+        historicoBaixados.forEach((baixa) => {
+          const dataBaixa = obterDataBaixa(baixa);
+  
+          if (!dataBaixa) return;
+  
+          const mesAno = String(dataBaixa).slice(0, 7);
+  
           if (mapBaixados[mesAno] !== undefined) {
             mapBaixados[mesAno]++;
           }
         });
-
+  
         setDadosAtendimentos(chavesMeses.map((key) => mapAtendimentos[key]));
         setDadosBaixados(chavesMeses.map((key) => mapBaixados[key]));
+  
+        console.log('Baixados ativos:', baixadosAtivos);
+        console.log('Histórico baixados:', historicoBaixados);
+        console.log('Mapa baixados:', mapBaixados);
       })
       .catch((error) => {
         console.error('Erro ao carregar dados do gráfico:', error);
@@ -158,19 +261,24 @@ const Grafico = () => {
 
       for (const item of lista || []) {
         const id = String(getId(item));
-        if (!id) continue;
+
+        if (!id || id === 'undefined' || id === 'null') continue;
 
         let d = normalizaData(item[campo]);
+
         if (!d?.isValid()) {
           const df = normalizaData(item[fallbackCampo]);
           if (df?.isValid()) d = df;
         }
+
         if (!d?.isValid()) continue;
 
         const d0 = d.startOf('day');
+
         if (d0.isBefore(hoje)) continue;
 
         const atualIso = mapa.get(id);
+
         if (!atualIso) {
           mapa.set(id, d0.toISOString());
         } else {
@@ -190,9 +298,9 @@ const Grafico = () => {
           axios.get('/vermifugacao'),
         ]);
 
-        const equinos = respEquinos.data || [];
-        const vacinacoes = respVac.data || [];
-        const vermifugacoes = respVer.data || [];
+        const equinos = Array.isArray(respEquinos.data) ? respEquinos.data : [];
+        const vacinacoes = Array.isArray(respVac.data) ? respVac.data : [];
+        const vermifugacoes = Array.isArray(respVer.data) ? respVer.data : [];
 
         const proxVac = proximaPorEquino(
           vacinacoes,
@@ -210,6 +318,7 @@ const Grafico = () => {
 
         const hoje = dayjs().startOf('day');
         const limite = hoje.add(15, 'day');
+
         const mapaEquinos = new Map(
           equinos.map((e) => [String(e.id ?? e.idEquino ?? e.id_equino), e])
         );
@@ -220,6 +329,7 @@ const Grafico = () => {
           if (!iso) return;
 
           const d = dayjs(iso).startOf('day');
+
           if (d.isBefore(hoje) || d.isAfter(limite)) return;
 
           const eq = mapaEquinos.get(eqId) || {};
@@ -319,7 +429,7 @@ const Grafico = () => {
 
       <div className={styles['inicial-container']}>
         <Link
-          to="/veterinaria-List?filtro=todos"
+          to="/equino-list?filtro=todos"
           className={`${styles['stat-box']} ${styles['stat-box-blue']}`}
         >
           <h3>Equinos</h3>
@@ -327,7 +437,7 @@ const Grafico = () => {
         </Link>
 
         <Link
-          to="/veterinaria-List"
+          to="/equino-list"
           className={`${styles['stat-box']} ${styles['stat-box-green']}`}
         >
           <h3>Equinos Aptos</h3>
@@ -335,7 +445,7 @@ const Grafico = () => {
         </Link>
 
         <Link
-          to="/veterinaria-Equinos-Baixados"
+          to="/veterinaria-equinos-baixados"
           className={`${styles['stat-box']} ${styles['stat-box-orange']}`}
         >
           <h3>Equinos Baixados</h3>
@@ -343,7 +453,7 @@ const Grafico = () => {
         </Link>
 
         <Link
-          to="/atendimento-List"
+          to="/atendimento-list"
           className={`${styles['stat-box']} ${styles['stat-box-green']}`}
         >
           <h3>Atendimentos</h3>
@@ -353,13 +463,15 @@ const Grafico = () => {
         <div className={styles['charts-container']}>
           <div className={styles.chart}>
             <h3>Atendimentos (2 meses anteriores + mês atual)</h3>
+
             <div className={styles.chartCanvasWrap}>
               <Bar data={atendimentosData} options={options} />
             </div>
           </div>
 
           <div className={styles.chart}>
-            <h3>Equinos Baixados (2 meses anteriores + mês atual)</h3>
+            <h3>Registros de Baixas por Mês (2 meses anteriores + mês atual)</h3>
+
             <div className={styles.chartCanvasWrap}>
               <Bar data={baixadosData} options={options} />
             </div>
@@ -399,7 +511,7 @@ const Grafico = () => {
               <Stack direction="row" gap={1} sx={{ mt: 1 }}>
                 <Button
                   component={Link}
-                  to="/vacinacao-equino"
+                  to="/vacinacao-list"
                   size="small"
                   variant="outlined"
                   color="inherit"
@@ -409,7 +521,7 @@ const Grafico = () => {
 
                 <Button
                   component={Link}
-                  to="/vermifugacao-equino"
+                  to="/vermifugacao-list"
                   size="small"
                   variant="outlined"
                   color="inherit"

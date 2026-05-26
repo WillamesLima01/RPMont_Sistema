@@ -14,6 +14,11 @@ const VeterinariaRelatorioEquino = () => {
   const [escalas, setEscalas] = useState([]);
   const [baixas, setBaixas] = useState([]);
 
+  const [toaletes, setToaletes] = useState([]);
+  const [ferragens, setFerragens] = useState([]);
+  const [repregos, setRepregos] = useState([]);
+  const [curativos, setCurativos] = useState([]);
+
   const [enfermidades, setEnfermidades] = useState([]);
   const [enfTexto, setEnfTexto] = useState('');
   const [abrirSugestoes, setAbrirSugestoes] = useState(false);
@@ -31,6 +36,8 @@ const VeterinariaRelatorioEquino = () => {
     medicacoes: true,
     vermifugacoes: true,
     vacinacoes: true,
+    toaletes: true,
+    ferrageamentos: true,
     escalas: true,
     baixas: true,
   });
@@ -53,7 +60,11 @@ const VeterinariaRelatorioEquino = () => {
           vermifugacaoResponse,
           vacinacaoResponse,
           escalaResponse,
-          baixasResponse
+          baixasResponse,
+          toaleteResponse,
+          ferragemResponse,
+          repregoResponse,
+          curativoResponse,
         ] = await Promise.all([
           axios.get('/equino'),
           axios.get('/atendimentos'),
@@ -62,6 +73,10 @@ const VeterinariaRelatorioEquino = () => {
           axios.get('/vacinacao'),
           axios.get('/escala'),
           axios.get('/equino/historico'),
+          axios.get('/toalete'),
+          axios.get('/ferrageamento_equino'),
+          axios.get('/ferrageamento_reprego_equino'),
+          axios.get('/ferrageamento_curativo_equino'),
         ]);
 
         const equinosData = equinoResponse.data || [];
@@ -71,6 +86,10 @@ const VeterinariaRelatorioEquino = () => {
         const vacinacoesData = vacinacaoResponse.data || [];
         const escalasData = escalaResponse.data || [];
         const baixasData = baixasResponse.data || [];
+        const toaletesData = toaleteResponse.data || [];
+        const ferragensData = ferragemResponse.data || [];
+        const repregosData = repregoResponse.data || [];
+        const curativosData = curativoResponse.data || [];
 
         setEquinos(equinosData);
         setAtendimentos(atendimentosData);
@@ -79,6 +98,10 @@ const VeterinariaRelatorioEquino = () => {
         setVacinacoes(vacinacoesData);
         setEscalas(escalasData);
         setBaixas(baixasData);
+        setToaletes(toaletesData);
+        setFerragens(ferragensData);
+        setRepregos(repregosData);
+        setCurativos(curativosData);
 
         const nomesUnicos = Array.from(
           new Set(
@@ -103,6 +126,10 @@ const VeterinariaRelatorioEquino = () => {
         setVacinacoes([]);
         setEscalas([]);
         setBaixas([]);
+        setToaletes([]);
+        setFerragens([]);
+        setRepregos([]);
+        setCurativos([]);
         setEnfermidades([]);
       } finally {
         setCarregandoEnf(false);
@@ -130,7 +157,7 @@ const VeterinariaRelatorioEquino = () => {
     item?.dataAtendimento ?? item?.data ?? item?.dataCadastro ?? null;
 
   const obterDataProcedimento = (item) =>
-    item?.dataCadastro ?? item?.data ?? null;
+    item?.dataCadastro ?? item?.data ?? item?.dataProcedimento ?? null;
 
   const obterDataEscala = (item) =>
     item?.dataCadastro ?? item?.data ?? null;
@@ -140,6 +167,70 @@ const VeterinariaRelatorioEquino = () => {
 
   const obterDataRetorno = (item) =>
     item?.dataRetorno ?? item?.data_retorno ?? null;
+
+  const obterObservacao = (item) =>
+    item?.observacoes ??
+    item?.observacao ??
+    item?.obs ??
+    '';
+
+  const obterPatasReprego = (item) => {
+    if (Array.isArray(item?.patas) && item.patas.length > 0) {
+      return item.patas.join(', ');
+    }
+
+    return (
+      item?.patas ??
+      item?.patasReprego ??
+      item?.pataReprego ??
+      item?.pata ??
+      item?.membro ??
+      item?.membroAfetado ??
+      item?.casco ??
+      ''
+    );
+  };
+
+  const montarDetalhesFerrar = (item) => {
+    const detalhes = [];
+
+    if (item?.tipoFerradura) detalhes.push(`Ferradura: ${item.tipoFerradura}`);
+    if (item?.tipoCravo) detalhes.push(`Cravo: ${item.tipoCravo}`);
+    if (item?.tipoJustura) detalhes.push(`Justura: ${item.tipoJustura}`);
+    if (item?.tipoFerrageamento) detalhes.push(`Tipo: ${item.tipoFerrageamento}`);
+
+    if (item?.ferros !== null && item?.ferros !== undefined && item?.ferros !== '') {
+      detalhes.push(`Ferros: ${item.ferros}`);
+    }
+
+    if (item?.cravos !== null && item?.cravos !== undefined && item?.cravos !== '') {
+      detalhes.push(`Cravos: ${item.cravos}`);
+    }
+
+    const observacao = obterObservacao(item);
+
+    if (observacao) {
+      detalhes.push(`Obs.: ${observacao}`);
+    }
+
+    return detalhes.join(' - ');
+  };
+
+  const montarDetalhesCurativo = (item) => {
+    const detalhes = [];
+
+    if (item?.tipoCurativo) {
+      detalhes.push(item.tipoCurativo);
+    }
+
+    const observacao = obterObservacao(item);
+
+    if (observacao) {
+      detalhes.push(`Obs.: ${observacao}`);
+    }
+
+    return detalhes.join(' - ');
+  };
 
   const converterParaData = (data, horario = '12:00:00') => {
     if (!data) return null;
@@ -194,6 +285,8 @@ const VeterinariaRelatorioEquino = () => {
         medicacoes: true,
         vermifugacoes: true,
         vacinacoes: true,
+        toaletes: true,
+        ferrageamentos: true,
         escalas: true,
         baixas: true,
       };
@@ -264,6 +357,34 @@ const VeterinariaRelatorioEquino = () => {
         );
       });
 
+      const toaletesDoEquino = toaletes.filter((t) => {
+        return (
+          String(obterEquinoId(t)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(t), inicioDate, fimDate)
+        );
+      });
+
+      const ferragensDoEquino = ferragens.filter((f) => {
+        return (
+          String(obterEquinoId(f)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(f), inicioDate, fimDate)
+        );
+      });
+
+      const repregosDoEquino = repregos.filter((r) => {
+        return (
+          String(obterEquinoId(r)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(r), inicioDate, fimDate)
+        );
+      });
+
+      const curativosDoEquino = curativos.filter((c) => {
+        return (
+          String(obterEquinoId(c)) === String(equinoAtual.id) &&
+          estaNoPeriodo(obterDataProcedimento(c), inicioDate, fimDate)
+        );
+      });
+
       const escalasDoEquino = escalas.filter((s) => {
         return (
           String(obterEquinoId(s)) === String(equinoAtual.id) &&
@@ -329,6 +450,9 @@ const VeterinariaRelatorioEquino = () => {
         0
       );
 
+      const totalFerrageamentos =
+        ferragensDoEquino.length + repregosDoEquino.length + curativosDoEquino.length;
+
       return {
         equino: equinoAtual.nome,
         atendimentos:
@@ -337,6 +461,10 @@ const VeterinariaRelatorioEquino = () => {
             : [],
         vermifugacoes: tiposAtivos.vermifugacoes ? vermifugacoesDoEquino : [],
         vacinacoes: tiposAtivos.vacinacoes ? vacinacoesDoEquino : [],
+        toaletes: tiposAtivos.toaletes ? toaletesDoEquino : [],
+        ferragens: tiposAtivos.ferrageamentos ? ferragensDoEquino : [],
+        repregos: tiposAtivos.ferrageamentos ? repregosDoEquino : [],
+        curativos: tiposAtivos.ferrageamentos ? curativosDoEquino : [],
         escalas: tiposAtivos.escalas ? escalasDoEquino : [],
         baixas: tiposAtivos.baixas ? baixasFiltradas : [],
         cargaTotal,
@@ -344,6 +472,11 @@ const VeterinariaRelatorioEquino = () => {
         totalMedicacoes,
         totalVermifugacoes: vermifugacoesDoEquino.length,
         totalVacinacoes: vacinacoesDoEquino.length,
+        totalToaletes: toaletesDoEquino.length,
+        totalFerrageamentos,
+        totalFerragens: ferragensDoEquino.length,
+        totalRepregos: repregosDoEquino.length,
+        totalCurativos: curativosDoEquino.length,
         totalBaixas: baixasFiltradas.length,
         totalDiasBaixado,
         totalEscalas: escalasDoEquino.length,
@@ -355,10 +488,21 @@ const VeterinariaRelatorioEquino = () => {
       const temMed = tiposAtivos.medicacoes && d.totalMedicacoes > 0;
       const temVerm = tiposAtivos.vermifugacoes && d.totalVermifugacoes > 0;
       const temVac = tiposAtivos.vacinacoes && d.totalVacinacoes > 0;
+      const temToalete = tiposAtivos.toaletes && d.totalToaletes > 0;
+      const temFerrageamento = tiposAtivos.ferrageamentos && d.totalFerrageamentos > 0;
       const temEsc = tiposAtivos.escalas && d.totalEscalas > 0;
       const temBaixa = tiposAtivos.baixas && d.totalBaixas > 0;
 
-      return temAtend || temMed || temVerm || temVac || temEsc || temBaixa;
+      return (
+        temAtend ||
+        temMed ||
+        temVerm ||
+        temVac ||
+        temToalete ||
+        temFerrageamento ||
+        temEsc ||
+        temBaixa
+      );
     });
 
     const totalOcorr = enfermidadeFiltro
@@ -373,19 +517,18 @@ const VeterinariaRelatorioEquino = () => {
 
   const gerarPDF = () => {
     if (!divRef.current) return;
-  
+
     const elementoOriginal = divRef.current;
-  
-    // Clona o relatório para aplicar ajustes exclusivos do PDF
+
     const clone = elementoOriginal.cloneNode(true);
     clone.classList.add('pdf-export');
-  
+
     const containerTemporario = document.createElement('div');
     containerTemporario.className = 'pdf-export-wrapper';
     containerTemporario.appendChild(clone);
-  
+
     document.body.appendChild(containerTemporario);
-  
+
     const opcoes = {
       margin: [0.35, 0.35, 0.60, 0.35],
       filename: 'relatorio_equinos.pdf',
@@ -416,25 +559,25 @@ const VeterinariaRelatorioEquino = () => {
         ],
       },
     };
-  
+
     const worker = html2pdf()
       .set(opcoes)
       .from(clone)
       .toPdf();
-  
+
     worker
       .get('pdf')
       .then((pdf) => {
         const totalPaginas = pdf.internal.getNumberOfPages();
         const larguraPagina = pdf.internal.pageSize.getWidth();
         const alturaPagina = pdf.internal.pageSize.getHeight();
-  
+
         for (let pagina = 1; pagina <= totalPaginas; pagina++) {
           pdf.setPage(pagina);
-  
+
           pdf.setFontSize(8);
           pdf.setTextColor(90);
-  
+
           pdf.text(
             `${pagina}/${totalPaginas}`,
             larguraPagina - 0.35,
@@ -449,7 +592,7 @@ const VeterinariaRelatorioEquino = () => {
       })
       .catch((error) => {
         console.error('Erro ao gerar PDF:', error);
-  
+
         if (document.body.contains(containerTemporario)) {
           document.body.removeChild(containerTemporario);
         }
@@ -586,6 +729,8 @@ const VeterinariaRelatorioEquino = () => {
                     {tipo === 'medicacoes' && 'Medicações'}
                     {tipo === 'vermifugacoes' && 'Vermifugações'}
                     {tipo === 'vacinacoes' && 'Vacinações'}
+                    {tipo === 'toaletes' && 'Toaletes'}
+                    {tipo === 'ferrageamentos' && 'Ferrageamento'}
                     {tipo === 'escalas' && 'Escalas'}
                     {tipo === 'baixas' && 'Baixas'}
                   </label>
@@ -664,30 +809,47 @@ const VeterinariaRelatorioEquino = () => {
                         <span className="summary-label">Atendimentos</span>
                         <span className="summary-value">{r.totalAtendimentos}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Medicações</span>
                         <span className="summary-value">{r.totalMedicacoes}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Vermifugações</span>
                         <span className="summary-value">{r.totalVermifugacoes}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Vacinações</span>
                         <span className="summary-value">{r.totalVacinacoes}</span>
                       </div>
+
+                      <div className="summary-box">
+                        <span className="summary-label">Toaletes</span>
+                        <span className="summary-value">{r.totalToaletes}</span>
+                      </div>
+
+                      <div className="summary-box">
+                        <span className="summary-label">Ferrageamentos</span>
+                        <span className="summary-value">{r.totalFerrageamentos}</span>
+                      </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Baixas</span>
                         <span className="summary-value">{r.totalBaixas}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Dias Baixado</span>
                         <span className="summary-value">{r.totalDiasBaixado}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Escalas</span>
                         <span className="summary-value">{r.totalEscalas}</span>
                       </div>
+
                       <div className="summary-box">
                         <span className="summary-label">Carga Horária</span>
                         <span className="summary-value">{r.cargaTotal}h</span>
@@ -752,6 +914,80 @@ const VeterinariaRelatorioEquino = () => {
                             {v.observacao ? ` | Obs.: ${v.observacao}` : ''}
                           </div>
                         ))}
+                      </section>
+                    )}
+
+                    {r.toaletes.length > 0 && (
+                      <section className="print-section">
+                        <h4>Toaletes</h4>
+                        {r.toaletes.map((t, i) => (
+                          <div key={i} className="print-item">
+                            <strong>{formatarData(obterDataProcedimento(t))}</strong>
+                            {t.dataProximoProcedimento
+                              ? ` | Próximo procedimento: ${formatarData(t.dataProximoProcedimento)}`
+                              : ''}
+                            {obterObservacao(t) ? ` | Obs.: ${obterObservacao(t)}` : ''}
+                          </div>
+                        ))}
+                      </section>
+                    )}
+
+                    {(r.ferragens.length > 0 || r.repregos.length > 0 || r.curativos.length > 0) && (
+                      <section className="print-section">
+                        <h4>Ferrageamento</h4>
+
+                        {r.ferragens.length > 0 && (
+                          <div className="nested-block">
+                            <h5>Ferrar</h5>
+
+                            {r.ferragens.map((f, i) => {
+                              const detalhesFerrar = montarDetalhesFerrar(f);
+
+                              return (
+                                <div key={i} className="nested-item">
+                                  <strong>{formatarData(obterDataProcedimento(f))}</strong>
+                                  {detalhesFerrar ? ` - ${detalhesFerrar}` : ''}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {r.repregos.length > 0 && (
+                          <div className="nested-block">
+                            <h5>Reprego</h5>
+
+                            {r.repregos.map((rp, i) => {
+                              const patas = obterPatasReprego(rp);
+                              const observacao = obterObservacao(rp);
+
+                              return (
+                                <div key={i} className="nested-item">
+                                  <strong>{formatarData(obterDataProcedimento(rp))}</strong>
+                                  {patas ? ` - ${patas}` : ''}
+                                  {observacao ? ` - Obs.: ${observacao}` : ''}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {r.curativos.length > 0 && (
+                          <div className="nested-block">
+                            <h5>Curativo</h5>
+
+                            {r.curativos.map((c, i) => {
+                              const detalhesCurativo = montarDetalhesCurativo(c);
+
+                              return (
+                                <div key={i} className="nested-item">
+                                  <strong>{formatarData(obterDataProcedimento(c))}</strong>
+                                  {detalhesCurativo ? ` - ${detalhesCurativo}` : ''}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </section>
                     )}
 

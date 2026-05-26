@@ -713,7 +713,7 @@ const VeterinariaEquinoList = () => {
 
   const confirmarBaixaEquino = (equino) => {
     if (equino.situacao === SITUACAO.BAIXADO) {
-      setMensagemAviso(`Atenção! O equino "${equino.nome}" já está com situação Baixado.`);
+      setMensagemAviso(`Atenção! O equino "${equino.nome}" já está com status Baixado.`);
       setModalAvisoAberto(true);
       return;
     }
@@ -763,7 +763,7 @@ const VeterinariaEquinoList = () => {
       setModalSucessoSituacaoAberto(true);
     } catch (error) {
       console.error('Erro ao alterar situação do equino:', error);
-      setMensagemAviso('Erro ao alterar a situação do equino.');
+      setMensagemAviso('Erro ao alterar status do equino.');
       setModalAvisoAberto(true);
     }
   };

@@ -50,7 +50,7 @@ const rotas = () => {
         <Route path="/escala-equinos-List" element={<VeterinariaEscalaEquinoList />} />
         <Route path="/carga-horaria-equino" element={<GraficoCargaHorariaEquino />} />
         <Route path="/veterinaria-equinos-aptos-com-restricao" element={<VeterinariaEquinosAptosComRestricao />} />
-        <Route path="/veterinaria-Equinos-Baixados" element={<VeterinariaEquinosBaixadosList />} />
+        <Route path="/veterinaria-equinos-baixados" element={<VeterinariaEquinosBaixadosList />} />
         <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm />} />
         <Route path="/consultar-relatorios" element={<VeterinariaRelatorioServicoList/>} />
         <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino />} />
