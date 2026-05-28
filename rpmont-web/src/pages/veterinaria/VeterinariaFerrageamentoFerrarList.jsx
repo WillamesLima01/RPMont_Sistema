@@ -295,6 +295,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
             <th>Tipo</th>
             <th>Ferros</th>
             <th>Cravos</th>
+            <th>Tam. Ferradura</th>
             <th>Observações</th>
             <th className="text-end">Ações</th>
           </tr>
@@ -322,6 +323,7 @@ const VeterinariaFerrageamentoFerrarList = () => {
                 <td>{item.tipoFerrageamento || '-'}</td>
                 <td>{item.ferros ?? '-'}</td>
                 <td>{item.cravos ?? '-'}</td>
+                <td>{item.numeroFerro ?? '-'}</td>
                 <td>{item.observacoes || '-'}</td>
 
                 <td className="text-end">

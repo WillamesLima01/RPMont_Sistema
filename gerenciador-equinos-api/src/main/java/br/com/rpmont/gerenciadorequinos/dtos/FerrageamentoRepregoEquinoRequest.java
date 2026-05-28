@@ -10,17 +10,24 @@ public record FerrageamentoRepregoEquinoRequest(
         @NotNull(message = "O equinoId é obrigatório.")
         Long equinoId,
 
+        Long ferrageamentoOrigemId,
+
         @NotNull(message = "Informe ao menos uma pata.")
         List<String> patas,
 
         @NotNull(message = "Informe se utilizou ferro novo.")
         String ferroNovo,
 
+        String numeroFerro,
+
+        @NotNull(message = "A quantidade de ferraduras é obrigatória.")
+        @Min(value = 0, message = "A quantidade de ferraduras não pode ser negativa.")
+        Integer quantidadeFerraduras,
+
         @NotNull(message = "A quantidade de cravos usados é obrigatória.")
         @Min(value = 0, message = "A quantidade de cravos usados não pode ser negativa.")
         Integer cravosUsados,
 
         String observacoes
-
 ) {
 }

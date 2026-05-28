@@ -186,7 +186,7 @@ const Navbar = () => {
                 <li><hr className="dropdown-divider" /></li>
 
                 <li className="dropdown-header text-muted fw-bold">Procedimentos Realizados</li>
-                <li><Link to="/veterinaria-toalete-list" className="dropdown-item">Toalete</Link></li>
+                <li><Link to="/toalete-list" className="dropdown-item">Toalete</Link></li>
                 <li><Link to="/vermifugacao-list" className="dropdown-item">Vermifugação</Link></li>
                 <li><Link to="/vacinacao-list" className="dropdown-item">Vacinação</Link></li>
 

@@ -23,8 +23,9 @@ public class FerrageamentoRepregoEquino implements Serializable {
     private Long id;
 
     @ElementCollection
-    @CollectionTable(name = "ferrageamento_reprego_equino_patas",
-                        joinColumns = @JoinColumn(name = "ferrageamento_reprego_id")
+    @CollectionTable(
+            name = "ferrageamento_reprego_equino_patas",
+            joinColumns = @JoinColumn(name = "ferrageamento_reprego_id")
     )
     @Column(name = "pata", nullable = false)
     private List<String> patas;
@@ -32,8 +33,17 @@ public class FerrageamentoRepregoEquino implements Serializable {
     @Column(name = "ferro_novo", nullable = false, length = 20)
     private String ferroNovo;
 
+    @Column(name = "numero_ferro", length = 30)
+    private String numeroFerro;
+
+    @Column(name = "quantidade_ferraduras", nullable = false)
+    private Integer quantidadeFerraduras = 0;
+
     @Column(name = "cravos_usados", nullable = false)
     private Integer cravosUsados;
+
+    @Column(name = "ferrageamento_origem_id")
+    private Long ferrageamentoOrigemId;
 
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;

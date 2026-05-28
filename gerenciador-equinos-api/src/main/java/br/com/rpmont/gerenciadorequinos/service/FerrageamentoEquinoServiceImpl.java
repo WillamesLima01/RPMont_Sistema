@@ -38,6 +38,7 @@ public class FerrageamentoEquinoServiceImpl implements FerrageamentoEquinoServic
         salvarFerrageamento.setTipoFerrageamento(ferrageamentoEquinoRequest.tipoFerrageamento());
         salvarFerrageamento.setFerros(ferrageamentoEquinoRequest.ferros());
         salvarFerrageamento.setCravos(ferrageamentoEquinoRequest.cravos());
+        salvarFerrageamento.setNumeroFerro(ferrageamentoEquinoRequest.numeroFerro());
         salvarFerrageamento.setObservacoes(ferrageamentoEquinoRequest.observacoes());
         salvarFerrageamento.setDataProximoProcedimento(ferrageamentoEquinoRequest.dataProximoProcedimento());
 
@@ -81,6 +82,7 @@ public class FerrageamentoEquinoServiceImpl implements FerrageamentoEquinoServic
         ferrageamentoExistente.setTipoFerrageamento(ferrageamentoEquinoRequest.tipoFerrageamento());
         ferrageamentoExistente.setFerros(ferrageamentoEquinoRequest.ferros());
         ferrageamentoExistente.setCravos(ferrageamentoEquinoRequest.cravos());
+        ferrageamentoExistente.setNumeroFerro(ferrageamentoEquinoRequest.numeroFerro());
         ferrageamentoExistente.setObservacoes(ferrageamentoEquinoRequest.observacoes());
         ferrageamentoExistente.setDataProximoProcedimento(ferrageamentoEquinoRequest.dataProximoProcedimento());
 
@@ -109,6 +111,7 @@ public class FerrageamentoEquinoServiceImpl implements FerrageamentoEquinoServic
                 salvarFerrageamento.getTipoFerrageamento(),
                 salvarFerrageamento.getFerros(),
                 salvarFerrageamento.getCravos(),
+                salvarFerrageamento.getNumeroFerro(),
                 salvarFerrageamento.getObservacoes(),
                 salvarFerrageamento.getDataProximoProcedimento(),
                 salvarFerrageamento.getDataCadastro(),

@@ -4,6 +4,7 @@ import axios from '../../api';
 import html2pdf from 'html2pdf.js';
 import './Veterinaria.css';
 import { useNavigate } from 'react-router-dom';
+import brasaoRPMont from '../../assets/RPMONTBrasao.png';
 
 const VeterinariaRelatorioEquino = () => {
   const [equinos, setEquinos] = useState([]);
@@ -193,26 +194,41 @@ const VeterinariaRelatorioEquino = () => {
 
   const montarDetalhesFerrar = (item) => {
     const detalhes = [];
-
-    if (item?.tipoFerradura) detalhes.push(`Ferradura: ${item.tipoFerradura}`);
-    if (item?.tipoCravo) detalhes.push(`Cravo: ${item.tipoCravo}`);
-    if (item?.tipoJustura) detalhes.push(`Justura: ${item.tipoJustura}`);
-    if (item?.tipoFerrageamento) detalhes.push(`Tipo: ${item.tipoFerrageamento}`);
-
-    if (item?.ferros !== null && item?.ferros !== undefined && item?.ferros !== '') {
-      detalhes.push(`Ferros: ${item.ferros}`);
+  
+    if (item?.tipoFerradura) {
+      detalhes.push(`Ferradura: ${item.tipoFerradura}`);
     }
-
+  
+    if (item?.numeroFerro) {
+      detalhes.push(`Tamanho da ferradura: Nº ${item.numeroFerro}`);
+    }
+  
+    if (item?.ferros !== null && item?.ferros !== undefined && item?.ferros !== '') {
+      detalhes.push(`Qtd. Ferraduras: ${item.ferros}`);
+    }
+  
+    if (item?.tipoCravo) {
+      detalhes.push(`Cravo: ${item.tipoCravo}`);
+    }
+  
+    if (item?.tipoJustura) {
+      detalhes.push(`Justura: ${item.tipoJustura}`);
+    }
+  
+    if (item?.tipoFerrageamento) {
+      detalhes.push(`Tipo: ${item.tipoFerrageamento}`);
+    }
+  
     if (item?.cravos !== null && item?.cravos !== undefined && item?.cravos !== '') {
       detalhes.push(`Cravos: ${item.cravos}`);
     }
-
+  
     const observacao = obterObservacao(item);
-
+  
     if (observacao) {
       detalhes.push(`Obs.: ${observacao}`);
     }
-
+  
     return detalhes.join(' - ');
   };
 
@@ -230,6 +246,26 @@ const VeterinariaRelatorioEquino = () => {
     }
 
     return detalhes.join(' - ');
+  };
+
+  const valorBooleanoVerdadeiro = (valor) => {
+    return valor === true;
+  };
+
+  const montarProcedimentosToalete = (item) => {
+    const procedimentos = [];
+
+    if (valorBooleanoVerdadeiro(item?.tosa)) procedimentos.push('Tosa');
+    if (valorBooleanoVerdadeiro(item?.banho)) procedimentos.push('Banho');
+    if (valorBooleanoVerdadeiro(item?.limpezaOuvidos)) procedimentos.push('Ouvidos');
+    if (valorBooleanoVerdadeiro(item?.limpezaGenital)) procedimentos.push('Genital');
+    if (valorBooleanoVerdadeiro(item?.limpezaCascos)) procedimentos.push('Cascos');
+    if (valorBooleanoVerdadeiro(item?.ripagemCrina)) procedimentos.push('Rip. Crina');
+    if (valorBooleanoVerdadeiro(item?.ripagemCola)) procedimentos.push('Rip. Cola');
+    if (valorBooleanoVerdadeiro(item?.escovacao)) procedimentos.push('Escovação');
+    if (valorBooleanoVerdadeiro(item?.rasqueamento)) procedimentos.push('Rasqueamento');
+
+    return procedimentos;
   };
 
   const converterParaData = (data, horario = '12:00:00') => {
@@ -605,12 +641,33 @@ const VeterinariaRelatorioEquino = () => {
     ? equinos.find((eq) => String(eq.id) === String(filtroEquino))?.nome || 'Desconhecido'
     : 'Todos os equinos';
 
+  const limparCampos = () => {
+    setFiltroEquino('');
+    setFiltroInicio('');
+    setFiltroFim('');
+    setEnfTexto('');
+    setAbrirSugestoes(false);
+
+    setTiposSelecionados({
+      atendimentos: true,
+      medicacoes: true,
+      vermifugacoes: true,
+      vacinacoes: true,
+      toaletes: true,
+      ferrageamentos: true,
+      escalas: true,
+      baixas: true,
+    });
+
+    setResultado(null);
+    setTotalOcorrenciasEnf(null);
+  };
+
   return (
     <div className="container-fluid mt-page">
       <Navbar />
 
       <div className="relatorio-page">
-        {/* PAINEL DE FILTROS - NÃO IMPRIME */}
         <div className="relatorio-card shadow-sm rounded-4 bg-white p-4 no-print">
           <h2 className="mb-4 text-primary">Relatório de Equinos</h2>
 
@@ -739,32 +796,48 @@ const VeterinariaRelatorioEquino = () => {
             </div>
           </div>
 
-          <div className="d-flex justify-content-end gap-3">
+          <div className="d-flex justify-content-end gap-3 flex-wrap">
             <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
               Voltar
             </button>
+
+            <button className="btn btn-outline-warning" onClick={limparCampos}>
+              Limpar Campos
+            </button>
+
             <button className="btn btn-success" onClick={gerarRelatorio}>
               Gerar Relatório
             </button>
+
             <button className="btn btn-outline-primary" onClick={imprimir}>
               Imprimir
             </button>
+
             <button className="btn btn-outline-secondary" onClick={gerarPDF}>
               Gerar PDF
             </button>
           </div>
         </div>
 
-        {/* ÁREA PROFISSIONAL DE IMPRESSÃO */}
         {resultado && (
           <div ref={divRef} className="relatorio-print-area bg-white rounded-4 shadow-sm p-4 mt-4">
             <div className="print-header">
-              <div className="print-header-top">
-                <div>
-                  <div className="print-org">Regimento Coronel Calixto</div>
-                  <h1 className="print-title">Relatório de Equinos</h1>
+              <div className="print-brasao-area">
+                <img
+                  src={brasaoRPMont}
+                  alt="Brasão do Regimento de Policiamento Montado - Cel. Calixto"
+                  className="print-brasao"
+                />
+
+                <div className="print-org">
+                  Regimento de Polícia Montada - Cel. Calixto
                 </div>
-                <div className="print-date">Emitido em: {dataAtualImpressao}</div>
+
+                <h1 className="print-title">Relatório de Equinos</h1>
+              </div>
+
+              <div className="print-date print-date-center">
+                Emitido em: {dataAtualImpressao}
               </div>
 
               <div className="print-meta-grid">
@@ -775,12 +848,16 @@ const VeterinariaRelatorioEquino = () => {
 
                 <div className="print-meta-item">
                   <span className="meta-label">Período Inicial</span>
-                  <span className="meta-value">{filtroInicio ? formatarData(filtroInicio) : 'Não informado'}</span>
+                  <span className="meta-value">
+                    {filtroInicio ? formatarData(filtroInicio) : 'Não informado'}
+                  </span>
                 </div>
 
                 <div className="print-meta-item">
                   <span className="meta-label">Período Final</span>
-                  <span className="meta-value">{filtroFim ? formatarData(filtroFim) : 'Não informado'}</span>
+                  <span className="meta-value">
+                    {filtroFim ? formatarData(filtroFim) : 'Não informado'}
+                  </span>
                 </div>
 
                 <div className="print-meta-item">
@@ -859,11 +936,13 @@ const VeterinariaRelatorioEquino = () => {
                     {r.atendimentos.length > 0 && (
                       <section className="print-section">
                         <h4>Atendimentos</h4>
+
                         {r.atendimentos.map((a, i) => (
                           <div key={i} className="print-item">
                             <div className="item-title">
                               <strong>{formatarData(obterDataAtendimento(a))}</strong> — {a.textoConsulta || '—'}
                             </div>
+
                             {a.enfermidade && (
                               <div className="item-subline">
                                 <strong>Enfermidade:</strong> {a.enfermidade}
@@ -890,6 +969,7 @@ const VeterinariaRelatorioEquino = () => {
                     {r.vermifugacoes.length > 0 && (
                       <section className="print-section">
                         <h4>Vermifugações</h4>
+
                         {r.vermifugacoes.map((v, i) => (
                           <div key={i} className="print-item">
                             <strong>{formatarData(obterDataProcedimento(v))}</strong> — {v.vermifugo || '—'}
@@ -905,6 +985,7 @@ const VeterinariaRelatorioEquino = () => {
                     {r.vacinacoes.length > 0 && (
                       <section className="print-section">
                         <h4>Vacinações</h4>
+
                         {r.vacinacoes.map((v, i) => (
                           <div key={i} className="print-item">
                             <strong>{formatarData(obterDataProcedimento(v))}</strong> — {v.nomeVacina || '—'}
@@ -920,15 +1001,38 @@ const VeterinariaRelatorioEquino = () => {
                     {r.toaletes.length > 0 && (
                       <section className="print-section">
                         <h4>Toaletes</h4>
-                        {r.toaletes.map((t, i) => (
-                          <div key={i} className="print-item">
-                            <strong>{formatarData(obterDataProcedimento(t))}</strong>
-                            {t.dataProximoProcedimento
-                              ? ` | Próximo procedimento: ${formatarData(t.dataProximoProcedimento)}`
-                              : ''}
-                            {obterObservacao(t) ? ` | Obs.: ${obterObservacao(t)}` : ''}
-                          </div>
-                        ))}
+
+                        {r.toaletes.map((t, i) => {
+                          const procedimentosRealizados = montarProcedimentosToalete(t);
+                          const observacao = obterObservacao(t);
+
+                          return (
+                            <div key={i} className="print-item">
+                              <div className="item-title">
+                                <strong>{formatarData(obterDataProcedimento(t))}</strong>
+                              </div>
+
+                              {procedimentosRealizados.length > 0 && (
+                                <div className="item-subline">
+                                  <strong>Procedimentos:</strong> {procedimentosRealizados.join(', ')}
+                                </div>
+                              )}
+
+                              {t.dataProximoProcedimento && (
+                                <div className="item-subline">
+                                  <strong>Próximo procedimento:</strong>{' '}
+                                  {formatarData(t.dataProximoProcedimento)}
+                                </div>
+                              )}
+
+                              {observacao && (
+                                <div className="item-subline">
+                                  <strong>Observação:</strong> {observacao}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </section>
                     )}
 
@@ -994,6 +1098,7 @@ const VeterinariaRelatorioEquino = () => {
                     {r.baixas.length > 0 && (
                       <section className="print-section">
                         <h4>Baixas</h4>
+
                         {r.baixas.map((b, i) => (
                           <div key={i} className="print-item">
                             {b.dataRetorno === '—' ? (
@@ -1013,6 +1118,7 @@ const VeterinariaRelatorioEquino = () => {
                     {r.escalas.length > 0 && (
                       <section className="print-section">
                         <h4>Escalas</h4>
+
                         {r.escalas.map((s, i) => (
                           <div key={i} className="print-item">
                             <strong>{formatarData(obterDataEscala(s))}</strong> — {s.localTrabalho || '—'}, {s.jornadaTrabalho || '—'}, Cavaleiro: {s.cavaleiro || '—'}

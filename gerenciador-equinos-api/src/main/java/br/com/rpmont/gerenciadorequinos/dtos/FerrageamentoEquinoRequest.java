@@ -30,6 +30,9 @@ public record FerrageamentoEquinoRequest(
         @Min(value = 0, message = "A quantidade de cravos não pode ser negativa.")
         Integer cravos,
 
+        @NotNull(message = "O Número do ferro é obrigatória.")
+        String numeroFerro,
+
         String observacoes,
 
         LocalDate dataProximoProcedimento

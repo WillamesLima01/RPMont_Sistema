@@ -41,6 +41,9 @@ public class FerrageamentoEquino implements Serializable {
     @Column(name = "cravos", nullable = false)
     private Integer cravos;
 
+    @Column(name = "numero_ferro", length = 30)
+    private String numeroFerro;
+
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 

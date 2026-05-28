@@ -14,6 +14,7 @@ public record FerrageamentoEquinoResponse(
         String tipoFerrageamento,
         Integer ferros,
         Integer cravos,
+        String numeroFerro,
         String observacoes,
         LocalDate dataProximoProcedimento,
         LocalDateTime dataCadastro,

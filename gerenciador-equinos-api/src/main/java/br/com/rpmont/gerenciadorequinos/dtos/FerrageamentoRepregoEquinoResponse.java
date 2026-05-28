@@ -8,9 +8,15 @@ public record FerrageamentoRepregoEquinoResponse(
         Long id,
         Long equinoId,
         String nomeEquino,
+
+        Long ferrageamentoOrigemId,
+
         List<String> patas,
         String ferroNovo,
+        String numeroFerro,
+        Integer quantidadeFerraduras,
         Integer cravosUsados,
+
         String observacoes,
         LocalDateTime dataCadastro,
         LocalDateTime atualizadoEm
