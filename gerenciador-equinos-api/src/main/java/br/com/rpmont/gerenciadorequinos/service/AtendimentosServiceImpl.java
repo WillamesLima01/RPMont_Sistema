@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -72,14 +74,55 @@ public class AtendimentosServiceImpl implements AtendimentosService {
         return toResponse(atendimentoExistente);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public List<AtendimentosResponse> filtrarAtendimentos(
             Long equinoId,
             LocalDate dataInicio,
             LocalDate dataFim
     ) {
-        return atendimentosRepository.filtrarAtendimentos(equinoId, dataInicio, dataFim)
+
+        Specification<Atendimentos> specification =
+                (root, query, criteriaBuilder) ->
+                        criteriaBuilder.isFalse(root.get("excluido"));
+
+        if (equinoId != null) {
+            specification = specification.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.equal(
+                                    root.get("equino").get("id"),
+                                    equinoId
+                            )
+            );
+        }
+
+        if (dataInicio != null) {
+            specification = specification.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.greaterThanOrEqualTo(
+                                    root.get("dataAtendimento"),
+                                    dataInicio
+                            )
+            );
+        }
+
+        if (dataFim != null) {
+            specification = specification.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.lessThanOrEqualTo(
+                                    root.get("dataAtendimento"),
+                                    dataFim
+                            )
+            );
+        }
+
+        return atendimentosRepository.findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Direction.DESC,
+                                "dataAtendimento"
+                        )
+                )
                 .stream()
                 .map(this::toResponse)
                 .toList();

@@ -119,15 +119,11 @@ const VeterinariaEquinosBaixadosList = () => {
         data_baixa: baixasAtivasMap.get(String(eq.id)),
       }));
   
-    if (filtroNome) {
-      const termo = filtroNome.toLowerCase().trim();
-      lista = lista.filter(
-        (eq) =>
-          String(eq.id).includes(termo) ||
-          (eq.nome || '').toLowerCase().includes(termo) ||
-          (eq.registro || '').toLowerCase().includes(termo)
-      );
-    }
+      if (filtroNome) {
+        lista = lista.filter(
+          (eq) => String(eq.id) === String(filtroNome)
+        );
+      }
   
     if (filtroInicio) {
       lista = lista.filter((eq) => eq.data_baixa >= filtroInicio);
