@@ -14,10 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 @Service
 @RequiredArgsConstructor
-public class EquinoServiceImpl implements EquinoService{
+public class EquinoServiceImpl implements EquinoService {
 
     private final EquinoRepository equinoRepository;
 
@@ -29,9 +28,10 @@ public class EquinoServiceImpl implements EquinoService{
                 equinoRequest.nome(),
                 equinoRequest.dataNascimento())) {
 
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Equino já cadastrado no banco de dados!");
-
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Equino já cadastrado no banco de dados!"
+            );
         }
 
         Equino cadastrarEquino = new Equino();
@@ -41,12 +41,15 @@ public class EquinoServiceImpl implements EquinoService{
         cadastrarEquino.setRaca(equinoRequest.raca());
         cadastrarEquino.setDataNascimento(equinoRequest.dataNascimento());
         cadastrarEquino.setRegistro(equinoRequest.registro());
-        cadastrarEquino.setRegistro(equinoRequest.registro());
         cadastrarEquino.setPelagem(equinoRequest.pelagem());
         cadastrarEquino.setPeso(equinoRequest.peso());
         cadastrarEquino.setLocal(equinoRequest.local());
         cadastrarEquino.setSexo(equinoRequest.sexo());
         cadastrarEquino.setSituacao(equinoRequest.situacao());
+
+        cadastrarEquino.setFotoLadoEsquerdo(equinoRequest.fotoLadoEsquerdo());
+        cadastrarEquino.setFotoLadoDireito(equinoRequest.fotoLadoDireito());
+        cadastrarEquino.setFotoChanfro(equinoRequest.fotoChanfro());
 
         Equino equinoCadastrado = equinoRepository.save(cadastrarEquino);
 
@@ -58,8 +61,10 @@ public class EquinoServiceImpl implements EquinoService{
     public Equino buscarEquinoId(Long id) {
 
         return equinoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado!"
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -95,20 +100,32 @@ public class EquinoServiceImpl implements EquinoService{
     public EquinoResponse atualizarEquino(Long id, EquinoRequest equinoRequest) {
 
         Equino equinoExistente = equinoRepository.findById(id)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Equino não encontrado!"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Equino não encontrado!"
+                ));
+
+        if (Boolean.TRUE.equals(equinoExistente.getExcluido())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível atualizar um equino excluído."
+            );
+        }
 
         equinoExistente.setNome(equinoRequest.nome());
         equinoExistente.setAltura(equinoRequest.altura());
         equinoExistente.setRaca(equinoRequest.raca());
         equinoExistente.setDataNascimento(equinoRequest.dataNascimento());
         equinoExistente.setRegistro(equinoRequest.registro());
-        equinoExistente.setRegistro(equinoRequest.registro());
         equinoExistente.setPelagem(equinoRequest.pelagem());
         equinoExistente.setPeso(equinoRequest.peso());
         equinoExistente.setLocal(equinoRequest.local());
         equinoExistente.setSexo(equinoRequest.sexo());
         equinoExistente.setSituacao(equinoRequest.situacao());
+
+        equinoExistente.setFotoLadoEsquerdo(equinoRequest.fotoLadoEsquerdo());
+        equinoExistente.setFotoLadoDireito(equinoRequest.fotoLadoDireito());
+        equinoExistente.setFotoChanfro(equinoRequest.fotoChanfro());
 
         Equino equinoAtualizado = equinoRepository.save(equinoExistente);
 
@@ -118,6 +135,7 @@ public class EquinoServiceImpl implements EquinoService{
     @Transactional
     @Override
     public void excluirEquinoId(Long id) {
+
         Equino equinoExistente = equinoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -136,7 +154,16 @@ public class EquinoServiceImpl implements EquinoService{
                 equino.getNome(),
                 equino.getAltura(),
                 equino.getRaca(),
+                equino.getDataNascimento(),
+                equino.getRegistro(),
+                equino.getPelagem(),
+                equino.getPeso(),
+                equino.getLocal(),
+                equino.getSexo(),
                 equino.getSituacao(),
+                equino.getFotoLadoEsquerdo(),
+                equino.getFotoLadoDireito(),
+                equino.getFotoChanfro(),
                 equino.getDataCadastro(),
                 equino.getAtualizadoEm()
         );

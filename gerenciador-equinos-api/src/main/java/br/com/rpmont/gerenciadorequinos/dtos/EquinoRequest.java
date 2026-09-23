@@ -2,7 +2,11 @@ package br.com.rpmont.gerenciadorequinos.dtos;
 
 import br.com.rpmont.gerenciadorequinos.enums.PelagemEquinoEnum;
 import br.com.rpmont.gerenciadorequinos.enums.SexoEquinoEnum;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
@@ -35,10 +39,16 @@ public record EquinoRequest(
         @Size(max = 80, message = "O local não pode ter mais de 80 caracteres")
         String local,
 
-       @NotNull(message = "O sexo deve ser informado")
-       SexoEquinoEnum sexo,
+        @NotNull(message = "O sexo deve ser informado")
+        SexoEquinoEnum sexo,
 
         @NotBlank(message = "Informe a situação")
-        String situacao
+        String situacao,
+
+        String fotoLadoEsquerdo,
+
+        String fotoLadoDireito,
+
+        String fotoChanfro
 ) {
 }

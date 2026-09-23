@@ -32,6 +32,7 @@ import VeterinariaEntradaMedicamentoList from './pages/veterinaria/VeterinariaEn
 import VeterinariaRelatorioMedicamento from './pages/veterinaria/VeterinariaRelatorioMedicamento.jsx';
 import VeterinariaSaidaMedicamentoList from './pages/veterinaria/VeterinariaSaidaMedicamentoList.jsx';
 import VeterinariaEquinosAptosComRestricao from './pages/veterinaria/VeterinariaEquinosAptosComRestricao.jsx';
+import VeterinariaRelatorioResenha from './pages/veterinaria/VeterinariaRelatorioResenha.jsx';
 
 const rotas = () => {
 
@@ -65,6 +66,7 @@ const rotas = () => {
         <Route path="/ferrageamento-form/:id" element={<VeterinariaFerrageamentoEquinoForm />} />    
         <Route path="/ferrageamento-form/:tipo/:id" element={<VeterinariaFerrageamentoEquinoForm />} /> 
         <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm />} />  
+        <Route path="/resenha-descritiva-equina" element={<VeterinariaRelatorioResenha />} /> 
         <Route path="/grafico-carga-horaria-equino-anual" element={<GraficoCargaHorariaEquinoAnual />} /> 
         <Route path="/grafico-carga-horaria-equino-anual-unico" element={<GraficoCargaHorariaEquinoAnualUnico />} />                               
         <Route path="/medicamento-form" element={<VeterinariaMedicamentoForm />} />

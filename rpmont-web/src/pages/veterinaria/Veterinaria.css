@@ -1077,3 +1077,770 @@
     margin-bottom: 12px;
   }
 }
+
+.resenha-relatorio-page {
+  padding: 24px 10px;
+}
+
+.resenha-relatorio-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.resenha-relatorio-vazio {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #777;
+  gap: 15px;
+}
+
+.resenha-relatorio-vazio i {
+  font-size: 65px;
+  color: #0d6efd;
+  opacity: 0.45;
+}
+
+.resenha-relatorio-documento {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 28px;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+.resenha-relatorio-cabecalho {
+  text-align: center;
+  border-bottom: 2px solid #222;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+.resenha-relatorio-cabecalho h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.resenha-relatorio-cabecalho p {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+
+.resenha-relatorio-dados {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.resenha-relatorio-dados > div {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.resenha-relatorio-dados strong {
+  font-size: 12px;
+  color: #555;
+}
+
+.resenha-relatorio-dados span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.resenha-relatorio-imagens {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.resenha-relatorio-imagens > div {
+  text-align: center;
+}
+
+.resenha-relatorio-imagens img {
+  width: 100%;
+  height: 270px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #f8f9fa;
+}
+
+.resenha-relatorio-imagens span {
+  display: block;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.resenha-relatorio-texto {
+  border-top: 2px solid #222;
+  padding-top: 18px;
+}
+
+.resenha-relatorio-texto h5 {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.resenha-relatorio-texto p {
+  white-space: pre-wrap;
+  text-align: justify;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .resenha-relatorio-dados {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .resenha-relatorio-imagens {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .no-print,
+  nav,
+  .navbar {
+    display: none !important;
+  }
+
+  .container-fluid,
+  .resenha-relatorio-page {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .resenha-relatorio-documento {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 6mm !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .resenha-relatorio-cabecalho {
+    margin-bottom: 4mm !important;
+    padding-bottom: 3mm !important;
+  }
+
+  .resenha-relatorio-cabecalho h2 {
+    font-size: 16pt !important;
+    margin: 0 !important;
+  }
+
+  .resenha-relatorio-cabecalho p {
+    font-size: 9pt !important;
+    margin: 1mm 0 0 !important;
+  }
+
+  .resenha-relatorio-dados {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 2mm !important;
+    margin-bottom: 4mm !important;
+  }
+
+  .resenha-relatorio-dados > div {
+    padding: 2mm 3mm !important;
+    min-height: auto !important;
+  }
+
+  .resenha-relatorio-dados strong {
+    font-size: 7pt !important;
+  }
+
+  .resenha-relatorio-dados span {
+    font-size: 9pt !important;
+  }
+
+  .resenha-relatorio-imagens {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4mm !important;
+
+    margin: 0 0 4mm !important;
+
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .resenha-relatorio-imagens > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .resenha-relatorio-imagens img {
+    width: 100% !important;
+    height: 55mm !important;
+
+    object-fit: contain !important;
+
+    border: 1px solid #999 !important;
+    border-radius: 2mm !important;
+
+    background: #fff !important;
+  }
+
+  .resenha-relatorio-imagens span {
+    margin-top: 1.5mm !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important;
+  }
+
+  .resenha-relatorio-texto {
+    margin-top: 2mm !important;
+    padding-top: 3mm !important;
+
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .resenha-relatorio-texto h5 {
+    font-size: 10pt !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .resenha-relatorio-texto p {
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+
+    white-space: pre-wrap !important;
+  }
+}
+/* =========================================================
+   CADASTRO / EDIÇÃO DE EQUINO - FOTOS + FORMULÁRIO
+   ========================================================= */
+
+   .pagina-cadastro-equino {
+    min-height: 100vh;
+    padding: 88px 20px 44px;
+    background:
+      radial-gradient(circle at top left, rgba(13, 110, 253, 0.16), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(88, 166, 255, 0.12), transparent 28%),
+      linear-gradient(135deg, #edf3ff 0%, #f8fbff 48%, #eef4ff 100%);
+  }
+  
+  .cadastro-equino-wrapper {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+  }
+  
+  .cadastro-equino-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  
+  .cadastro-equino-hero-icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: #0d6efd;
+    background: rgba(13, 110, 253, 0.1);
+    box-shadow: 0 10px 24px rgba(13, 110, 253, 0.12);
+    font-size: 1.45rem;
+  }
+  
+  .cadastro-equino-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #0d6efd;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1.15;
+  }
+  
+  .cadastro-equino-subtitulo {
+    color: #53627a;
+    font-size: 0.94rem;
+    margin: 3px 0 0;
+  }
+  
+  .cadastro-equino-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(190, 209, 239, 0.9);
+    border-radius: 24px;
+    box-shadow: 0 18px 44px rgba(20, 61, 114, 0.11);
+    padding: 22px;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  }
+  
+  .cadastro-equino-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 54px rgba(20, 61, 114, 0.16);
+    border-color: rgba(13, 110, 253, 0.28);
+  }
+  
+  .cadastro-equino-card + .cadastro-equino-card {
+    margin-top: 18px;
+  }
+  
+  .cadastro-equino-card-header {
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e2ebf8;
+  }
+  
+  .premium-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .premium-header-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    color: #0d6efd;
+    background: #edf5ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  
+  .cadastro-equino-card-header h4 {
+    color: #0d6efd;
+    font-weight: 900;
+    font-size: 1.2rem;
+    margin: 0 0 3px;
+  }
+  
+  .cadastro-equino-card-header p {
+    color: #65758f;
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  
+  /* FOTOS EM LINHA */
+  
+  .cadastro-equino-card-fotos-horizontal {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 255, 0.98));
+  }
+  
+  .equino-fotos-grid-horizontal {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  
+  .equino-foto-card-horizontal {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #dbe7f7;
+    border-radius: 18px;
+    padding: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .equino-foto-card-horizontal:hover {
+    transform: translateY(-3px);
+    border-color: rgba(13, 110, 253, 0.38);
+    box-shadow: 0 14px 28px rgba(13, 61, 125, 0.1);
+  }
+  
+  .equino-foto-card-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+  
+  .equino-foto-card-topo h6 {
+    color: #143a68;
+    font-weight: 900;
+    margin: 0;
+  }
+  
+  .equino-foto-card-topo small {
+    color: #667891;
+    font-size: 0.78rem;
+  }
+  
+  .equino-foto-preview-horizontal {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: #ffffff;
+    border: 1px dashed #b5c9e8;
+    border-radius: 15px;
+  }
+  
+  .equino-foto-preview-horizontal img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+  
+  .equino-foto-preview-horizontal:hover img {
+    transform: scale(1.035);
+    filter: brightness(0.72);
+  }
+  
+  .equino-foto-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 28, 55, 0.58);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    opacity: 0;
+    transition: opacity 0.22s ease;
+  }
+  
+  .equino-foto-overlay svg {
+    font-size: 1.35rem;
+  }
+  
+  .equino-foto-preview-horizontal:hover .equino-foto-overlay {
+    opacity: 1;
+  }
+  
+  .btn-remover-foto-equino {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 10px;
+    background: #fff1f1;
+    color: #dc3545;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .btn-remover-foto-equino:hover {
+    background: #ffd9d9;
+    transform: scale(1.04);
+  }
+  
+  .cadastro-equino-dica {
+    margin-top: 14px;
+    padding: 10px 13px;
+    border: 1px solid #cfe4ff;
+    border-radius: 14px;
+    background: #eef6ff;
+    color: #31577f;
+    font-size: 0.86rem;
+  }
+  
+  /* FORMULÁRIO */
+  
+  .cadastro-equino-card-form-wide {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(252, 254, 255, 0.98));
+  }
+  
+  .cadastro-equino-card-form .form-label {
+    color: #0d6efd;
+    font-weight: 800;
+    font-size: 0.86rem;
+  }
+  
+  .cadastro-equino-card-form .form-control,
+  .cadastro-equino-card-form .form-select,
+  .cadastro-equino-card-form .input-group-text {
+    border-color: #d8e2f2;
+    border-radius: 10px;
+  }
+  
+  .cadastro-equino-card-form .form-control,
+  .cadastro-equino-card-form .form-select {
+    min-height: 38px;
+  }
+  
+  .cadastro-equino-card-form .form-control:focus,
+  .cadastro-equino-card-form .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.12);
+  }
+  
+  .cadastro-equino-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  
+  .cadastro-equino-acoes .btn {
+    min-width: 112px;
+    border-radius: 10px;
+    font-weight: 800;
+  }
+  
+  /* RESPONSIVIDADE */
+  
+  @media (max-width: 992px) {
+    .pagina-cadastro-equino {
+      padding-top: 94px;
+    }
+  
+    .equino-fotos-grid-horizontal {
+      grid-template-columns: 1fr;
+    }
+  
+    .equino-foto-preview-horizontal {
+      height: 210px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .pagina-cadastro-equino {
+      padding: 88px 14px 34px;
+    }
+  
+    .cadastro-equino-hero {
+      align-items: flex-start;
+    }
+  
+    .cadastro-equino-hero-icon {
+      display: none;
+    }
+  
+    .cadastro-equino-card {
+      padding: 18px;
+      border-radius: 20px;
+    }
+  
+    .cadastro-equino-acoes {
+      justify-content: stretch;
+    }
+  
+    .cadastro-equino-acoes .btn {
+      flex: 1;
+    }
+  }
+
+  /* =========================================================
+   MODAL DE IMAGEM AMPLIADA - CADASTRO EQUINO
+   ========================================================= */
+
+.equino-foto-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-ampliar-foto-equino,
+.btn-remover-foto-equino {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-ampliar-foto-equino {
+  background: #eef6ff;
+  color: #0d6efd;
+}
+
+.btn-ampliar-foto-equino:hover {
+  background: #d9ebff;
+  transform: scale(1.04);
+}
+
+.btn-remover-foto-equino {
+  background: #fff1f1;
+  color: #dc3545;
+}
+
+.btn-remover-foto-equino:hover {
+  background: #ffd9d9;
+  transform: scale(1.04);
+}
+
+.overlay-imagem-equino {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 18, 38, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-imagem-equino {
+  width: min(980px, 96vw);
+  max-height: 92vh;
+  outline: none;
+}
+
+.modal-imagem-equino-conteudo {
+  background: #ffffff;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.modal-imagem-equino-header {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e3ebf7;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.modal-imagem-equino-header h4 {
+  margin: 0;
+  color: #0d6efd;
+  font-weight: 900;
+  text-align: center;
+}
+
+.modal-imagem-equino-header-spacer {
+  width: 38px;
+  height: 38px;
+}
+
+.btn-fechar-imagem-equino {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #1f2937;
+  font-size: 28px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-fechar-imagem-equino:hover {
+  background: #e2e8f0;
+  transform: scale(1.04);
+}
+
+.modal-imagem-equino-body {
+  padding: 18px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-imagem-equino-body img {
+  max-width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.modal-imagem-equino-header {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e3ebf7;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.modal-imagem-equino-header h4 {
+  margin: 0;
+  color: #0d6efd;
+  font-weight: 900;
+  text-align: center;
+}
+
+.btn-imprimir-imagem-equino,
+.btn-fechar-imagem-equino {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-imprimir-imagem-equino {
+  background: #eef6ff;
+  color: #0d6efd;
+  font-size: 1rem;
+}
+
+.btn-imprimir-imagem-equino:hover {
+  background: #d9ebff;
+  transform: scale(1.04);
+}
+
+.btn-fechar-imagem-equino {
+  background: #f1f5f9;
+  color: #1f2937;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.btn-fechar-imagem-equino:hover {
+  background: #e2e8f0;
+  transform: scale(1.04);
+}

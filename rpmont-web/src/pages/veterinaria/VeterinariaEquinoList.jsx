@@ -494,21 +494,25 @@ const VeterinariaEquinoList = () => {
   useEffect(() => {
     switch (location.pathname) {
       case '/equino-list':
-        setBotoes(['editar', 'excluir', 'baixar', 'escalas', 'rd']);
+        if (filtroQuery === 'todos') {
+          setBotoes(['editar', 'excluir', 'baixar', 'rd']);
+        } else {
+          setBotoes(['editar', 'excluir', 'baixar', 'escalas', 'rd']);
+        }
         break;
-
+  
       case '/veterinaria-Equinos-Baixados':
         setBotoes(['atendimento', 'retorno']);
         break;
-
+  
       case '/manejo-sanitario-list':
         setBotoes(['toalete', 'ferrageamento', 'vermifugacao', 'vacinacao']);
         break;
-
+  
       default:
         setBotoes([]);
     }
-  }, [location.pathname]);
+  }, [location.pathname, filtroQuery]);
 
   const aplicarFiltro = (termoRaw) => {
     const termoTrim = (termoRaw || '').trim();

@@ -60,7 +60,12 @@ const VeterinariaEscalaEquino = () => {
 
   const salvarEscala = (e) => {
     e.preventDefault();
-    const cargaHoraria = calcularCargaHoraria(jornadaInicio, jornadaFim);
+  
+    const cargaHoraria = calcularCargaHoraria(
+      jornadaInicio,
+      jornadaFim
+    );
+  
     const data = {
       equinoId: id,
       localTrabalho,
@@ -70,23 +75,28 @@ const VeterinariaEscalaEquino = () => {
       observacao,
       data: new Date().toISOString().split('T')[0]
     };
-
+  
     const requisicao = modoEdicao
       ? axios.put(`/escala/${escalaId}`, data)
       : axios.post('/escala', data);
-
-    requisicao.then(() => {
-      setModalAberto(true);
-      setTimeout(() => {
-        setModalAberto(false);
-        navigate("/escala-equinos-List");
-      }, 2000);
-    }).catch(err => console.error("Erro ao salvar escala:", err));
+  
+    requisicao
+      .then(() => {
+        setModalAberto(true);
+  
+        setTimeout(() => {
+          setModalAberto(false);
+          navigate('/escala-equinos-List');
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error('Erro ao salvar escala:', err);
+      });
   };
 
   const cancelar = () => {
 
-    {modoEdicao ? navigate("/escala-equinos-List") : navigate("/veterinaria-List")}
+    {modoEdicao ? navigate("/escala-equinos-List") : navigate("/equino-list")}
     
   };
 

@@ -39,7 +39,6 @@ public class Equino implements Serializable {
     @Column(name = "registro", nullable = false, length = 50)
     private String registro;
 
-
     @Column(name = "pelagem", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private PelagemEquinoEnum pelagem;
@@ -57,18 +56,29 @@ public class Equino implements Serializable {
     @Column(name = "situacao", nullable = false, length = 50)
     private String situacao;
 
+    @Lob
+    @Column(name = "foto_lado_esquerdo", columnDefinition = "TEXT")
+    private String fotoLadoEsquerdo;
+
+    @Lob
+    @Column(name = "foto_lado_direito", columnDefinition = "TEXT")
+    private String fotoLadoDireito;
+
+    @Lob
+    @Column(name = "foto_chanfro", columnDefinition = "TEXT")
+    private String fotoChanfro;
+
     @Column(name = "data_cadastro", nullable = false)
     @CreationTimestamp
     private LocalDateTime dataCadastro;
 
     @Column(name = "atualizado_em")
     @UpdateTimestamp
-    private LocalDateTime AtualizadoEm;
+    private LocalDateTime atualizadoEm;
 
     @Column(name = "excluido", nullable = false)
     private Boolean excluido = false;
 
     @Column(name = "data_exclusao")
     private LocalDateTime dataExclusao;
-
 }
