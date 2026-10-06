@@ -37,6 +37,7 @@ public class ResenhaDescritivaServiceImpl implements ResenhaDescritivaService{
         ResenhaDescritiva resenhaDescritiva = new ResenhaDescritiva();
 
         resenhaDescritiva.setDescricao(resenhaDescritivaRequest.descricao());
+        resenhaDescritiva.setMarcacoes(resenhaDescritivaRequest.marcacoes());
         resenhaDescritiva.setImgChanfro(resenhaDescritivaRequest.imgChanfro());
         resenhaDescritiva.setImg_lado_direito(resenhaDescritivaRequest.imgladoDireito());
         resenhaDescritiva.setImg_lado_esquerdo(resenhaDescritivaRequest.imgladoEsquerdo());
@@ -62,6 +63,7 @@ public class ResenhaDescritivaServiceImpl implements ResenhaDescritivaService{
 
 
         resenhaDescritiva.setDescricao(resenhaDescritivaRequest.descricao());
+        resenhaDescritiva.setMarcacoes(resenhaDescritivaRequest.marcacoes());
         resenhaDescritiva.setImgChanfro(resenhaDescritivaRequest.imgChanfro());
         resenhaDescritiva.setImg_lado_direito(resenhaDescritivaRequest.imgladoDireito());
         resenhaDescritiva.setImg_lado_esquerdo(resenhaDescritivaRequest.imgladoEsquerdo());
@@ -94,6 +96,7 @@ public class ResenhaDescritivaServiceImpl implements ResenhaDescritivaService{
                 resenhaDescritiva.getId(),
                 resenhaDescritiva.getEquino().getId(),
                 resenhaDescritiva.getDescricao(),
+                resenhaDescritiva.getMarcacoes(),
                 resenhaDescritiva.getImgChanfro(),
                 resenhaDescritiva.getImg_lado_direito(),
                 resenhaDescritiva.getImg_lado_esquerdo()

@@ -3,9 +3,8 @@ import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
 import jsPDF from 'jspdf';
 
-import imgChanfro from '../../assets/imgChanfro.png';
-import imgLadoDireito from '../../assets/imgLadoDireito.png';
-import imgLadoEsquerdo from '../../assets/imgLadoEsquerdo.png';
+import resenhaDescritiva from '../../assets/resenhaDescritiva.png';
+import { lerMarcacoes, SimboloResenha, LARGURA_RESENHA, ALTURA_RESENHA, corSinal, fimVisivel, pontaSeta, resumoSinal, tamanhoArea, pontosArea } from './ResenhaGrafica';
 
 import './Veterinaria.css';
 
@@ -172,23 +171,6 @@ const VeterinariaRelatorioResenha = () => {
       img.src = src;
     });
   };
-
-  const obterImgChanfro = () =>
-    resenha?.imgChanfro ||
-    resenha?.img_chanfro ||
-    imgChanfro;
-
-  const obterImgLadoDireito = () =>
-    resenha?.imgladoDireito ||
-    resenha?.imgLadoDireito ||
-    resenha?.img_lado_direito ||
-    imgLadoDireito;
-
-  const obterImgLadoEsquerdo = () =>
-    resenha?.imgladoEsquerdo ||
-    resenha?.imgLadoEsquerdo ||
-    resenha?.img_lado_esquerdo ||
-    imgLadoEsquerdo;
 
   const gerarPDF = async () => {
     if (!equino || !resenha) {
@@ -381,138 +363,78 @@ const VeterinariaRelatorioResenha = () => {
         13
       );
 
-      /*
-       * CARREGAMENTO DAS IMAGENS
-       */
-      const imagens =
-        await Promise.all([
-          carregarImagemComoDataURL(
-            obterImgChanfro()
-          ),
-
-          carregarImagemComoDataURL(
-            obterImgLadoDireito()
-          ),
-
-          carregarImagemComoDataURL(
-            obterImgLadoEsquerdo()
-          )
-        ]);
-
-      /*
-       * FOTO DO CHANFRO
-       */
-      const larguraChanfro = 65;
-      const alturaChanfro = 55;
-
-      const xChanfro =
-        (larguraPagina -
-          larguraChanfro) /
-        2;
-
-      const yChanfro = 70;
-
-      if (imagens[0]) {
-        doc.addImage(
-          imagens[0],
-          'JPEG',
-          xChanfro,
-          yChanfro,
-          larguraChanfro,
-          alturaChanfro
-        );
-      }
-
-      doc.setFontSize(9);
-
-      doc.text(
-        'Chanfro',
-        larguraPagina / 2,
-        yChanfro +
-          alturaChanfro +
-          5,
-        {
-          align: 'center'
+      const marcacoes = lerMarcacoes(resenha.marcacoes);
+      const larguraImagem = larguraPagina - margem * 2;
+      const alturaImagem = larguraImagem * ALTURA_RESENHA / LARGURA_RESENHA;
+      const yImagem = 70;
+      const imagem = await carregarImagemComoDataURL(resenhaDescritiva);
+      doc.addImage(imagem, 'JPEG', margem, yImagem, larguraImagem, alturaImagem);
+      const escala = larguraImagem / LARGURA_RESENHA;
+      doc.setLineWidth(0.7);
+      marcacoes.forEach((item, indice) => {
+        const x = margem + item.x * escala;
+        const yPonto = yImagem + item.y * escala;
+        const raio = 25 * escala;
+        const vermelho = corSinal(item.tipo) === '#c62828';
+        doc.setDrawColor(vermelho ? 198 : 36, vermelho ? 40 : 43, vermelho ? 40 : 53);
+        doc.setTextColor(vermelho ? 198 : 36, vermelho ? 40 : 43, vermelho ? 40 : 53);
+        if (item.tipo === 'circulo') doc.circle(x, yPonto, raio);
+        if (item.tipo === 'quadrado') doc.rect(x - raio, yPonto - raio, raio * 2, raio * 2);
+        if (['x', 'rodopio'].includes(item.tipo) || item.tipo === 'espiga' && item.comRodopio !== false) {
+          doc.line(x - raio, yPonto - raio, x + raio, yPonto + raio);
+          doc.line(x + raio, yPonto - raio, x - raio, yPonto + raio);
         }
-      );
-
-      /*
-       * IMAGENS LATERAIS
-       */
-      const larguraLateral = 82;
-      const alturaLateral = 55;
-
-      const espacamento = 8;
-
-      const larguraTotal =
-        larguraLateral * 2 +
-        espacamento;
-
-      const xInicial =
-        (larguraPagina -
-          larguraTotal) /
-        2;
-
-      const yLateral = 137;
-
-      if (imagens[1]) {
-        doc.addImage(
-          imagens[1],
-          'JPEG',
-          xInicial,
-          yLateral,
-          larguraLateral,
-          alturaLateral
-        );
-      }
-
-      if (imagens[2]) {
-        doc.addImage(
-          imagens[2],
-          'JPEG',
-          xInicial +
-            larguraLateral +
-            espacamento,
-          yLateral,
-          larguraLateral,
-          alturaLateral
-        );
-      }
-
-      doc.text(
-        'Lado Direito',
-        xInicial +
-          larguraLateral / 2,
-        yLateral +
-          alturaLateral +
-          5,
-        {
-          align: 'center'
+        if (item.tipo === 'espiga') {
+          const fim = fimVisivel(item);
+          doc.line(x, yPonto, margem + fim.x * escala, yImagem + fim.y * escala);
         }
-      );
-
-      doc.text(
-        'Lado Esquerdo',
-        xInicial +
-          larguraLateral +
-          espacamento +
-          larguraLateral / 2,
-        yLateral +
-          alturaLateral +
-          5,
-        {
-          align: 'center'
+        if (item.tipo === 'golpe_lanca') {
+          doc.line(x, yPonto - 28 * escala, x + 27 * escala, yPonto + 22 * escala);
+          doc.line(x + 27 * escala, yPonto + 22 * escala, x - 27 * escala, yPonto + 22 * escala);
+          doc.line(x - 27 * escala, yPonto + 22 * escala, x, yPonto - 28 * escala);
         }
-      );
-
-      /*
-       * RESENHA DESCRITIVA
-       */
-      const yDescricao =
-        yLateral +
-        alturaLateral +
-        16;
-
+        if (item.tipo === 'cicatriz') {
+          const fim = fimVisivel(item);
+          const [a, b] = pontaSeta(item);
+          const pdfX = (p) => margem + p.x * escala;
+          const pdfY = (p) => yImagem + p.y * escala;
+          doc.line(x, yPonto, pdfX(fim), pdfY(fim));
+          doc.line(pdfX(a), pdfY(a), pdfX(fim), pdfY(fim));
+          doc.line(pdfX(b), pdfY(b), pdfX(fim), pdfY(fim));
+        }
+        if (['mancha_branca', 'despigmentacao'].includes(item.tipo) && (!item.pontos || item.pontos.length < 3)) {
+          doc.setFillColor(247, 207, 207);
+          doc.ellipse(x, yPonto, 32 * escala * tamanhoArea(item), 22 * escala * tamanhoArea(item), item.tipo === 'despigmentacao' ? 'FD' : 'S');
+        }
+        if (item.tipo === 'calcado' && (!item.pontos || item.pontos.length < 2)) {
+          doc.setLineWidth(1.1);
+          const fim = fimVisivel(item);
+          doc.line(x, yPonto, margem + fim.x * escala, yImagem + fim.y * escala);
+          doc.setLineWidth(0.7);
+        }
+        if (['mancha_branca', 'despigmentacao'].includes(item.tipo) && item.pontos?.length >= 3 || item.tipo === 'calcado' && item.pontos?.length > 1) {
+          const pontos = item.tipo === 'calcado' ? item.pontos : pontosArea(item);
+          for (let i = 1; i < pontos.length; i++) {
+            const anterior = pontos[i - 1]; const atual = pontos[i];
+            doc.line(margem + anterior.x * escala, yImagem + anterior.y * escala,
+              margem + atual.x * escala, yImagem + atual.y * escala);
+          }
+          if (item.tipo === 'despigmentacao') {
+            doc.setFillColor(247, 207, 207);
+            const passos = pontos.slice(1).map((p, i) => [(p.x - pontos[i].x) * escala, (p.y - pontos[i].y) * escala]);
+            doc.lines(passos, margem + pontos[0].x * escala, yImagem + pontos[0].y * escala, [1, 1], 'FD', true);
+          }
+          if (item.tipo !== 'calcado') {
+            const ultimo = pontos.at(-1); const primeiro = pontos[0];
+            doc.line(margem + ultimo.x * escala, yImagem + ultimo.y * escala,
+              margem + primeiro.x * escala, yImagem + primeiro.y * escala);
+          }
+        }
+        doc.setFontSize(9);
+        doc.text(String(indice + 1), Math.min(x + raio + 1, larguraPagina - margem - 3), Math.max(yPonto - raio, yImagem + 3));
+      });
+      doc.setTextColor(0, 0, 0);
+      let yDescricao = yImagem + alturaImagem + 12;
       doc.setDrawColor(200);
 
       doc.line(
@@ -553,11 +475,29 @@ const VeterinariaRelatorioResenha = () => {
             margem * 2
         );
 
-      doc.text(
-        linhas,
-        margem,
-        yDescricao + 7
-      );
+      const escreverLinhas = (textoLinhas, inicio) => {
+        let posicao = inicio;
+        textoLinhas.forEach((linha) => {
+          if (posicao > alturaPagina - 20) { doc.addPage(); posicao = 18; }
+          doc.text(linha, margem, posicao);
+          posicao += 5;
+        });
+        return posicao;
+      };
+      yDescricao = escreverLinhas(linhas, yDescricao + 7);
+      if (marcacoes.length) {
+        yDescricao += 5;
+        if (yDescricao > alturaPagina - 20) { doc.addPage(); yDescricao = 18; }
+        doc.setFont('helvetica', 'bold');
+        doc.text('Sinais identificadores', margem, yDescricao);
+        doc.setFont('helvetica', 'normal');
+        yDescricao += 7;
+        marcacoes.forEach((item, indice) => {
+          const rotulo = resumoSinal(item);
+          yDescricao = escreverLinhas(doc.splitTextToSize(`${indice + 1}. ${rotulo}: ${item.descricao || ''}`, larguraImagem), yDescricao);
+          yDescricao += 2;
+        });
+      }
 
       /*
        * RODAPÉ
@@ -804,42 +744,23 @@ const VeterinariaRelatorioResenha = () => {
 
               </div>
 
-              <div className="resenha-relatorio-imagens">
-
-                <div>
-                  <img
-                    src={obterImgChanfro()}
-                    alt="Chanfro"
-                  />
-
-                  <span>
-                    Chanfro
-                  </span>
-                </div>
-
-                <div>
-                  <img
-                    src={obterImgLadoDireito()}
-                    alt="Lado Direito"
-                  />
-
-                  <span>
-                    Lado Direito
-                  </span>
-                </div>
-
-                <div>
-                  <img
-                    src={obterImgLadoEsquerdo()}
-                    alt="Lado Esquerdo"
-                  />
-
-                  <span>
-                    Lado Esquerdo
-                  </span>
-                </div>
-
+              <div className="my-4">
+                <svg viewBox={`0 0 ${LARGURA_RESENHA} ${ALTURA_RESENHA}`}
+                  style={{ width: '100%', height: 'auto' }} role="img" aria-label="Resenha gráfica do equino">
+                  <image href={resenhaDescritiva} width={LARGURA_RESENHA} height={ALTURA_RESENHA} />
+                  {lerMarcacoes(resenha.marcacoes).map((item, indice) => <g key={item.id || indice}>
+                    <SimboloResenha item={item} />
+                    <text x={item.x + 30} y={item.y - 20} fill={corSinal(item.tipo)} stroke="white"
+                      strokeWidth="5" paintOrder="stroke" fontWeight="bold" fontSize="32">{indice + 1}</text>
+                  </g>)}
+                </svg>
               </div>
+              {lerMarcacoes(resenha.marcacoes).length > 0 && <div className="resenha-relatorio-texto">
+                <h5>Sinais identificadores</h5>
+                <ol>{lerMarcacoes(resenha.marcacoes).map((item, indice) => <li key={item.id || indice}>
+                  {resumoSinal(item)}: {item.descricao}
+                </li>)}</ol>
+              </div>}
 
               <div className="resenha-relatorio-texto">
 

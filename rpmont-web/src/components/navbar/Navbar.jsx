@@ -139,7 +139,7 @@ const Navbar = () => {
 
               <ul className="dropdown-menu">
                 <li>
-                  <Link to="/medicamentoForm" className="dropdown-item">
+                  <Link to="/medicamento-Form" className="dropdown-item">
                     Cadastrar Medicamentos
                   </Link>
                 </li>

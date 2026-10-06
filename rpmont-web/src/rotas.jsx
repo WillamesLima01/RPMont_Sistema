@@ -38,46 +38,46 @@ const rotas = () => {
 
   return (
     <BrowserRouter>
-      <Routes>        
-        <Route path="/" element={<Grafico />} />    
-        <Route path="/administrador" element={<UsuariosList />} />
-        <Route path="/equino-list" element={<VeterinariaEquinoList />} />
-        <Route path="/equino-form" element={<VeterinariaForm />} />
-        <Route path="/equino-form/:id" element={<VeterinariaForm />} />
-        <Route path="/atendimento-list" element={<VeterinariaAtendimentoList />} />
-        <Route path="/atendimento-equino/:id" element={<VeterinariaAtendimento />} />
-        <Route path="/edit-atendimento/:id" element={<VeterinariaAtendimento />} />
-        <Route path="/escala-equinos/:id" element={<VeterinariaEscalaEquinoForm />} />
-        <Route path="/escala-equinos-List" element={<VeterinariaEscalaEquinoList />} />
-        <Route path="/carga-horaria-equino" element={<GraficoCargaHorariaEquino />} />
-        <Route path="/veterinaria-equinos-aptos-com-restricao" element={<VeterinariaEquinosAptosComRestricao />} />
-        <Route path="/veterinaria-equinos-baixados" element={<VeterinariaEquinosBaixadosList />} />
-        <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm />} />
+      <Routes>
+        <Route path="/" element={<Login/>} />
+        <Route path="/administrador" element={<UsuariosList/>} />
+        <Route path="/equino-list" element={<VeterinariaEquinoList/>} />
+        <Route path="/equino-form" element={<VeterinariaForm/>} />
+        <Route path="/equino-form/:id" element={<VeterinariaForm/>} />
+        <Route path="/atendimento-list" element={<VeterinariaAtendimentoList/>} />
+        <Route path="/atendimento-equino/:id" element={<VeterinariaAtendimento/>} />
+        <Route path="/edit-atendimento/:id" element={<VeterinariaAtendimento/>} />
+        <Route path="/escala-equinos/:id" element={<VeterinariaEscalaEquinoForm/>} />
+        <Route path="/escala-equinos-List" element={<VeterinariaEscalaEquinoList/>} />
+        <Route path="/carga-horaria-equino" element={<GraficoCargaHorariaEquino/>} />
+        <Route path="/veterinaria-equinos-aptos-com-restricao" element={<VeterinariaEquinosAptosComRestricao/>} />
+        <Route path="/veterinaria-equinos-baixados" element={<VeterinariaEquinosBaixadosList/>} />
+        <Route path="/relatorio-servico" element={<VeterinariaRelatorioServicoForm/>} />
         <Route path="/consultar-relatorios" element={<VeterinariaRelatorioServicoList/>} />
-        <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino />} />
-        <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList />} />    
-        <Route path="/toalete-form/:id" element={<VeterinariaToaleteForm />} />     
-        <Route path="/toalete-List" element={<VeterinariaToaleteList />} />
-        <Route path="/ferrageamento-ferrar-list" element={<VeterinariaFerrageamentoFerrarList />} />  
-        <Route path="/ferrageamento-reprego-list" element={<VeterinariaFerrageamentoRepregoList />} />  
-        <Route path="/ferrageamento-curativo-list" element={<VeterinariaFerrageamentoCurativoList />} />  
-        <Route path="/vermifugacao-list" element={<VeterinariaVermifugacaoList />} />  
-        <Route path="/vacinacao-list" element={<VeterinariaVacinacaoList />} />  
-        <Route path="/ferrageamento-form/:id" element={<VeterinariaFerrageamentoEquinoForm />} />    
-        <Route path="/ferrageamento-form/:tipo/:id" element={<VeterinariaFerrageamentoEquinoForm />} /> 
-        <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm />} />  
-        <Route path="/resenha-descritiva-equina" element={<VeterinariaRelatorioResenha />} /> 
-        <Route path="/grafico-carga-horaria-equino-anual" element={<GraficoCargaHorariaEquinoAnual />} /> 
-        <Route path="/grafico-carga-horaria-equino-anual-unico" element={<GraficoCargaHorariaEquinoAnualUnico />} />                               
-        <Route path="/medicamento-form" element={<VeterinariaMedicamentoForm />} />
-        <Route path="/medicamento-form/:medicamentoId" element={<VeterinariaMedicamentoForm />} />
-        <Route path="/entrada-medicamento-form/:medicamentoId" element={<VeterinariaEntradaMedicamentoForm />} />
-        <Route path="/entrada-medicamento-form/editar/:entradaId" element={<VeterinariaEntradaMedicamentoForm />} />
-        <Route path="/medicamento-list" element={<VeterinariaMedicamentoList />} />
-        <Route path="/entrada-medicamento-list" element={<VeterinariaEntradaMedicamentoList />} />
-        <Route path="/saida-medicamento-list" element={<VeterinariaSaidaMedicamentoList />} />        
-        <Route path="/medicamento-relatorio" element={<VeterinariaRelatorioMedicamento />} />
-        <Route path="/inicio" element={<Grafico />} />          
+        <Route path="/relatorio-equinos" element={<VeterinariaRelatorioEquino/>} />
+        <Route path="/manejo-sanitario-list" element={<VeterinariaEquinoList/>} />
+        <Route path="/toalete-form/:id" element={<VeterinariaToaleteForm/>} />
+        <Route path="/toalete-List" element={<VeterinariaToaleteList/>} />
+        <Route path="/ferrageamento-ferrar-list" element={<VeterinariaFerrageamentoFerrarList/>} />
+        <Route path="/ferrageamento-reprego-list" element={<VeterinariaFerrageamentoRepregoList/>} />
+        <Route path="/ferrageamento-curativo-list" element={<VeterinariaFerrageamentoCurativoList/>} />
+        <Route path="/vermifugacao-list" element={<VeterinariaVermifugacaoList/>} />
+        <Route path="/vacinacao-list" element={<VeterinariaVacinacaoList/>} />
+        <Route path="/ferrageamento-form/:id" element={<VeterinariaFerrageamentoEquinoForm/>} />
+        <Route path="/ferrageamento-form/:tipo/:id" element={<VeterinariaFerrageamentoEquinoForm/>} />
+        <Route path="/veterinaria-resenha-equino/:id" element={<VeterinariaResenhaEquinoForm/>} />
+        <Route path="/resenha-descritiva-equina" element={<VeterinariaRelatorioResenha/>} />
+        <Route path="/grafico-carga-horaria-equino-anual" element={<GraficoCargaHorariaEquinoAnual/>} />
+        <Route path="/grafico-carga-horaria-equino-anual-unico" element={<GraficoCargaHorariaEquinoAnualUnico/>} />
+        <Route path="/medicamento-form" element={<VeterinariaMedicamentoForm/>} />
+        <Route path="/medicamento-form/:medicamentoId" element={<VeterinariaMedicamentoForm/>} />
+        <Route path="/entrada-medicamento-form/:medicamentoId" element={<VeterinariaEntradaMedicamentoForm/>} />
+        <Route path="/entrada-medicamento-form/editar/:entradaId" element={<VeterinariaEntradaMedicamentoForm/>} />
+        <Route path="/medicamento-list" element={<VeterinariaMedicamentoList/>} />
+        <Route path="/entrada-medicamento-list" element={<VeterinariaEntradaMedicamentoList/>} />
+        <Route path="/saida-medicamento-list" element={<VeterinariaSaidaMedicamentoList/>} />
+        <Route path="/medicamento-relatorio" element={<VeterinariaRelatorioMedicamento/>} />
+        <Route path="/inicio" element={<Grafico/>} />
       </Routes>
     </BrowserRouter>
   );

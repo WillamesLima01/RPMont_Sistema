@@ -23,6 +23,9 @@ public class ResenhaDescritiva {
     @Column(name = "descricao", columnDefinition = "TEXT", nullable = false)
     private String descricao;
 
+    @Column(name = "marcacoes", columnDefinition = "TEXT")
+    private String marcacoes;
+
     @Lob
     @Column(name = "img_chanfro", columnDefinition = "TEXT")
     private String imgChanfro;

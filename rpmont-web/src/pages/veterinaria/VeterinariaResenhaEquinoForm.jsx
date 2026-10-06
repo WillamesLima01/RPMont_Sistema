@@ -4,9 +4,7 @@ import axios from '../../api';
 import Navbar from '../../components/navbar/Navbar';
 import Modal from 'react-modal';
 import { FaCheckCircle } from 'react-icons/fa';
-import imgChanfro from '../../assets/imgChanfro.png';
-import imgLadoDireito from '../../assets/imgLadoDireito.png';
-import imgLadoEsquerdo from '../../assets/imgLadoEsquerdo.png';
+import ResenhaGrafica, { lerMarcacoes } from './ResenhaGrafica';
 import './Veterinaria.css';
 
 Modal.setAppElement('#root');
@@ -18,9 +16,12 @@ const VeterinariaResenhaEquinoForm = () => {
   const [equino, setEquino] = useState(null);
   const [resenha, setResenha] = useState('');
   const [resenhaId, setResenhaId] = useState(null);
+  const [marcacoes, setMarcacoes] = useState([]);
+  const [imagensAnteriores, setImagensAnteriores] = useState({});
 
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [sinalPendente, setSinalPendente] = useState(false);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState('');
@@ -35,12 +36,7 @@ const VeterinariaResenhaEquinoForm = () => {
 
         const dadosEquino = equinoRes.data;
 
-        setEquino({
-          ...dadosEquino,
-          imagem1: '',
-          imagem2: '',
-          imagem3: '',
-        });
+        setEquino(dadosEquino);
 
         // 2. Tenta buscar a resenha já existente
         try {
@@ -53,31 +49,20 @@ const VeterinariaResenhaEquinoForm = () => {
           setResenhaId(dadosResenha.id);
           setResenha(dadosResenha.descricao || '');
 
-          setEquino((prev) => ({
-            ...prev,
-
-            imagem1:
-              dadosResenha.imgChanfro ||
-              '',
-
-            imagem2:
-              dadosResenha.imgladoDireito ||
-              dadosResenha.imgLadoDireito ||
-              dadosResenha.img_lado_direito ||
-              '',
-
-            imagem3:
-              dadosResenha.imgladoEsquerdo ||
-              dadosResenha.imgLadoEsquerdo ||
-              dadosResenha.img_lado_esquerdo ||
-              '',
-          }));
+          setMarcacoes(lerMarcacoes(dadosResenha.marcacoes));
+          setImagensAnteriores({
+            imgChanfro: dadosResenha.imgChanfro || '',
+            imgladoDireito: dadosResenha.imgLadoDireito || dadosResenha.imgladoDireito || '',
+            imgladoEsquerdo: dadosResenha.imgLadoEsquerdo || dadosResenha.imgladoEsquerdo || '',
+          });
         } catch (error) {
           // 404 significa apenas que este equino
           // ainda não possui uma resenha cadastrada.
           if (error.response?.status === 404) {
             setResenhaId(null);
             setResenha('');
+            setMarcacoes([]);
+            setImagensAnteriores({});
           } else {
             throw error;
           }
@@ -95,38 +80,10 @@ const VeterinariaResenhaEquinoForm = () => {
     buscarEquinoEresenha();
   }, [id]);
 
-  const handleImageClick = (imgField) => {
-    const input = document.createElement('input');
-
-    input.type = 'file';
-    input.accept = 'image/*';
-
-    input.onchange = (e) => {
-      const file = e.target.files?.[0];
-
-      if (!file) {
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = (event) => {
-        setEquino((prev) => ({
-          ...prev,
-          [imgField]: event.target.result,
-        }));
-      };
-
-      reader.readAsDataURL(file);
-    };
-
-    input.click();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!equino) {
+    if (!equino || sinalPendente) {
       return;
     }
 
@@ -136,9 +93,8 @@ const VeterinariaResenhaEquinoForm = () => {
       const payload = {
         id: equino.id,
         descricao: resenha,
-        imgChanfro: equino.imagem1 || '',
-        imgladoDireito: equino.imagem2 || '',
-        imgladoEsquerdo: equino.imagem3 || '',
+        marcacoes: JSON.stringify(marcacoes),
+        ...imagensAnteriores,
       };
 
       if (resenhaId) {
@@ -228,7 +184,7 @@ const VeterinariaResenhaEquinoForm = () => {
         {/* COLUNA ESQUERDA - DADOS DO EQUINO */}
         <div
           className="bloco-flutuante flex-fill"
-          style={{ minWidth: '300px' }}
+          style={{ flex: '1 1 280px', minWidth: 0 }}
         >
           <h5 className="text-primary fw-bold mb-3">
             Dados do Equino
@@ -286,56 +242,9 @@ const VeterinariaResenhaEquinoForm = () => {
         {/* COLUNA DIREITA - IMAGENS + RESENHA */}
         <div
           className="bloco-flutuante flex-fill"
-          style={{ minWidth: '300px' }}
+          style={{ flex: '2 1 600px', minWidth: 0 }}
         >
-          <h5 className="text-primary fw-bold mb-3">
-            Imagens do Equino
-          </h5>
-
-          <div className="d-flex justify-content-between flex-wrap mb-4">
-
-            <img
-              name="imagem1"
-              src={
-                equino.imagem1 ||
-                imgChanfro
-              }
-              className="imagem chanfro"
-              alt="Chanfro"
-              title="Clique para adicionar ou alterar a imagem do chanfro"
-              onClick={() =>
-                handleImageClick('imagem1')
-              }
-            />
-
-            <img
-              name="imagem2"
-              src={
-                equino.imagem2 ||
-                imgLadoDireito
-              }
-              className="imagem"
-              alt="Lado Direito"
-              title="Clique para adicionar ou alterar a imagem do lado direito"
-              onClick={() =>
-                handleImageClick('imagem2')
-              }
-            />
-
-            <img
-              name="imagem3"
-              src={
-                equino.imagem3 ||
-                imgLadoEsquerdo
-              }
-              className="imagem"
-              alt="Lado Esquerdo"
-              title="Clique para adicionar ou alterar a imagem do lado esquerdo"
-              onClick={() =>
-                handleImageClick('imagem3')
-              }
-            />
-          </div>
+          <ResenhaGrafica marcacoes={marcacoes} onChange={setMarcacoes} onPendingChange={setSinalPendente} />
 
           <div className="mb-3">
             <label
@@ -363,7 +272,7 @@ const VeterinariaResenhaEquinoForm = () => {
               type="button"
               className="btn btn-secondary"
               onClick={() => navigate(-1)}
-              disabled={salvando}
+              disabled={salvando || sinalPendente}
             >
               Cancelar
             </button>
@@ -372,7 +281,7 @@ const VeterinariaResenhaEquinoForm = () => {
               type="button"
               className="btn btn-success"
               onClick={handleSubmit}
-              disabled={salvando}
+              disabled={salvando || sinalPendente}
             >
               {salvando
                 ? 'Salvando...'
